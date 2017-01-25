@@ -3,14 +3,6 @@
 import heapq
 import random
 
-class Polymer:
-
-    def __init__(self, name, length, features):
-        # Polymers are always modeled individually, so copy_number of 1
-        self.length = length
-        self.features = features
-
-
 class Polymerase:
 
     def __init__(self, name, start, footprint, speed):
@@ -32,41 +24,48 @@ class Feature:
         self.stop = stop
         self.interactions = interactions
 
-class Tracker:
+class Polymer:
 
-    def __init__(self, polymer, polymerase):
-        self.polymer = polymer
+    def __init__(self, name, length, features, polymerase):
+        self.name = name
+        self.length = length
+        self.features = features
         self.polymerases = []
         self.time = 0
         self.heap = []
-        self.occupancy = [0]*polymer.length
+        self.occupancy = [0]*self.length
         self.add_polymerase(polymerase)
 
     def add_polymerase(self, pol):
         self.polymerases.append(pol)
         for i in range(pol.start, pol.start + pol.footprint + 1):
             self.occupancy[i] = 1
+        self.push_polymerase(pol)
+
+    def push_polymerase(self, pol):
         heapq.heappush(self.heap, (self.calculate_time(pol), pol))
+
+    def pop_polymerase(self):
+        pol = heapq.heappop(self.heap)
+        return pol[0], pol[1]
 
     def calculate_time(self, pol):
         return self.time + random.expovariate(pol.speed)
 
     def execute(self):
-        next_pol = heapq.heappop(self.heap)
-        if self.check_collision(next_pol[1]) == False:
-            self.occupancy[next_pol[1].start] = 0
-            self.occupancy[next_pol[1].start + next_pol[1].footprint + 1] = 1
-            next_pol[1].move()
-        self.time = next_pol[0]
-        heapq.heappush(self.heap,
-                       (self.calculate_time(next_pol[1]), next_pol[1]))
+        time, pol = self.pop_polymerase()
+        if self.check_collision(pol) == False:
+            self.occupancy[pol.start] = 0
+            self.occupancy[pol.start + pol.footprint + 1] = 1
+            pol.move()
+        self.time = time
+        self.push_polymerase(pol)
 
     def check_collision(self, pol):
         if self.occupancy[pol.start + pol.footprint + 1] == 0:
             return False
         else:
             return True
-
 
     def __str__(self):
         out_string = "Polymerase position: "
@@ -83,17 +82,14 @@ def main():
     interactions = ["rna_pol"]
     promoter = Feature(1, 10, interactions)
     terminator = Feature(90, 100, interactions)
-
-    # Construct polymer
     features = [promoter, terminator]
-    polymer = Polymer("dna", 150, features)
 
     # Construct polymerases
     rna_pol = Polymerase("rna_pol", 1, 10, 10)
     rna_pol2 = Polymerase("rna_pol2", 40, 10, 1)
 
-    # Construct Tracker
-    tracker = Tracker(polymer, rna_pol)
+    # Construct polymer
+    tracker = Polymer("dna", 150, features, rna_pol)
     tracker.add_polymerase(rna_pol2)
 
     while(tracker.time < 20):
