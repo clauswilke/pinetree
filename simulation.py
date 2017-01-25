@@ -10,9 +10,16 @@ class Polymer:
 
 class Polymerase:
 
-    def __init__(self, name, footprint):
+    def __init__(self, name, start, footprint):
         self.name = name
         self.footprint = footprint
+        self.start = start
+
+    def move(self):
+        self.start += 1
+
+    def terminate(self):
+        pass
 
 class Feature:
 
@@ -25,12 +32,17 @@ class Tracker:
 
     def __init__(self, polymer, polymerase):
         self.polymer = polymer
-        self.polymerases = polymerase
+        self.polymerases = [polymerase]
 
-class PriorityQueue:
+    def execute(self):
+        next_polymerase = self.polymerases.pop()
+        next_polymerase.move()
+        self.polymerases.append(next_polymerase)
 
-    def __init__(self):
-        pass
+    def __str__(self):
+        out_string = "Polymerase position: " + str(self.polymerases[0].start)
+        return out_string
+
 
 def main():
 
@@ -44,13 +56,16 @@ def main():
     polymer = Polymer("dna", 150, features)
 
     # Construct polymerases
-    rna_pol = Polymerase("rna_pol", 10)
+    rna_pol = Polymerase("rna_pol", 1, 10)
 
     # Construct Tracker
     tracker = Tracker(polymer, rna_pol)
 
-    # Construct PriorityQueue
-    queue = PriorityQueue()
+    print(tracker)
+
+    tracker.execute()
+
+    print(tracker)
 
 if __name__ == "__main__":
     main()
