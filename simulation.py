@@ -1,42 +1,56 @@
 #! /usr/bin/env python3
 
-class Molecule:
-
-    def __init__(self, name, copy_number):
-        self.name = name
-        self.copy_number = copy_number
-
-class Polymer(Molecule):
+class Polymer:
 
     def __init__(self, name, length, features):
         # Polymers are always modeled individually, so copy_number of 1
-        super().__init__(name, 1)
         self.length = length
         self.features = features
 
 
-class Polymerase(Molecule):
+class Polymerase:
+
+    def __init__(self, name, footprint):
+        self.name = name
+        self.footprint = footprint
+
+class Feature:
+
+    def __init__(self, start, stop, interactions):
+        self.start = start
+        self.stop = stop
+        self.interactions = interactions
+
+class Tracker:
+
+    def __init__(self, polymer, polymerase):
+        self.polymer = polymer
+        self.polymerases = polymerase
+
+class PriorityQueue:
 
     def __init__(self):
         pass
 
-class Feature:
+def main():
 
-    def __init__(start, stop, interactions):
-        self.start = start
-        self.stop = stop
-        pass
+    # Construct features
+    interactions = ["rna_pol"]
+    promoter = Feature(1, 10, interactions)
+    terminator = Feature(90, 100, interactions)
 
-class Reaction:
+    # Construct polymer
+    features = [promoter, terminator]
+    polymer = Polymer("dna", 150, features)
 
-    def __init__(self, reactants):
-        self.reactants = reactant
+    # Construct polymerases
+    rna_pol = Polymerase("rna_pol", 10)
 
-    def execute(self):
-        pass
+    # Construct Tracker
+    tracker = Tracker(polymer, rna_pol)
 
-class Tracker(Reaction):
+    # Construct PriorityQueue
+    queue = PriorityQueue()
 
-    def __init__(self, polymer, polymerases):
-        self.polymer = polymer
-        self.polymerases = polymerases
+if __name__ == "__main__":
+    main()
