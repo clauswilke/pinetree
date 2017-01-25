@@ -1,5 +1,8 @@
 #! /usr/bin/env python3
 
+import heapq
+import random
+
 class Polymer:
 
     def __init__(self, name, length, features):
@@ -10,10 +13,11 @@ class Polymer:
 
 class Polymerase:
 
-    def __init__(self, name, start, footprint):
+    def __init__(self, name, start, footprint, speed):
         self.name = name
         self.footprint = footprint
         self.start = start
+        self.speed = speed
 
     def move(self):
         self.start += 1
@@ -33,14 +37,28 @@ class Tracker:
     def __init__(self, polymer, polymerase):
         self.polymer = polymer
         self.polymerases = [polymerase]
+        self.time = 0
+        self.heap = self.build_heap()
+
+    def build_heap(self):
+        heap = []
+        for pol in self.polymerases:
+            heapq.heappush(heap, (self.calculate_time(pol), pol))
+        return heap
+
+    def calculate_time(self, pol):
+        return self.time + random.expovariate(pol.speed)
 
     def execute(self):
-        next_polymerase = self.polymerases.pop()
-        next_polymerase.move()
-        self.polymerases.append(next_polymerase)
+        next_pol = heapq.heappop(self.heap)
+        next_pol[1].move()
+        self.time = next_pol[0]
+        heapq.heappush(self.heap,
+                       (self.calculate_time(next_pol[1]), next_pol[1]))
 
     def __str__(self):
         out_string = "Polymerase position: " + str(self.polymerases[0].start)
+        out_string += ", time: " + str(self.time)
         return out_string
 
 
@@ -56,16 +74,14 @@ def main():
     polymer = Polymer("dna", 150, features)
 
     # Construct polymerases
-    rna_pol = Polymerase("rna_pol", 1, 10)
+    rna_pol = Polymerase("rna_pol", 1, 10, 10)
 
     # Construct Tracker
     tracker = Tracker(polymer, rna_pol)
 
-    print(tracker)
-
-    tracker.execute()
-
-    print(tracker)
+    while(tracker.time < 100):
+        tracker.execute()
+        print(tracker)
 
 if __name__ == "__main__":
     main()
