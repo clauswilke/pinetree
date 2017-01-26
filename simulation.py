@@ -10,7 +10,7 @@ class Polymerase:
         self.footprint = footprint
         self.start = start
         self.speed = speed
-        self.reenter_queue = True
+        self.attached = True
 
     def move(self):
         self.start += 1
@@ -22,6 +22,7 @@ class Feature:
         self.start = start
         self.stop = stop
         self.interactions = interactions
+        self.range = set(range(start, stop))
 
     def react(self, pol):
         pass
@@ -33,7 +34,7 @@ class Terminator(Feature):
 
     def react(self, pol):
         if pol.name in self.interactions:
-            pol.reenter_queue = False
+            pol.attached = False
 
 
 class Polymer:
@@ -47,7 +48,7 @@ class Polymer:
         self.heap = []
         self.occupancy = [0]*self.length
         self.feature_locs = [0]*self.length
-        self.add_polymerase(polymerase)
+        self.bind_polymerase(polymerase)
         self.build_features()
 
     def build_features(self):
@@ -55,46 +56,44 @@ class Polymer:
             for i in range(feature.start, feature.stop):
                 self.feature_locs[i] = 1
 
-    def add_polymerase(self, pol):
+    def bind_polymerase(self, pol):
         self.polymerases.append(pol)
-        for i in range(pol.start, pol.start + pol.footprint + 1):
-            self.occupancy[i] = 1
-        self.push_polymerase(pol)
+        self.occupy(pol.start, pol.start + pol.footprint + 1)
+        self.push(pol)
 
-    def push_polymerase(self, pol):
+    def occupy(self, start, stop, value = 1):
+        for i in range(start, stop):
+            self.occupancy[i] = value
+
+    def move_polymerase(pol):
+        self.occupancy[pol.start] = 0
+        self.occupancy[pol.start + pol.footprint + 1] = 1
+        pol.move()
+
+    def push(self, pol):
         heapq.heappush(self.heap, (self.calculate_time(pol), pol))
 
-    def pop_polymerase(self):
+    def pop(self):
         pol = heapq.heappop(self.heap)
         return pol[0], pol[1]
-
-    def remove_occupancy(self, start, stop):
-        for i in range(start, stop + 1):
-            self.occupancy[i] = 0
 
     def calculate_time(self, pol):
         return self.time + random.expovariate(pol.speed)
 
     def execute(self):
-        time, pol = self.pop_polymerase()
+        time, pol = self.pop()
         if self.check_collision(pol) == False:
-            self.occupancy[pol.start] = 0
-            self.occupancy[pol.start + pol.footprint + 1] = 1
-            pol.move()
+            self.move_polymerase(pol)
         self.time = time
 
         if self.check_features(pol) == True:
-            for feature in self.features:
-                pol_loc = set(range(pol.start, pol.start + pol.footprint))
-                feature_loc = set(range(feature.start, feature.stop))
-                if pol_loc & feature_loc:
-                    feature.react(pol)
-                    break
+            feature = self.find_feature(pol)
+            feature.react(pol)
 
-        if pol.reenter_queue == True:
-            self.push_polymerase(pol)
+        if pol.attached == True:
+            self.push(pol)
         else:
-            self.remove_occupancy(pol.start, pol.start + pol.footprint)
+            self.occupy(pol.start, pol.start + pol.footprint, 0)
             self.polymerases.remove(pol)
 
     def check_collision(self, pol):
@@ -108,6 +107,12 @@ class Polymer:
             return False
         else:
             return True
+
+    def find_feature(pol):
+        for feature in self.features:
+            pol_loc = set(range(pol.start, pol.start + pol.footprint))
+            if pol_loc & feature.range:
+                return feature
 
     def __str__(self):
         out_string = "Polymerase position: "
@@ -133,7 +138,7 @@ def main():
 
     # Construct polymer
     tracker = Polymer("dna", 150, features, rna_pol)
-    tracker.add_polymerase(rna_pol2)
+    tracker.bind_polymerase(rna_pol2)
 
     while(tracker.time < 100):
         tracker.execute()
