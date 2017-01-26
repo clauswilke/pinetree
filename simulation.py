@@ -14,20 +14,18 @@ class Feature:
         self.stop = stop
         self.interactions = interactions
 
-    def react(self, pol):
-        """
-        React with `pol`.
+    def check_interaction(self, feature):
+        return feature.name in self.interactions
 
-        :param pol: `Polymerase` interacting with this `Feature`.
-        """
+    def react(self):
         pass
 
 class Polymerase(Feature):
     """
     A molecule that binds to `Polymer` and moves. Extends `Feature`.
     """
-    def __init__(self, name, start, footprint, speed):
-        super().__init__(name, start, start + footprint, [])
+    def __init__(self, name, start, footprint, speed, interactions):
+        super().__init__(name, start, start + footprint, interactions)
         self.speed = speed
         self.attached = True
 
@@ -51,8 +49,7 @@ class Terminator(Feature):
 
         :param pol: `Polymerase`.
         """
-        if pol.name in self.interactions:
-            pol.attached = False
+        pol.attached = False
 
 class Polymer:
     """
@@ -61,11 +58,10 @@ class Polymer:
     queue of `Polymerase` objects that are expected to move, and calculate
     time-until-next move from an exponential distribution.
     """
-    def __init__(self, name, length, features, polymerase):
+    def __init__(self, name, length, elements, polymerase):
         self.name = name
         self.length = length
-        self.features = features
-        self.polymerases = []
+        self.features = elements
         self.time = 0
         self.heap = []
         self.bind_polymerase(polymerase)
@@ -76,7 +72,7 @@ class Polymer:
 
         :param pol: `Polymerase` object.
         """
-        self.polymerases.append(pol)
+        self.features.append(pol)
         self.push(pol)
 
     def push(self, pol):
@@ -116,48 +112,37 @@ class Polymer:
         """
         time, pol = self.pop()
 
-        collision = self.find_collision(pol)
-        if collision == None:
+        collisions = self.find_collisions(pol)
+        if len(collisions) == 0:
             pol.move()
+        else:
+            print("Collision detected!")
+            for feature in collisions:
+                feature.react(pol)
         self.time = time
-
-        feature = self.find_feature(pol)
-        if feature != None:
-            feature.react(pol)
 
         if pol.attached == True:
             self.push(pol)
         else:
-            self.polymerases.remove(pol)
+            self.features.remove(pol)
 
-    def find_collision(self, pol):
+    def find_collisions(self, feature):
         """
-        Detect collision between a given `Polymerase` object and all other
-        `Polymerase` objects currently on the polymer.
+        Detect collision between a given `Feature` object and all other
+        `Feature` objects currently in or on the polymer.
 
-        :param pol: `Polymerase` object with which to check for collisions.
-        :returns: interacting `Polymerase` object, or None.
+        :param pol: `Feature` object with which to check for collisions.
+        :returns: list of `Feature` objects.
         """
-        for pol2 in self.polymerases:
-            if self.segments_intersect(pol.start, pol.stop,
-                                       pol2.start, pol2.stop):
-                if pol2 != pol:
-                    return pol2
-        return None
-
-    def find_feature(self, pol):
-        """
-        Detect collision between a given `Polymerase` object and all `Feature`
-        objects currently in the polymer.
-
-        :param pol: `Polymerase` object with which to check for collisions.
-        :returns: interacting `Feature` object, or None.
-        """
-        for feature in self.features:
-            if self.segments_intersect(pol.start, pol.stop,
-                                       feature.start, feature.stop):
-                return feature
-        return None
+        collisions = []
+        for feature2 in self.features:
+            if feature == feature2:
+                continue
+            if self.segments_intersect(feature.start, feature.stop,
+                                       feature2.start, feature2.stop):
+                if feature2.check_interaction(feature):
+                    collisions.append(feature2)
+        return collisions
 
     def segments_intersect(self, x1, x2, y1, y2):
         """
@@ -170,15 +155,7 @@ class Polymer:
         Convert `Polymer` object to string representation showing features and
         polymerases.
         """
-        out_string = "Polymerase position: "
-        polymerase_locs = polymerase_locs = [0]*self.length
-        for pol in self.polymerases:
-            out_string += str(pol.start) + ", "
-            for i in range(pol.start - 1, pol.stop - 1):
-                polymerase_locs[i] = 1
-        out_string += "time: " + str(self.time)
-
-        out_string += ", occupancy: \n" + ''.join(map(str, polymerase_locs))
+        out_string = "Time: " + str(self.time)
 
         feature_locs = [0]*self.length
         for feature in self.features:
@@ -190,19 +167,21 @@ class Polymer:
 
 def main():
 
+    interactions = ["rna_pol", "rna_pol2", "T"]
+
     # Construct polymerases
-    rna_pol = Polymerase("rna_pol", 1, 10, 4)
-    rna_pol2 = Polymerase("rna_pol2", 40, 10, 4)
+    rna_pol = Polymerase("rna_pol", 1, 10, 4, interactions)
+    rna_pol2 = Polymerase("rna_pol2", 40, 10, 4, interactions)
 
     # Construct features
-    interactions = ["rna_pol", "rna_pol2"]
     promoter = Feature("phi", 1, 10, [])
     terminator = Terminator("T", 90, 100, interactions)
-    features = [promoter, terminator]
+    elements = [promoter, terminator]
 
     # Construct polymer
-    tracker = Polymer("dna", 150, features, rna_pol)
+    tracker = Polymer("dna", 150, elements, rna_pol)
     tracker.bind_polymerase(rna_pol2)
+
 
     while(tracker.time < 100):
         tracker.execute()
