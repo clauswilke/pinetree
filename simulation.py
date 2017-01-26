@@ -9,11 +9,13 @@ class Polymerase:
         self.name = name
         self.footprint = footprint
         self.start = start
+        self.stop = start + footprint
         self.speed = speed
         self.attached = True
 
     def move(self):
         self.start += 1
+        self.stop += 1
 
 
 class Feature:
@@ -22,7 +24,6 @@ class Feature:
         self.start = start
         self.stop = stop
         self.interactions = interactions
-        self.range = set(range(start, stop))
 
     def react(self, pol):
         pass
@@ -46,29 +47,11 @@ class Polymer:
         self.polymerases = []
         self.time = 0
         self.heap = []
-        self.occupancy = [0]*self.length
-        self.feature_locs = [0]*self.length
         self.bind_polymerase(polymerase)
-        self.build_features()
-
-    def build_features(self):
-        for feature in self.features:
-            for i in range(feature.start, feature.stop):
-                self.feature_locs[i] = 1
 
     def bind_polymerase(self, pol):
         self.polymerases.append(pol)
-        self.occupy(pol.start, pol.start + pol.footprint + 1)
         self.push(pol)
-
-    def occupy(self, start, stop, value = 1):
-        for i in range(start, stop):
-            self.occupancy[i] = value
-
-    def move_polymerase(pol):
-        self.occupancy[pol.start] = 0
-        self.occupancy[pol.start + pol.footprint + 1] = 1
-        pol.move()
 
     def push(self, pol):
         heapq.heappush(self.heap, (self.calculate_time(pol), pol))
@@ -82,45 +65,55 @@ class Polymer:
 
     def execute(self):
         time, pol = self.pop()
-        if self.check_collision(pol) == False:
-            self.move_polymerase(pol)
+
+        collision = self.find_collision(pol)
+        if collision == None:
+            pol.move()
         self.time = time
 
-        if self.check_features(pol) == True:
-            feature = self.find_feature(pol)
+        feature = self.find_feature(pol)
+        if feature != None:
             feature.react(pol)
 
         if pol.attached == True:
             self.push(pol)
         else:
-            self.occupy(pol.start, pol.start + pol.footprint, 0)
             self.polymerases.remove(pol)
 
-    def check_collision(self, pol):
-        if self.occupancy[pol.start + pol.footprint + 1] == 0:
-            return False
-        else:
-            return True
+    def find_collision(self, pol):
+        for pol2 in self.polymerases:
+            if self.segments_intersect(pol.start, pol.stop,
+                                       pol2.start, pol2.stop):
+                if pol2 != pol:
+                    return pol2
+        return None
 
-    def check_features(self, pol):
-        if self.feature_locs[pol.start + pol.footprint + 1] == 0:
-            return False
-        else:
-            return True
-
-    def find_feature(pol):
+    def find_feature(self, pol):
         for feature in self.features:
-            pol_loc = set(range(pol.start, pol.start + pol.footprint))
-            if pol_loc & feature.range:
+            if self.segments_intersect(pol.start, pol.stop,
+                                       feature.start, feature.stop):
                 return feature
+        return None
+
+    def segments_intersect(self, x1, x2, y1, y2):
+        return x2 >= y1 and y2 >= x1
 
     def __str__(self):
         out_string = "Polymerase position: "
+        polymerase_locs = polymerase_locs = [0]*self.length
         for pol in self.polymerases:
             out_string += str(pol.start) + ", "
+            for i in range(pol.start - 1, pol.stop - 1):
+                polymerase_locs[i] = 1
         out_string += "time: " + str(self.time)
-        out_string += ", occupancy: \n" + ''.join(map(str, self.occupancy))
-        out_string += "\nfeatures: \n" + ''.join(map(str, self.feature_locs))
+
+        out_string += ", occupancy: \n" + ''.join(map(str, polymerase_locs))
+
+        feature_locs = [0]*self.length
+        for feature in self.features:
+            for i in range(feature.start - 1, feature.stop - 1):
+                feature_locs[i] = 1
+        out_string += "\nfeatures: \n" + ''.join(map(str, feature_locs))
         return out_string
 
 
