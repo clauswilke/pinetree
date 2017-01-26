@@ -3,32 +3,13 @@
 import heapq
 import random
 
-class Polymerase:
-    """
-    A molecule that binds to `Polymer`.
-    """
-    def __init__(self, name, start, footprint, speed):
-        self.name = name
-        self.footprint = footprint
-        self.start = start
-        self.stop = start + footprint
-        self.speed = speed
-        self.attached = True
-
-    def move(self):
-        """
-        Move one unit forward.
-        """
-        self.start += 1
-        self.stop += 1
-
-
 class Feature:
     """
-    A generic feature on (but not bound to) `Polymer`. Designed to be extended
-    by `Terminator`, `Promoter`, etc.
+    A generic feature in or on `Polymer`. Designed to be extended
+    by `Terminator`, `Promoter`, `Polymerase`, etc.
     """
-    def __init__(self, start, stop, interactions):
+    def __init__(self, name, start, stop, interactions):
+        self.name = name
         self.start = start
         self.stop = stop
         self.interactions = interactions
@@ -41,12 +22,28 @@ class Feature:
         """
         pass
 
+class Polymerase(Feature):
+    """
+    A molecule that binds to `Polymer` and moves. Extends `Feature`.
+    """
+    def __init__(self, name, start, footprint, speed):
+        super().__init__(name, start, start + footprint, [])
+        self.speed = speed
+        self.attached = True
+
+    def move(self):
+        """
+        Move one unit forward.
+        """
+        self.start += 1
+        self.stop += 1
+
 class Terminator(Feature):
     """
     Stops movement of `Polymerase` along a `Polymer`. Extends `Feature`.
     """
-    def __init__(self, start, stop, interactions):
-        super().__init__(start, stop, interactions)
+    def __init__(self, name, start, stop, interactions):
+        super().__init__(name, start, stop, interactions)
 
     def react(self, pol):
         """
@@ -56,7 +53,6 @@ class Terminator(Feature):
         """
         if pol.name in self.interactions:
             pol.attached = False
-
 
 class Polymer:
     """
@@ -200,8 +196,8 @@ def main():
 
     # Construct features
     interactions = ["rna_pol", "rna_pol2"]
-    promoter = Feature(1, 10, [])
-    terminator = Terminator(90, 100, interactions)
+    promoter = Feature("phi", 1, 10, [])
+    terminator = Terminator("T", 90, 100, interactions)
     features = [promoter, terminator]
 
     # Construct polymer
