@@ -8,10 +8,10 @@ from feature import *
 from polymer import *
 
 class SpeciesReaction:
-    def __init__(self):
-        pass
+    def __init__(self, sim):
+        self.sim = sim
 
-    def next_time(self):
+    def next_time(self, time):
         """
         Calculate the time at which this reaction will occur next.
         """
@@ -24,12 +24,28 @@ class Bind(SpeciesReaction):
     """
     Bind a polymerase to a polymer.
     """
-    def __init__(self):
-        super().__init__()
+    def __init__(self, sim, feature, polymer, rate_constant):
+        super().__init__(sim)
+        self.feature = feature
+        self.polymer = polymer
+        self.rate_constant = rate_constant
+
+    def next_time(self, time):
+        propensity = self.sim.reactants["rna_pol"] * \
+            self.sim.reactants["phi"] * self.rate_constant
+
+        try:
+            delta_time = random.expovariate(propensity)
+        except ZeroDivisionError:
+            delta_time = float('Inf')
+        
+        return time + delta_time
 
     def execute(self):
-        # decrement free polymerase, add pol to polymer
-        pass
+        self.sim.register_reactant("rna_pol", -1)
+        self.sim.register_reactant(self.feature.name, -1)
+        pol = Polymerase("rna_pol", 1, 10, 4, ["rna_pol", "T"])
+        self.polymer.bind_polymerase(pol)
 
 class Bridge(SpeciesReaction):
     """
@@ -63,16 +79,15 @@ class Simulation:
         else:
             self.reactants[name] = copy_number
 
-    def register_reaction(self, reactant1, reactant2, rate_constant):
-        self.reactions.append({"reactants": [reactant1, reactant2],
-                               "rate_constant": rate_constant})
+    def register_reaction(self, reaction):
+        self.reactions.append(reaction)
 
     def register_polymer(self, polymer):
         self.heap.append((polymer.heap[0][0], polymer))
 
     def build_heap(self):
         for i in range(len(self.reactions)):
-            self.heap.append((self.calculate_time(self.reactions[i]), i))
+            self.heap.append((self.reactions[i].next_time(self.time), i))
         heapq.heapify(self.heap)
 
     def pop(self):
@@ -81,17 +96,11 @@ class Simulation:
 
     def push_reaction(self, reaction_index):
         heapq.heappush(self.heap,
-            (self.calculate_time(self.reactions[reaction_index]),
+            (self.reactions[reaction_index].next_time(self.time),
              reaction_index))
 
     def push_polymer(self, polymer):
         heapq.heappush(self.heap, (polymer.heap[0][0], polymer))
-
-    def calculate_time(self, reaction):
-        propensity = self.reactants[reaction["reactants"][0]] * \
-            self.reactants[reaction["reactants"][1]] * reaction["rate_constant"]
-
-        return self.time + random.expovariate(propensity)
 
     def execute(self):
         time, index = self.pop()
@@ -99,6 +108,7 @@ class Simulation:
         self.time = time
         if type(index) is int:
             print("Executing reaction " + str(index))
+            self.reactions[index].execute()
             self.push_reaction(index)
         else:
             print("Executing polymer")
@@ -153,7 +163,8 @@ def main():
 
         simulation.register_reactant("rna_pol", 10)
         simulation.register_reactant("phi", 1)
-        simulation.register_reaction("rna_pol", "phi", 0.1)
+        reaction = Bind(simulation, promoter, tracker, 0.1)
+        simulation.register_reaction(reaction)
         simulation.register_polymer(tracker)
         simulation.build_heap()
 
@@ -161,6 +172,10 @@ def main():
         while(len(tracker.heap) != 0):
             tracker.execute()
         """
+
+        print(simulation)
+
+        simulation.execute()
 
         print(simulation)
 
