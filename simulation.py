@@ -205,7 +205,7 @@ def main():
     args = parser.parse_args()
 
     # Run simulation 50 times
-    for i in range(0, 50):
+    for i in range(0, 1000):
         simulation = Simulation()
         # Construct interactions
         interactions = ["rna_pol", "T"]
