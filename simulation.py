@@ -66,6 +66,9 @@ class Polymer:
         self.heap = []
         self.bind_polymerase(polymerase)
 
+    def register_sim(self, sim):
+        self.sim = sim
+
     def bind_polymerase(self, pol):
         """
         Bind a `Polymerase` object to the polymer and add it to priority queue.
@@ -116,7 +119,6 @@ class Polymer:
         if len(collisions) == 0:
             pol.move()
         else:
-            print("Collision detected!")
             for feature in collisions:
                 feature.react(pol)
         self.time = time
@@ -124,6 +126,7 @@ class Polymer:
         if pol.attached == True:
             self.push(pol)
         else:
+            self.sim.count_termination(pol.name, self.time)
             self.features.remove(pol)
 
     def find_collisions(self, feature):
@@ -164,30 +167,47 @@ class Polymer:
         out_string += "\nfeatures: \n" + ''.join(map(str, feature_locs))
         return out_string
 
+class Simulation:
+
+    def __init__(self):
+        self.time = 0
+        self.terminations = {}
+
+    def count_termination(self, name, time):
+        if name not in self.terminations.keys():
+            self.terminations[name] = time
+
+    def __str__(self):
+        out_string = ""
+        for name, time in self.terminations.items():
+            out_string += name + ", " + str(time)
+        return out_string
+
+
+
+
 
 def main():
+    for i in range(0, 50):
+        simulation = Simulation()
 
-    interactions = ["rna_pol", "rna_pol2", "T"]
+        interactions = ["rna_pol", "T"]
+        # Construct polymerases
+        rna_pol = Polymerase("rna_pol", 1, 10, 4, interactions)
 
-    # Construct polymerases
-    rna_pol = Polymerase("rna_pol", 1, 10, 4, interactions)
-    rna_pol2 = Polymerase("rna_pol2", 40, 10, 4, interactions)
+        # Construct features
+        promoter = Feature("phi", 1, 10, [])
+        terminator = Terminator("T", 90, 100, interactions)
+        elements = [promoter, terminator]
 
-    # Construct features
-    promoter = Feature("phi", 1, 10, [])
-    terminator = Terminator("T", 90, 100, interactions)
-    elements = [promoter, terminator]
+        # Construct polymer
+        tracker = Polymer("dna", 150, elements, rna_pol)
+        tracker.register_sim(simulation)
 
-    # Construct polymer
-    tracker = Polymer("dna", 150, elements, rna_pol)
-    tracker.bind_polymerase(rna_pol2)
+        while(len(tracker.heap) != 0):
+            tracker.execute()
 
-
-    while(tracker.time < 100):
-        tracker.execute()
-        print(tracker)
-        if len(tracker.heap) == 0:
-            break
+        print(simulation)
 
 if __name__ == "__main__":
     main()
