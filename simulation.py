@@ -7,6 +7,45 @@ import argparse
 from feature import *
 from polymer import *
 
+class SpeciesReaction:
+    def __init__(self):
+        pass
+
+    def next_time(self):
+        """
+        Calculate the time at which this reaction will occur next.
+        """
+        pass
+
+    def execute(self):
+        pass
+
+class Bind(SpeciesReaction):
+    """
+    Bind a polymerase to a polymer.
+    """
+    def __init__(self):
+        super().__init__()
+
+    def execute(self):
+        # decrement free polymerase, add pol to polymer
+        pass
+
+class Bridge(SpeciesReaction):
+    """
+    Encapsulate polymer so it can participate in species-level reaction queue.
+    """
+    def __init__(self, polymer):
+        super().__init__()
+        self.polymer = polymer
+
+    def next_time(self):
+        return polymer.heap[0][0]
+
+    def execute(self):
+        self.polymer.execute()
+
+
 class Simulation:
     """
     Collect data from polymers.
