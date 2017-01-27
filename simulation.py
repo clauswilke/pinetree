@@ -2,6 +2,7 @@
 
 import heapq
 import random
+import argparse
 
 class Feature:
     """
@@ -168,38 +169,52 @@ class Polymer:
         return out_string
 
 class Simulation:
-
+    """
+    Collect data from polymers.
+    """
     def __init__(self):
         self.time = 0
         self.terminations = {}
 
     def count_termination(self, name, time):
+        """
+        Record the time at which a polymerase reaches a terminator.
+        """
         if name not in self.terminations.keys():
             self.terminations[name] = time
 
     def __str__(self):
+        """
+        Convert `Simulation` to string representation showing names and
+        termination times of `Polymerase` objects.
+        """
         out_string = ""
         for name, time in self.terminations.items():
             out_string += name + ", " + str(time)
         return out_string
 
-
-
-
-
 def main():
+
+    parser = argparse.ArgumentParser(description = "Simulate a single \
+        polymerase moving along a piece of DNA.")
+
+    # Add polymerase speed argument
+    parser.add_argument("speed", metavar = "s", type = int, nargs = 1,
+                        help = "speed in nucleotides per second of polymerase.")
+
+    args = parser.parse_args()
+
+    # Run simulation 50 times
     for i in range(0, 50):
         simulation = Simulation()
-
+        # Construct interactions
         interactions = ["rna_pol", "T"]
         # Construct polymerases
-        rna_pol = Polymerase("rna_pol", 1, 10, 4, interactions)
-
+        rna_pol = Polymerase("rna_pol", 1, 10, args.speed[0], interactions)
         # Construct features
         promoter = Feature("phi", 1, 10, [])
         terminator = Terminator("T", 90, 100, interactions)
         elements = [promoter, terminator]
-
         # Construct polymer
         tracker = Polymer("dna", 150, elements, rna_pol)
         tracker.register_sim(simulation)
