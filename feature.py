@@ -14,7 +14,7 @@ class Feature:
     def check_interaction(self, feature):
         return feature.name in self.interactions
 
-    def react(self):
+    def react(self, feature):
         pass
 
 class Polymerase(Feature):
@@ -32,6 +32,7 @@ class Polymerase(Feature):
         """
         self.start += 1
         self.stop += 1
+
 
 class Terminator(Feature):
     """

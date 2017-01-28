@@ -24,9 +24,8 @@ class Bind(SpeciesReaction):
     """
     Bind a polymerase to a polymer.
     """
-    def __init__(self, sim, feature, polymer, rate_constant):
+    def __init__(self, sim, polymer, rate_constant):
         super().__init__(sim)
-        self.feature = feature
         self.polymer = polymer
         self.rate_constant = rate_constant
 
@@ -38,12 +37,12 @@ class Bind(SpeciesReaction):
             delta_time = random.expovariate(propensity)
         except ZeroDivisionError:
             delta_time = float('Inf')
-        
+
         return time + delta_time
 
     def execute(self):
         self.sim.register_reactant("rna_pol", -1)
-        self.sim.register_reactant(self.feature.name, -1)
+        self.sim.register_reactant("phi", -1)
         pol = Polymerase("rna_pol", 1, 10, 4, ["rna_pol", "T"])
         self.polymer.bind_polymerase(pol)
 
@@ -51,12 +50,15 @@ class Bridge(SpeciesReaction):
     """
     Encapsulate polymer so it can participate in species-level reaction queue.
     """
-    def __init__(self, polymer):
-        super().__init__()
+    def __init__(self, sim, polymer):
+        super().__init__(sim)
         self.polymer = polymer
 
-    def next_time(self):
-        return polymer.heap[0][0]
+    def next_time(self, time):
+        if len(self.polymer.heap) > 0:
+            return self.polymer.heap[0][0]
+        else:
+            return float('Inf')
 
     def execute(self):
         self.polymer.execute()
@@ -82,9 +84,6 @@ class Simulation:
     def register_reaction(self, reaction):
         self.reactions.append(reaction)
 
-    def register_polymer(self, polymer):
-        self.heap.append((polymer.heap[0][0], polymer))
-
     def build_heap(self):
         for i in range(len(self.reactions)):
             self.heap.append((self.reactions[i].next_time(self.time), i))
@@ -99,21 +98,13 @@ class Simulation:
             (self.reactions[reaction_index].next_time(self.time),
              reaction_index))
 
-    def push_polymer(self, polymer):
-        heapq.heappush(self.heap, (polymer.heap[0][0], polymer))
-
     def execute(self):
         time, index = self.pop()
         print(self)
         self.time = time
-        if type(index) is int:
-            print("Executing reaction " + str(index))
-            self.reactions[index].execute()
-            self.push_reaction(index)
-        else:
-            print("Executing polymer")
-            index.execute()
-            self.push_polymer(index)
+        print("Executing reaction " + str(index))
+        self.reactions[index].execute()
+        self.push_reaction(index)
 
 
     def count_termination(self, name, time):
@@ -151,11 +142,11 @@ def main():
         # Construct interactions
         interactions = ["rna_pol", "T"]
         # Construct polymerases
-        rna_pol = Polymerase("rna_pol", 1, 10, args.speed[0], interactions)
+        rna_pol = Polymerase("rna_pol", 15, 10, args.speed[0], interactions)
         # Construct features
-        promoter = Feature("phi", 1, 10, [])
+        # promoter = Feature("phi", 1, 10, [])
         terminator = Terminator("T", 90, 100, interactions)
-        elements = [promoter, terminator]
+        elements = [terminator]
         # Construct polymer
         tracker = Polymer("dna", 150, elements)
         tracker.register_sim(simulation)
@@ -163,29 +154,18 @@ def main():
 
         simulation.register_reactant("rna_pol", 10)
         simulation.register_reactant("phi", 1)
-        reaction = Bind(simulation, promoter, tracker, 0.1)
+        reaction = Bind(simulation, tracker, 0.1)
+        reaction2 = Bridge(simulation, tracker)
         simulation.register_reaction(reaction)
-        simulation.register_polymer(tracker)
+        simulation.register_reaction(reaction2)
         simulation.build_heap()
 
-        """
-        while(len(tracker.heap) != 0):
-            tracker.execute()
-        """
 
-        print(simulation)
+        while(len(tracker.heap) > 0 and simulation.time < 50):
+            simulation.execute()
+            print(simulation)
+            print(tracker)
 
-        simulation.execute()
-
-        print(simulation)
-
-        simulation.execute()
-
-        print(simulation)
-
-        simulation.execute()
-
-        print(simulation)
 
 if __name__ == "__main__":
     main()

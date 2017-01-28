@@ -64,11 +64,9 @@ class Polymer:
         collisions and terminations.
         """
         time, pol = self.pop()
-
+        pol.move()
         collisions = self.find_collisions(pol)
-        if len(collisions) == 0:
-            pol.move()
-        else:
+        if len(collisions) != 0:
             for feature in collisions:
                 feature.react(pol)
         self.sim.time = time
@@ -108,7 +106,7 @@ class Polymer:
         Convert `Polymer` object to string representation showing features and
         polymerases.
         """
-        out_string = "Time: " + str(self.time)
+        out_string = "Time: " + str(self.sim.time)
 
         feature_locs = [0]*self.length
         for feature in self.features:
