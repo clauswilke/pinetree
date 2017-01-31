@@ -44,7 +44,7 @@ class Polymer:
 
         :param pol: `Polymerase` object.
         """
-        heapq.heappush(self.heap, (self.calculate_time(pol), pol))
+        heapq.heappush(self.heap, (self.next_time(pol), pol))
 
     def pop(self):
         """
@@ -56,7 +56,7 @@ class Polymer:
         pol = heapq.heappop(self.heap)
         return pol[0], pol[1]
 
-    def calculate_time(self, pol):
+    def next_time(self, pol):
         """
         Calculate time-until-next reaction from an exponential distribution
         centered at a `Polymerase` object's `speed` attribute. Adds time to
@@ -65,15 +65,22 @@ class Polymer:
         :param pol: `Polymerase` object.
         :returns: time that `pol` will move next.
         """
-        return self.sim.time + random.expovariate(pol.speed)
 
-    def execute(self):
-        """
-        Process `Polymerase` object at the top of the priority queue. Check for
-        collisions, uncovering of elements, and terminations.
-        """
-        time, pol = self.pop()
+        min_time = self.sim.time + random.expovariate(pol.speed)
+        pol.move_next = True
 
+        # Find next lowest time in sub-polymer
+        if len(pol.polymer.heap) > 0:
+            subpolymer_time = pol.polymer.heap[0][0]
+            if subpolymer_time < min_time:
+                # Check against move time
+                min_time = subpolymer_time
+                # Set state to not move
+                pol.move_next = False
+
+        return min_time
+
+    def move_polymerase(self, pol):
         # Record old covered elements
         old_covered_elements = self.find_intersections(pol, self.elements)
 
@@ -98,6 +105,18 @@ class Polymer:
             if element not in new_covered_elements:
                 self.notify_observers(species = element.name,
                                       action = "free_promoter")
+
+    def execute(self):
+        """
+        Process `Polymerase` object at the top of the priority queue. Check for
+        collisions, uncovering of elements, and terminations.
+        """
+        time, pol = self.pop()
+
+        if pol.move_next:
+            self.move_polymerase(pol)
+        else:
+            pol.polymer.execute()
 
         self.sim.time = time
 
