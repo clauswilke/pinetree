@@ -13,11 +13,20 @@ class Polymer:
     def __init__(self, name, length, elements):
         self.name = name
         self.length = length
-        self.features = elements
+        self.polymerases = []
+        self.elements = elements
         self.heap = []
+        self.__observers = []
 
     def register_sim(self, sim):
         self.sim = sim
+
+    def register_observer(self, observer):
+        self.__observers.append(observer)
+
+    def notify_observers(self, **kwargs):
+        for observer in self.__observers:
+            observer.notify(self, **kwargs)
 
     def bind_polymerase(self, pol):
         """
@@ -25,7 +34,7 @@ class Polymer:
 
         :param pol: `Polymerase` object.
         """
-        self.features.append(pol)
+        self.polymerases.append(pol)
         self.push(pol)
 
     def push(self, pol):
@@ -66,18 +75,35 @@ class Polymer:
         time, pol = self.pop()
         pol.move()
         collisions = self.find_collisions(pol)
+
         if len(collisions) != 0:
-            for feature in collisions:
-                feature.react(pol)
+            for other_pol in collisions:
+                other_pol.react(pol)
+        else:
+            for element in self.elements:
+                element.reset()
+            elements = self.find_covered()
+            print(elements)
+            if len(elements) != 0:
+                for element in elements:
+                    element.cover()
+                    if element.check_interaction(pol):
+                        element.react(pol)
+
+        for element in self.elements:
+            if element.was_uncovered() == True:
+                self.notify_observers(species = element.name,
+                                      action = "free_promoter")
+
         self.sim.time = time
 
         if pol.attached == True:
             self.push(pol)
         else:
-            self.sim.count_termination(pol.name, self.sim.time)
-            self.features.remove(pol)
+            self.notify_observers(species = pol.name, action = "terminate")
+            self.polymerases.remove(pol)
 
-    def find_collisions(self, feature):
+    def find_collisions(self, pol):
         """
         Detect collision between a given `Feature` object and all other
         `Feature` objects currently in or on the polymer.
@@ -86,14 +112,23 @@ class Polymer:
         :returns: list of `Feature` objects.
         """
         collisions = []
-        for feature2 in self.features:
-            if feature == feature2:
+        for pol2 in self.polymerases:
+            if pol == pol2:
                 continue
-            if self.segments_intersect(feature.start, feature.stop,
-                                       feature2.start, feature2.stop):
-                if feature2.check_interaction(feature):
-                    collisions.append(feature2)
+            if self.segments_intersect(pol.start, pol.stop,
+                                       pol2.start, pol2.stop):
+                if pol2.check_interaction(pol):
+                    collisions.append(pol2)
         return collisions
+
+    def find_covered(self):
+        covered = []
+        for pol in self.polymerases:
+            for element in self.elements:
+                if self.segments_intersect(element.start, element.stop,
+                                           pol.start, pol.stop):
+                    covered.append(element)
+        return covered
 
     def segments_intersect(self, x1, x2, y1, y2):
         """
@@ -107,6 +142,8 @@ class Polymer:
         polymerases.
         """
         out_string = "Time: " + str(self.sim.time)
+
+        out_string += str(self.heap)
 
         feature_locs = [0]*self.length
         for feature in self.features:

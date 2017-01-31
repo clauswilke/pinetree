@@ -14,8 +14,9 @@ class Feature:
     def check_interaction(self, feature):
         return feature.name in self.interactions
 
-    def react(self, feature):
+    def react(self, pol):
         pass
+
 
 class Polymerase(Feature):
     """
@@ -33,8 +34,42 @@ class Polymerase(Feature):
         self.start += 1
         self.stop += 1
 
+    def move_back(self):
+        self.start -= 1
+        self.stop -= 1
 
-class Terminator(Feature):
+    def react(self, pol):
+        pol.move_back()
+
+class Element(Feature):
+    """
+    A fixed element in the polymer that can be covered or uncovered.
+    """
+    def __init__(self, name, start, stop, interactions):
+        super().__init__(name, start, stop, interactions)
+        self.covered = False
+        self.was_covered = False
+
+    def cover(self):
+        print("Covering")
+        self.covered = True
+
+    def reset(self):
+        self.was_covered = self.covered
+        self.covered = False
+
+    def was_uncovered(self):
+        return self.covered == False and self.was_covered == True
+
+class Promoter(Element):
+
+    def __init__(self, name, start, stop, interactions):
+        super().__init__(name, start, stop, interactions)
+
+    # def react(self, pol):
+    #     self.cover()
+
+class Terminator(Element):
     """
     Stops movement of `Polymerase` along a `Polymer`. Extends `Feature`.
     """

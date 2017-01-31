@@ -41,9 +41,9 @@ class Bind(SpeciesReaction):
         return time + delta_time
 
     def execute(self):
-        self.sim.register_reactant("rna_pol", -1)
-        self.sim.register_reactant("phi", -1)
-        pol = Polymerase("rna_pol", 1, 10, 4, ["rna_pol", "T"])
+        self.sim.increment_reactant("rna_pol", -1)
+        self.sim.increment_reactant("phi", -1)
+        pol = Polymerase("rna_pol", 1, 10, 4, ["rna_pol", "T", "phi"])
         self.polymer.bind_polymerase(pol)
 
 class Bridge(SpeciesReaction):
@@ -75,7 +75,7 @@ class Simulation:
         self.reactions = []
         self.heap = []
 
-    def register_reactant(self, name, copy_number):
+    def increment_reactant(self, name, copy_number):
         if name in self.reactants.keys():
             self.reactants[name] += copy_number
         else:
@@ -84,7 +84,12 @@ class Simulation:
     def register_reaction(self, reaction):
         self.reactions.append(reaction)
 
+    def register_polymer(self, polymer):
+        polymer.register_observer(self)
+        self.reactions.append(Bridge(self, polymer))
+
     def build_heap(self):
+        self.heap = []
         for i in range(len(self.reactions)):
             self.heap.append((self.reactions[i].next_time(self.time), i))
         heapq.heapify(self.heap)
@@ -104,15 +109,25 @@ class Simulation:
         self.time = time
         print("Executing reaction " + str(index))
         self.reactions[index].execute()
-        self.push_reaction(index)
+        self.build_heap()
+        # self.push_reaction(index)
 
+
+    def notify(self, observable, **kwargs):
+        if kwargs["action"] == "terminate":
+            self.increment_reactant(kwargs["species"], 1)
+            self.count_termination(kwargs["species"], self.time)
+        elif kwargs["action"] == "free_promoter" and kwargs["species"] == "phi":
+            self.increment_reactant(kwargs["species"], 1)
 
     def count_termination(self, name, time):
         """
         Record the time at which a polymerase reaches a terminator.
         """
         if name not in self.terminations.keys():
-            self.terminations[name] = time
+            self.terminations[name] = 1
+        else:
+            self.terminations[name] += 1
 
     def __str__(self):
         """
@@ -120,8 +135,8 @@ class Simulation:
         termination times of `Polymerase` objects.
         """
         out_string = ""
-        for name, time in self.terminations.items():
-            out_string += name + ", " + str(time)
+        for name, count in self.terminations.items():
+            out_string += name + ", " + str(count)
         out_string += str(self.heap) + str(self.reactants)
         return out_string
 
@@ -136,35 +151,36 @@ def main():
 
     args = parser.parse_args()
 
+    random.seed(34)
+
     # Run simulation 50 times
     for i in range(0, 1):
         simulation = Simulation()
         # Construct interactions
-        interactions = ["rna_pol", "T"]
+        interactions = ["rna_pol", "T", "phi"]
         # Construct polymerases
         rna_pol = Polymerase("rna_pol", 15, 10, args.speed[0], interactions)
         # Construct features
-        # promoter = Feature("phi", 1, 10, [])
-        terminator = Terminator("T", 90, 100, interactions)
-        elements = [terminator]
+        promoter = Promoter("phi", 1, 10, ["rna_pol"])
+        terminator = Terminator("T", 90, 100, ["rna_pol"])
+        elements = [promoter, terminator]
         # Construct polymer
         tracker = Polymer("dna", 150, elements)
         tracker.register_sim(simulation)
-        tracker.bind_polymerase(rna_pol)
+        # tracker.bind_polymerase(rna_pol)
 
-        simulation.register_reactant("rna_pol", 10)
-        simulation.register_reactant("phi", 1)
+        simulation.increment_reactant("rna_pol", 10)
+        simulation.increment_reactant("phi", 1)
         reaction = Bind(simulation, tracker, 0.1)
-        reaction2 = Bridge(simulation, tracker)
         simulation.register_reaction(reaction)
-        simulation.register_reaction(reaction2)
+        simulation.register_polymer(tracker)
         simulation.build_heap()
 
 
-        while(len(tracker.heap) > 0 and simulation.time < 50):
+        while(simulation.time < 100):
             simulation.execute()
             print(simulation)
-            print(tracker)
+            # print(tracker)
 
 
 if __name__ == "__main__":
