@@ -10,13 +10,14 @@ class Polymer:
     queue of `Polymerase` objects that are expected to move, and calculate
     time-until-next move from an exponential distribution.
     """
-    def __init__(self, name, length, elements):
+    def __init__(self, name, length, elements, sim):
         self.name = name
         self.length = length
         self.polymerases = []
         self.elements = elements
         self.heap = []
         self.__observers = []
+        self.register_sim(sim)
 
     def register_sim(self, sim):
         self.sim = sim
@@ -65,20 +66,7 @@ class Polymer:
         :param pol: `Polymerase` object.
         :returns: time that `pol` will move next.
         """
-
-        min_time = self.sim.time + random.expovariate(pol.speed)
-        pol.move_next = True
-
-        # Find next lowest time in sub-polymer
-        if len(pol.polymer.heap) > 0:
-            subpolymer_time = pol.polymer.heap[0][0]
-            if subpolymer_time < min_time:
-                # Check against move time
-                min_time = subpolymer_time
-                # Set state to not move
-                pol.move_next = False
-
-        return min_time
+        return self.sim.time + random.expovariate(pol.speed)
 
     def move_polymerase(self, pol):
         # Record old covered elements
@@ -113,10 +101,7 @@ class Polymer:
         """
         time, pol = self.pop()
 
-        if pol.move_next:
-            self.move_polymerase(pol)
-        else:
-            pol.polymer.execute()
+        self.move_polymerase(pol)
 
         self.sim.time = time
 
@@ -159,7 +144,7 @@ class Polymer:
         """
         out_string = "Time: " + str(self.sim.time)
 
-        out_string += str(self.heap)
+        # out_string += str(self.heap)
 
         feature_locs = [0]*self.length
         for feature in self.polymerases:

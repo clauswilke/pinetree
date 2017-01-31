@@ -36,11 +36,6 @@ class Polymerase(Feature):
         super().__init__(name, start, start + footprint, interactions)
         self.speed = speed
         self.attached = True
-        promoter = Promoter("rbs", 1, 10, ["ribosome"])
-        terminator = Terminator("tstop", 90, 100, ["ribosome"])
-        elements = [promoter, terminator]
-        self.polymer = Polymer("rna", 150, elements)
-        self.move_next = False
 
     def move(self):
         """
