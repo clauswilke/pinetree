@@ -10,6 +10,14 @@ class Feature:
         self.start = start
         self.stop = stop
         self.interactions = interactions
+        self.__observers = []
+
+    def register_observer(self, observer):
+        self.__observers.append(observer)
+
+    def notify_observers(self, **kwargs):
+        for observer in self.__observers:
+            observer.notify(self, **kwargs)
 
     def check_interaction(self, feature):
         return feature.name in self.interactions
@@ -35,6 +43,9 @@ class Polymerase(Feature):
         self.stop += 1
 
     def move_back(self):
+        """
+        Move one unit backwards
+        """
         self.start -= 1
         self.stop -= 1
 
@@ -48,18 +59,10 @@ class Element(Feature):
     def __init__(self, name, start, stop, interactions):
         super().__init__(name, start, stop, interactions)
         self.covered = False
-        self.was_covered = False
 
     def cover(self):
-        print("Covering")
         self.covered = True
 
-    def reset(self):
-        self.was_covered = self.covered
-        self.covered = False
-
-    def was_uncovered(self):
-        return self.covered == False and self.was_covered == True
 
 class Promoter(Element):
 

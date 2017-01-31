@@ -70,28 +70,32 @@ class Polymer:
     def execute(self):
         """
         Process `Polymerase` object at the top of the priority queue. Check for
-        collisions and terminations.
+        collisions, uncovering of elements, and terminations.
         """
         time, pol = self.pop()
+
+        # Record old covered elements
+        old_covered_elements = self.find_intersections(pol, self.elements)
+
+        # Move polymerase
         pol.move()
-        collisions = self.find_collisions(pol)
 
-        if len(collisions) != 0:
-            for other_pol in collisions:
-                other_pol.react(pol)
-        else:
-            for element in self.elements:
-                element.reset()
-            elements = self.find_covered()
-            print(elements)
-            if len(elements) != 0:
-                for element in elements:
-                    element.cover()
-                    if element.check_interaction(pol):
-                        element.react(pol)
+        # Record new collisions
+        collisions = self.find_intersections(pol, self.polymerases)
 
-        for element in self.elements:
-            if element.was_uncovered() == True:
+        # First resolve any collisions between polymerases
+        for other_pol in collisions:
+            other_pol.react(pol)
+
+        # Now cover elements
+        new_covered_elements = self.find_intersections(pol, self.elements)
+        for element in new_covered_elements:
+            element.cover()
+            element.react(pol)
+
+        # Check for uncovered elements
+        for element in old_covered_elements:
+            if element not in new_covered_elements:
                 self.notify_observers(species = element.name,
                                       action = "free_promoter")
 
@@ -103,32 +107,25 @@ class Polymer:
             self.notify_observers(species = pol.name, action = "terminate")
             self.polymerases.remove(pol)
 
-    def find_collisions(self, pol):
+    def find_intersections(self, pol, elements):
         """
-        Detect collision between a given `Feature` object and all other
-        `Feature` objects currently in or on the polymer.
+        Detect overlap between a given `Polymerase` object and all other
+        `Feature` objects in `elements` currently in or on the polymer that it
+        interacts with.
 
-        :param pol: `Feature` object with which to check for collisions.
-        :returns: list of `Feature` objects.
+        :param pol: `Polymerase` object with which to check for collisions.
+        :returns: list of `Feature` objects that overlap and interact with
+            `pol`.
         """
-        collisions = []
-        for pol2 in self.polymerases:
-            if pol == pol2:
+        intersections = []
+        for element in elements:
+            if pol == element:
                 continue
             if self.segments_intersect(pol.start, pol.stop,
-                                       pol2.start, pol2.stop):
-                if pol2.check_interaction(pol):
-                    collisions.append(pol2)
-        return collisions
-
-    def find_covered(self):
-        covered = []
-        for pol in self.polymerases:
-            for element in self.elements:
-                if self.segments_intersect(element.start, element.stop,
-                                           pol.start, pol.stop):
-                    covered.append(element)
-        return covered
+                                       element.start, element.stop):
+                if element.check_interaction(pol):
+                    intersections.append(element)
+        return intersections
 
     def segments_intersect(self, x1, x2, y1, y2):
         """
@@ -146,7 +143,7 @@ class Polymer:
         out_string += str(self.heap)
 
         feature_locs = [0]*self.length
-        for feature in self.features:
+        for feature in self.polymerases:
             for i in range(feature.start - 1, feature.stop - 1):
                 feature_locs[i] = 1
         out_string += "\nfeatures: \n" + ''.join(map(str, feature_locs))

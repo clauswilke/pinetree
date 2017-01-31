@@ -74,6 +74,7 @@ class Simulation:
         self.reactants = {}
         self.reactions = []
         self.heap = []
+        self.rebuild_heap = False
 
     def increment_reactant(self, name, copy_number):
         if name in self.reactants.keys():
@@ -105,13 +106,9 @@ class Simulation:
 
     def execute(self):
         time, index = self.pop()
-        print(self)
         self.time = time
-        print("Executing reaction " + str(index))
         self.reactions[index].execute()
         self.build_heap()
-        # self.push_reaction(index)
-
 
     def notify(self, observable, **kwargs):
         if kwargs["action"] == "terminate":
@@ -151,10 +148,10 @@ def main():
 
     args = parser.parse_args()
 
-    random.seed(34)
+    # random.seed(34)
 
     # Run simulation 50 times
-    for i in range(0, 1):
+    for i in range(0, 10):
         simulation = Simulation()
         # Construct interactions
         interactions = ["rna_pol", "T", "phi"]
@@ -177,10 +174,9 @@ def main():
         simulation.build_heap()
 
 
-        while(simulation.time < 100):
+        while(simulation.time < 1000):
             simulation.execute()
-            print(simulation)
-            # print(tracker)
+        print(simulation)
 
 
 if __name__ == "__main__":
