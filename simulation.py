@@ -24,14 +24,17 @@ class Bind(SpeciesReaction):
     """
     Bind a polymerase to a polymer.
     """
-    def __init__(self, sim, polymer, rate_constant):
+    def __init__(self, sim, polymer, rate_constant, reactants, product_args):
         super().__init__(sim)
         self.polymer = polymer
+        self.polymerase_args = product_args
         self.rate_constant = rate_constant
+        self.reactants = reactants
 
     def next_time(self, time):
-        propensity = self.sim.reactants["rna_pol"] * \
-            self.sim.reactants["phi"] * self.rate_constant
+        propensity = self.rate_constant
+        for reactant in self.reactants:
+            propensity *= self.sim.reactants[reactant]
 
         try:
             delta_time = random.expovariate(propensity)
@@ -41,32 +44,9 @@ class Bind(SpeciesReaction):
         return time + delta_time
 
     def execute(self):
-        self.sim.increment_reactant("rna_pol", -1)
-        self.sim.increment_reactant("phi", -1)
-        pol = Polymerase("rna_pol", 1, 10, 4, ["rna_pol", "T", "phi"])
-        self.polymer.bind_polymerase(pol)
-
-class BindRbs(SpeciesReaction):
-    def __init__(self, sim, polymer, rate_constant):
-        super().__init__(sim)
-        self.polymer = polymer
-        self.rate_constant = rate_constant
-
-    def next_time(self, time):
-        propensity = self.sim.reactants["ribosome"] * \
-            self.sim.reactants["rbs"] * self.rate_constant
-
-        try:
-            delta_time = random.expovariate(propensity)
-        except ZeroDivisionError:
-            delta_time = float('Inf')
-
-        return time + delta_time
-
-    def execute(self):
-        self.sim.increment_reactant("ribosome", -1)
-        self.sim.increment_reactant("rbs", -1)
-        pol = Polymerase("ribosome", 1, 10, 4, ["ribosome", "tstop", "rbs"])
+        for reactant in self.reactants:
+            self.sim.increment_reactant(reactant, -1)
+        pol = Polymerase(*self.polymerase_args)
         self.polymer.bind_polymerase(pol)
 
 class Bridge(SpeciesReaction):
@@ -148,7 +128,7 @@ class Simulation:
             polymer = Polymer("rna", 150, elements, self)
             self.register_polymer(polymer)
             self.increment_reactant("rbs", 1)
-            self.register_reaction(BindRbs(self, polymer, 0.05))
+            self.register_reaction(Bind(self, polymer, 0.05, ["rbs", "ribosome"], ["ribosome", 1, 10, 4, ["ribosome", "tstop", "rbs"]]))
             self.count_termination("full_transcript", self.time)
         elif kwargs["action"] == "free_promoter" and kwargs["species"] == "phi":
             self.increment_reactant(kwargs["species"], 1)
@@ -211,14 +191,15 @@ def main():
         simulation.increment_reactant("rna_pol", 10)
         simulation.increment_reactant("phi", 1)
         simulation.increment_reactant("ribosome", 100)
-        reaction = Bind(simulation, tracker, 0.1)
+        pol_args = ["rna_pol", 1, 10, 4, ["rna_pol", "T", "phi"]]
+        reaction = Bind(simulation, tracker, 0.1, ["rna_pol", "phi"], pol_args)
         simulation.register_reaction(reaction)
         simulation.register_polymer(tracker)
         simulation.build_heap()
 
         time_step = 5
         old_time = 0
-        while(simulation.time < 1000):
+        while(simulation.time < 50):
             simulation.execute()
             # print(abs(simulation.time - old_time))
             if abs(simulation.time - old_time) > time_step:
