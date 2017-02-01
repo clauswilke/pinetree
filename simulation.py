@@ -199,7 +199,7 @@ def main():
 
         time_step = 5
         old_time = 0
-        while(simulation.time < 50):
+        while(simulation.time < 100):
             simulation.execute()
             # print(abs(simulation.time - old_time))
             if abs(simulation.time - old_time) > time_step:
