@@ -17,7 +17,7 @@ class SpeciesReaction:
         """
         pass
 
-    def execute(self):
+    def execute(self, time):
         pass
 
 class Bind(SpeciesReaction):
@@ -43,11 +43,11 @@ class Bind(SpeciesReaction):
 
         return time + delta_time
 
-    def execute(self):
+    def execute(self, time):
         for reactant in self.reactants:
             self.sim.increment_reactant(reactant, -1)
         pol = Polymerase(*self.polymerase_args)
-        self.polymer.bind_polymerase(pol)
+        self.polymer.bind_polymerase(pol, time)
 
 class Bridge(SpeciesReaction):
     """
@@ -63,7 +63,7 @@ class Bridge(SpeciesReaction):
         else:
             return float('Inf')
 
-    def execute(self):
+    def execute(self, time):
         self.polymer.execute()
 
     def __str__(self):
@@ -115,7 +115,7 @@ class Simulation:
     def execute(self):
         time, index = self.pop()
         self.time = time
-        self.reactions[index].execute()
+        self.reactions[index].execute(self.time)
         self.build_heap()
         self.iteration += 1
 
@@ -125,7 +125,7 @@ class Simulation:
             promoter = Promoter("rbs", 1, 10, ["ribosome"])
             terminator = Terminator("tstop", 90, 100, ["ribosome"])
             elements = [promoter, terminator]
-            polymer = Polymer("rna", 150, elements, self)
+            polymer = Polymer("rna", 150, elements)
             self.register_polymer(polymer)
             self.increment_reactant("rbs", 1)
             self.register_reaction(Bind(self, polymer, 0.05, ["rbs", "ribosome"], ["ribosome", 1, 10, 4, ["ribosome", "tstop", "rbs"]]))
@@ -185,7 +185,7 @@ def main():
         terminator = Terminator("T", 90, 100, ["rna_pol"])
         elements = [promoter, terminator]
         # Construct polymer
-        tracker = Polymer("dna", 150, elements, simulation)
+        tracker = Polymer("dna", 150, elements)
         # tracker.bind_polymerase(rna_pol)
 
         simulation.increment_reactant("rna_pol", 10)

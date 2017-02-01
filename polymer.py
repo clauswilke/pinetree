@@ -10,17 +10,13 @@ class Polymer:
     queue of `Polymerase` objects that are expected to move, and calculate
     time-until-next move from an exponential distribution.
     """
-    def __init__(self, name, length, elements, sim):
+    def __init__(self, name, length, elements):
         self.name = name
         self.length = length
         self.polymerases = []
         self.elements = elements
         self.heap = []
         self.__observers = []
-        self.register_sim(sim)
-
-    def register_sim(self, sim):
-        self.sim = sim
 
     def register_observer(self, observer):
         self.__observers.append(observer)
@@ -29,23 +25,23 @@ class Polymer:
         for observer in self.__observers:
             observer.notify(self, **kwargs)
 
-    def bind_polymerase(self, pol):
+    def bind_polymerase(self, pol, current_time):
         """
         Bind a `Polymerase` object to the polymer and add it to priority queue.
 
         :param pol: `Polymerase` object.
         """
         self.polymerases.append(pol)
-        self.push(pol)
+        self.push(pol, current_time)
 
-    def push(self, pol):
+    def push(self, pol, current_time):
         """
         Calculate time-until-next reaction and add `Polymerase` object to
         priority queue.
 
         :param pol: `Polymerase` object.
         """
-        heapq.heappush(self.heap, (self.next_time(pol), pol))
+        heapq.heappush(self.heap, (self.next_time(pol, current_time), pol))
 
     def pop(self):
         """
@@ -57,7 +53,7 @@ class Polymer:
         pol = heapq.heappop(self.heap)
         return pol[0], pol[1]
 
-    def next_time(self, pol):
+    def next_time(self, pol, current_time):
         """
         Calculate time-until-next reaction from an exponential distribution
         centered at a `Polymerase` object's `speed` attribute. Adds time to
@@ -66,7 +62,8 @@ class Polymer:
         :param pol: `Polymerase` object.
         :returns: time that `pol` will move next.
         """
-        return self.sim.time + random.expovariate(pol.speed)
+        return current_time + random.expovariate(pol.speed)
+        # return self.sim.time + random.expovariate(pol.speed)
 
     def move_polymerase(self, pol):
         # Record old covered elements
@@ -93,6 +90,7 @@ class Polymer:
             if element not in new_covered_elements:
                 self.notify_observers(species = element.name,
                                       action = "free_promoter")
+                # print("free promoter!")
 
     def execute(self):
         """
@@ -103,13 +101,13 @@ class Polymer:
 
         self.move_polymerase(pol)
 
-        self.sim.time = time
-
         if pol.attached == True:
-            self.push(pol)
+            self.push(pol, time)
+            # print("move!")
         else:
             self.notify_observers(species = pol.name, action = "terminate")
             self.polymerases.remove(pol)
+            # print("terminate!")
 
     def find_intersections(self, pol, elements):
         """
@@ -142,10 +140,6 @@ class Polymer:
         Convert `Polymer` object to string representation showing features and
         polymerases.
         """
-        out_string = "Time: " + str(self.sim.time)
-
-        # out_string += str(self.heap)
-
         feature_locs = [0]*self.length
         for feature in self.polymerases:
             for i in range(feature.start - 1, feature.stop - 1):
