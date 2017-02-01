@@ -41,7 +41,7 @@ class Polymer:
 
         :param pol: `Polymerase` object.
         """
-        heapq.heappush(self.heap, (self.next_time(pol, current_time), pol))
+        heapq.heappush(self.heap, (self.calculate_time(pol, current_time), pol))
 
     def pop(self):
         """
@@ -53,7 +53,13 @@ class Polymer:
         pol = heapq.heappop(self.heap)
         return pol[0], pol[1]
 
-    def next_time(self, pol, current_time):
+    def get_next_time(self):
+        if len(self.heap) > 0:
+            return self.heap[0][0]
+        else:
+            return float('Inf')
+
+    def calculate_time(self, pol, current_time):
         """
         Calculate time-until-next reaction from an exponential distribution
         centered at a `Polymerase` object's `speed` attribute. Adds time to
@@ -63,7 +69,6 @@ class Polymer:
         :returns: time that `pol` will move next.
         """
         return current_time + random.expovariate(pol.speed)
-        # return self.sim.time + random.expovariate(pol.speed)
 
     def move_polymerase(self, pol):
         # Record old covered elements

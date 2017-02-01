@@ -11,7 +11,7 @@ class SpeciesReaction:
     def __init__(self, sim):
         self.sim = sim
 
-    def next_time(self, time):
+    def calculate_time(self, time):
         """
         Calculate the time at which this reaction will occur next.
         """
@@ -31,7 +31,7 @@ class Bind(SpeciesReaction):
         self.rate_constant = rate_constant
         self.reactants = reactants
 
-    def next_time(self, time):
+    def calculate_time(self, time):
         propensity = self.rate_constant
         for reactant in self.reactants:
             propensity *= self.sim.reactants[reactant]
@@ -57,11 +57,8 @@ class Bridge(SpeciesReaction):
         super().__init__(sim)
         self.polymer = polymer
 
-    def next_time(self, time):
-        if len(self.polymer.heap) > 0:
-            return self.polymer.heap[0][0]
-        else:
-            return float('Inf')
+    def calculate_time(self, time):
+        return self.polymer.get_next_time()
 
     def execute(self, time):
         self.polymer.execute()
@@ -100,7 +97,7 @@ class Simulation:
     def build_heap(self):
         self.heap = []
         for i in range(len(self.reactions)):
-            self.heap.append((self.reactions[i].next_time(self.time), i))
+            self.heap.append((self.reactions[i].calculate_time(self.time), i))
         heapq.heapify(self.heap)
 
     def pop(self):
@@ -109,7 +106,7 @@ class Simulation:
 
     def push_reaction(self, reaction_index):
         heapq.heappush(self.heap,
-            (self.reactions[reaction_index].next_time(self.time),
+            (self.reactions[reaction_index].calculate_time(self.time),
              reaction_index))
 
     def execute(self):
