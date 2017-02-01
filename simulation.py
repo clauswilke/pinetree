@@ -8,10 +8,10 @@ from feature import *
 from polymer import *
 
 class SpeciesReaction:
-    def __init__(self, sim):
-        self.sim = sim
+    def __init__(self):
+        pass
 
-    def calculate_time(self, time):
+    def calculate_time(self, current_time):
         """
         Calculate the time at which this reaction will occur next.
         """
@@ -25,13 +25,14 @@ class Bind(SpeciesReaction):
     Bind a polymerase to a polymer.
     """
     def __init__(self, sim, polymer, rate_constant, reactants, product_args):
-        super().__init__(sim)
+        super().__init__()
+        self.sim = sim
         self.polymer = polymer
         self.polymerase_args = product_args
         self.rate_constant = rate_constant
         self.reactants = reactants
 
-    def calculate_time(self, time):
+    def calculate_time(self, current_time):
         propensity = self.rate_constant
         for reactant in self.reactants:
             propensity *= self.sim.reactants[reactant]
@@ -41,26 +42,25 @@ class Bind(SpeciesReaction):
         except ZeroDivisionError:
             delta_time = float('Inf')
 
-        return time + delta_time
+        return current_time + delta_time
 
-    def execute(self, time):
+    def execute(self, current_time):
         for reactant in self.reactants:
             self.sim.increment_reactant(reactant, -1)
         pol = Polymerase(*self.polymerase_args)
-        self.polymer.bind_polymerase(pol, time)
+        self.polymer.bind_polymerase(pol, current_time)
 
 class Bridge(SpeciesReaction):
     """
     Encapsulate polymer so it can participate in species-level reaction queue.
     """
-    def __init__(self, sim, polymer):
-        super().__init__(sim)
+    def __init__(self, polymer):
         self.polymer = polymer
 
-    def calculate_time(self, time):
+    def calculate_time(self, current_time):
         return self.polymer.get_next_time()
 
-    def execute(self, time):
+    def execute(self, current_time):
         self.polymer.execute()
 
     def __str__(self):
@@ -92,7 +92,7 @@ class Simulation:
 
     def register_polymer(self, polymer):
         polymer.register_observer(self)
-        self.reactions.append(Bridge(self, polymer))
+        self.reactions.append(Bridge(polymer))
 
     def build_heap(self):
         self.heap = []
