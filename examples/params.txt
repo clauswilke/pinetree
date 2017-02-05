@@ -1,0 +1,26 @@
+simulation:
+    seed: 34
+    runtime: 1000
+    ribosomes: 1000
+---
+genome:
+    name: T7
+    copy_number: 1
+---
+polymerase:
+    name: rnapol
+    copy_number: 10
+    speed: 40
+---
+- promoter:
+    name: phi1
+    length: 10
+    binds:
+        rnapol: 0.01
+- transcript:
+    name: rnapol
+    length: 200
+    rbs: -15
+- terminator:
+    name: t1
+    length: 10
