@@ -15,8 +15,9 @@ polymerase:
 - promoter:
     name: phi1
     length: 10
-    binds:
-        rnapol: 0.01
+    interactions:
+        rnapol:
+            binding_constant: 0.01
 - transcript:
     name: rnapol
     length: 200
@@ -24,3 +25,6 @@ polymerase:
 - terminator:
     name: t1
     length: 10
+    interactions:
+        rnapol:
+            efficiency: 1.0
