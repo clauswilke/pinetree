@@ -3,6 +3,7 @@
 import heapq
 import random
 import argparse
+import yaml
 
 from feature import *
 from polymer import *
@@ -159,49 +160,53 @@ class Simulation:
 
 def main():
 
-    parser = argparse.ArgumentParser(description = "Simulate a single \
-        polymerase moving along a piece of DNA.")
+    parser = argparse.ArgumentParser(description = "Simulate transcription \
+        and translation.")
 
     # Add polymerase speed argument
-    parser.add_argument("speed", metavar = "s", type = int, nargs = 1,
-                        help = "speed in nucleotides per second of polymerase.")
+    parser.add_argument("params", metavar = "p", type = str, nargs = 1,
+                        help = "parameter file")
 
     args = parser.parse_args()
 
-    random.seed(34)
+    with open(args.params[0], "r") as f:
+        for doc in yaml.safe_load_all(f):
+            print(doc)
 
-    # Run simulation 50 times
-    for i in range(0, 1):
-        simulation = Simulation()
-        # Construct interactions
-        interactions = ["rna_pol", "T", "phi"]
-        # Construct polymerases
-        rna_pol = Polymerase("rna_pol", 15, 10, args.speed[0], interactions)
-        # Construct features
-        promoter = Promoter("phi", 1, 10, ["rna_pol"])
-        terminator = Terminator("T", 90, 100, ["rna_pol"])
-        elements = [promoter, terminator]
-        # Construct polymer
-        tracker = Polymer("dna", 150, elements)
-        # tracker.bind_polymerase(rna_pol)
-
-        simulation.increment_reactant("rna_pol", 10)
-        simulation.increment_reactant("phi", 1)
-        simulation.increment_reactant("ribosome", 100)
-        pol_args = ["rna_pol", 1, 10, 4, ["rna_pol", "T", "phi"]]
-        reaction = Bind(simulation, tracker, 0.1, ["rna_pol", "phi"], pol_args)
-        simulation.register_reaction(reaction)
-        simulation.register_polymer(tracker)
-        simulation.build_heap()
-
-        time_step = 5
-        old_time = 0
-        while(simulation.time < 100):
-            simulation.execute()
-            # print(abs(simulation.time - old_time))
-            if abs(simulation.time - old_time) > time_step:
-                print(simulation)
-                old_time = simulation.time
+    # random.seed(34)
+    #
+    # # Run simulation 50 times
+    # for i in range(0, 1):
+    #     simulation = Simulation()
+    #     # Construct interactions
+    #     interactions = ["rna_pol", "T", "phi"]
+    #     # Construct polymerases
+    #     rna_pol = Polymerase("rna_pol", 15, 10, args.speed[0], interactions)
+    #     # Construct features
+    #     promoter = Promoter("phi", 1, 10, ["rna_pol"])
+    #     terminator = Terminator("T", 90, 100, ["rna_pol"])
+    #     elements = [promoter, terminator]
+    #     # Construct polymer
+    #     tracker = Polymer("dna", 150, elements)
+    #     # tracker.bind_polymerase(rna_pol)
+    #
+    #     simulation.increment_reactant("rna_pol", 10)
+    #     simulation.increment_reactant("phi", 1)
+    #     simulation.increment_reactant("ribosome", 100)
+    #     pol_args = ["rna_pol", 1, 10, 4, ["rna_pol", "T", "phi"]]
+    #     reaction = Bind(simulation, tracker, 0.1, ["rna_pol", "phi"], pol_args)
+    #     simulation.register_reaction(reaction)
+    #     simulation.register_polymer(tracker)
+    #     simulation.build_heap()
+    #
+    #     time_step = 5
+    #     old_time = 0
+    #     while(simulation.time < 100):
+    #         simulation.execute()
+    #         # print(abs(simulation.time - old_time))
+    #         if abs(simulation.time - old_time) > time_step:
+    #             print(simulation)
+    #             old_time = simulation.time
 
 
 if __name__ == "__main__":
