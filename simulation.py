@@ -163,23 +163,54 @@ def main():
     parser = argparse.ArgumentParser(description = "Simulate transcription \
         and translation.")
 
-    # Add polymerase speed argument
+    # Add parameter file argument
     parser.add_argument("params", metavar = "p", type = str, nargs = 1,
                         help = "parameter file")
 
     args = parser.parse_args()
 
     with open(args.params[0], "r") as f:
-        for doc in yaml.safe_load_all(f):
-            print(doc)
+        params = yaml.safe_load(f)
 
-    # random.seed(34)
-    #
-    # # Run simulation 50 times
-    # for i in range(0, 1):
-    #     simulation = Simulation()
-    #     # Construct interactions
-    #     interactions = ["rna_pol", "T", "phi"]
+    random.seed(params["simulation"]["seed"])
+
+    simulation = Simulation()
+
+    dna_elements = []
+    position = 0
+    for element in params["elements"]:
+        if element["type"] == "promoter":
+            new_element = Promoter(element["name"],
+                                   position,
+                                   position + element["length"],
+                                   element["interactions"].keys())
+        elif element["type"] == "terminator":
+            new_element = Terminator(element["name"],
+                                     position,
+                                     position + element["length"],
+                                     element["interactions"].keys())
+        else:
+            new_element = False
+
+        if new_element != False:
+            dna_elements.append(new_element)
+        position += element["length"]
+
+    genome = Polymer(params["genome"]["name"], position, dna_elements)
+
+
+    for pol in params["polymerases"]:
+        pol["interactions"] = [pol["name"]] # all pols interact with themselves
+        for element in params["elements"]:
+            if "interactions" in element.keys():
+                if pol["name"] in element["interactions"].keys():
+                    pol["interactions"].append(element["name"])
+
+
+
+    # Add binding reactions
+    # Add species
+
     #     # Construct polymerases
     #     rna_pol = Polymerase("rna_pol", 15, 10, args.speed[0], interactions)
     #     # Construct features
