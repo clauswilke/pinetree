@@ -117,6 +117,7 @@ class Polymer:
             self.polymerases.remove(pol)
             # print("terminate!")
 
+
     def find_intersections(self, pol, elements):
         """
         Detect overlap between a given `Polymerase` object and all other
@@ -154,3 +155,18 @@ class Polymer:
                 feature_locs[i] = 1
         out_string += "\nfeatures: \n" + ''.join(map(str, feature_locs))
         return out_string
+
+def Genome(Polymer):
+
+    def __init__():
+        pass
+
+    def build_transcript():
+        """
+        Build a transcript object corresponding to this genome.
+        """
+        pass
+
+def Transcript(Polymer):
+    def __init__():
+        pass
