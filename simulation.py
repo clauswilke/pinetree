@@ -118,7 +118,10 @@ class Simulation:
         self.iteration += 1
 
     def notify(self, observable, **kwargs):
-        if kwargs["action"] == "terminate" and kwargs["species"] == "rna_pol":
+        #######
+        # TODO: MAKE MORE GENERIC SO POLYMERASES, ETC CAN HAVE ARBITRARY NAMES
+        #######
+        if kwargs["action"] == "terminate" and kwargs["species"] == "rnapol":
             self.increment_reactant(kwargs["species"], 1)
             promoter = Promoter("rbs", 1, 10, ["ribosome"])
             terminator = Terminator("tstop", 90, 100, ["ribosome"])
@@ -128,13 +131,13 @@ class Simulation:
             self.increment_reactant("rbs", 1)
             self.register_reaction(Bind(self, polymer, 0.05, ["rbs", "ribosome"], ["ribosome", 1, 10, 4, ["ribosome", "tstop", "rbs"]]))
             self.count_termination("full_transcript", self.time)
-        elif kwargs["action"] == "free_promoter" and kwargs["species"] == "phi":
+        elif kwargs["action"] == "free_promoter" and kwargs["species"] == "phi1":
             self.increment_reactant(kwargs["species"], 1)
         elif kwargs["action"] == "free_promoter" and kwargs["species"] == "rbs":
             self.increment_reactant(kwargs["species"], 1)
         elif kwargs["action"] == "terminate" and kwargs["species"] == "ribosome":
             self.increment_reactant(kwargs["species"], 1)
-            self.increment_reactant("rna_pol", 1)
+            self.increment_reactant("rnapol", 1)
             self.count_termination("full_protein", self.time)
 
     def count_termination(self, name, time):
@@ -191,7 +194,8 @@ def main():
                                      element["interactions"].keys())
         else:
             new_element = False
-
+        element["start"] = position
+        element["stop"] = position + element["length"]
         if new_element != False:
             dna_elements.append(new_element)
         position += element["length"]
@@ -200,6 +204,9 @@ def main():
 
 
     for pol in params["polymerases"]:
+        # add polymerase as a reactant
+        simulation.increment_reactant(pol["name"], pol["copy_number"])
+        # build interactions
         pol["interactions"] = [pol["name"]] # all pols interact with themselves
         for element in params["elements"]:
             if "interactions" in element.keys():
@@ -207,6 +214,28 @@ def main():
                     pol["interactions"].append(element["name"])
 
 
+    for element in params["elements"]:
+        if element["type"] == "promoter":
+            simulation.increment_reactant(element["name"], 1)
+            for partner, constant in element["interactions"].items():
+                binding_constant = constant["binding_constant"]
+                interactions = [partner, element["name"]]
+                for pol in params["polymerases"]:
+                    if pol["name"] == partner:
+                        pol_args = [partner,
+                                    element["start"],
+                                    element["stop"],
+                                    pol["speed"],
+                                    pol["interactions"]
+                                    ]
+                reaction = Bind(simulation,
+                                genome,
+                                binding_constant,
+                                interactions,
+                                pol_args)
+                simulation.register_reaction(reaction)
+
+    simulation.register_polymer(genome)
 
     # Add binding reactions
     # Add species
@@ -223,21 +252,20 @@ def main():
     #
     #     simulation.increment_reactant("rna_pol", 10)
     #     simulation.increment_reactant("phi", 1)
-    #     simulation.increment_reactant("ribosome", 100)
+    simulation.increment_reactant("ribosome", 100)
     #     pol_args = ["rna_pol", 1, 10, 4, ["rna_pol", "T", "phi"]]
     #     reaction = Bind(simulation, tracker, 0.1, ["rna_pol", "phi"], pol_args)
     #     simulation.register_reaction(reaction)
     #     simulation.register_polymer(tracker)
-    #     simulation.build_heap()
-    #
-    #     time_step = 5
-    #     old_time = 0
-    #     while(simulation.time < 100):
-    #         simulation.execute()
-    #         # print(abs(simulation.time - old_time))
-    #         if abs(simulation.time - old_time) > time_step:
-    #             print(simulation)
-    #             old_time = simulation.time
+    simulation.build_heap()
+
+    time_step = params["simulation"]["time_step"]
+    old_time = 0
+    while(simulation.time < params["simulation"]["runtime"]):
+        simulation.execute()
+        if abs(simulation.time - old_time) > time_step:
+            print(simulation)
+            old_time = simulation.time
 
 
 if __name__ == "__main__":
