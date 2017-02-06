@@ -94,6 +94,7 @@ class Polymer:
         for element in old_covered_elements:
             if element not in new_covered_elements:
                 self.notify_observers(species = element.name,
+                                      type = element.type,
                                       action = "free_promoter")
                 # print("free promoter!")
 
@@ -110,7 +111,9 @@ class Polymer:
             self.push(pol, time)
             # print("move!")
         else:
-            self.notify_observers(species = pol.name, action = "terminate")
+            self.notify_observers(species = pol.name,
+                                  action = "terminate",
+                                  type = pol.type)
             self.polymerases.remove(pol)
             # print("terminate!")
 

@@ -13,6 +13,7 @@ class Feature:
         self.stop = stop
         self.interactions = interactions
         self.__observers = []
+        self.type = ""
 
     def register_observer(self, observer):
         self.__observers.append(observer)
@@ -36,6 +37,7 @@ class Polymerase(Feature):
         super().__init__(name, start, start + footprint, interactions)
         self.speed = speed
         self.attached = True
+        self.type = "polymerase"
 
     def move(self):
         """
@@ -61,6 +63,7 @@ class Element(Feature):
     def __init__(self, name, start, stop, interactions):
         super().__init__(name, start, stop, interactions)
         self.covered = False
+        self.type = ""
 
     def cover(self):
         self.covered = True
@@ -70,6 +73,7 @@ class Promoter(Element):
 
     def __init__(self, name, start, stop, interactions):
         super().__init__(name, start, stop, interactions)
+        self.type = "promoter"
 
     # def react(self, pol):
     #     self.cover()
@@ -80,6 +84,7 @@ class Terminator(Element):
     """
     def __init__(self, name, start, stop, interactions):
         super().__init__(name, start, stop, interactions)
+        self.type = "promoter"
 
     def react(self, pol):
         """

@@ -121,7 +121,7 @@ class Simulation:
         #######
         # TODO: MAKE MORE GENERIC SO POLYMERASES, ETC CAN HAVE ARBITRARY NAMES
         #######
-        if kwargs["action"] == "terminate" and kwargs["species"] == "rnapol":
+        if kwargs["action"] == "terminate" and kwargs["type"] == "polymerase":
             self.increment_reactant(kwargs["species"], 1)
             promoter = Promoter("rbs", 1, 10, ["ribosome"])
             terminator = Terminator("tstop", 90, 100, ["ribosome"])
@@ -131,7 +131,7 @@ class Simulation:
             self.increment_reactant("rbs", 1)
             self.register_reaction(Bind(self, polymer, 0.05, ["rbs", "ribosome"], ["ribosome", 1, 10, 4, ["ribosome", "tstop", "rbs"]]))
             self.count_termination("full_transcript", self.time)
-        elif kwargs["action"] == "free_promoter" and kwargs["species"] == "phi1":
+        elif kwargs["action"] == "free_promoter" and kwargs["type"] == "promoter":
             self.increment_reactant(kwargs["species"], 1)
         elif kwargs["action"] == "free_promoter" and kwargs["species"] == "rbs":
             self.increment_reactant(kwargs["species"], 1)
