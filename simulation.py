@@ -128,7 +128,8 @@ class Simulation:
                 self.increment_reactant(reactant, 1)
             for element in kwargs["polymer"].elements:
                 if element.name == "rbs":
-                    ribo_args = ["ribosome", element.start, element.stop, 4,
+                    ribo_args = ["ribosome", element.start, 10, #footprint
+                                  10,
                                  ["ribosome", "tstop", "rbs"]]
                     reaction = Bind(self, kwargs["polymer"], 0.05,
                                     ["rbs", "ribosome"],
@@ -137,7 +138,7 @@ class Simulation:
             self.count_termination("full_transcript", self.time)
         elif kwargs["action"] == "free_promoter" and kwargs["type"] == "promoter":
             self.increment_reactant(kwargs["species"], 1)
-        elif kwargs["action"] == "free_promoter" and kwargs["species"] == "rbs":
+        elif kwargs["action"] == "free_promoter" and kwargs["type"] == "rbs":
             self.increment_reactant(kwargs["species"], 1)
         elif kwargs["action"] == "terminate" and kwargs["species"] == "ribosome":
             self.increment_reactant(kwargs["species"], 1)
@@ -230,16 +231,16 @@ def main():
                     if pol["name"] == partner:
                         pol_args = [partner,
                                     element["start"],
-                                    element["stop"],
+                                    10,                 # footpring
                                     pol["speed"],
                                     pol["interactions"]
                                     ]
-                reaction = Bind(simulation,
-                                genome,
-                                binding_constant,
-                                interactions,
-                                pol_args)
-                simulation.register_reaction(reaction)
+                        reaction = Bind(simulation,
+                                        genome,
+                                        binding_constant,
+                                        interactions,
+                                        pol_args)
+                        simulation.register_reaction(reaction)
 
     simulation.register_polymer(genome)
 
@@ -272,6 +273,9 @@ def main():
         if abs(simulation.time - old_time) > time_step:
             print(simulation)
             old_time = simulation.time
+        elif params["simulation"]["debug"] == True:
+            print(simulation)
+            print(genome)
 
 
 if __name__ == "__main__":

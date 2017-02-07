@@ -201,7 +201,7 @@ class Genome(Polymer):
                                ["ribosome"])
                 stop_site = Terminator("tstop",
                                        element["stop"],
-                                       element["stop"] + 1,
+                                       element["stop"],
                                        ["ribosome"])
                 stop_site.gene = element["name"]
                 elements.append(rbs)
