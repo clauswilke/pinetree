@@ -121,15 +121,19 @@ class Simulation:
         #######
         # TODO: MAKE MORE GENERIC SO POLYMERASES, ETC CAN HAVE ARBITRARY NAMES
         #######
-        if kwargs["action"] == "terminate" and kwargs["type"] == "polymerase":
+        if kwargs["action"] == "terminate_transcript" and kwargs["type"] == "polymerase":
             self.increment_reactant(kwargs["species"], 1)
-            promoter = Promoter("rbs", 1, 10, ["ribosome"])
-            terminator = Terminator("tstop", 90, 100, ["ribosome"])
-            elements = [promoter, terminator]
-            polymer = Polymer("rna", 150, elements)
-            self.register_polymer(polymer)
-            self.increment_reactant("rbs", 1)
-            self.register_reaction(Bind(self, polymer, 0.05, ["rbs", "ribosome"], ["ribosome", 1, 10, 4, ["ribosome", "tstop", "rbs"]]))
+            self.register_polymer(kwargs["polymer"])
+            for reactant in kwargs["reactants"]:
+                self.increment_reactant(reactant, 1)
+            for element in kwargs["polymer"].elements:
+                if element.name == "rbs":
+                    ribo_args = ["ribosome", element.start, element.stop, 4,
+                                 ["ribosome", "tstop", "rbs"]]
+                    reaction = Bind(self, kwargs["polymer"], 0.05,
+                                    ["rbs", "ribosome"],
+                                    ribo_args)
+                    self.register_reaction(reaction)
             self.count_termination("full_transcript", self.time)
         elif kwargs["action"] == "free_promoter" and kwargs["type"] == "promoter":
             self.increment_reactant(kwargs["species"], 1)
@@ -180,6 +184,7 @@ def main():
     simulation = Simulation()
 
     dna_elements = []
+    transcript_template = []
     position = 0
     for element in params["elements"]:
         if element["type"] == "promoter":
@@ -192,7 +197,8 @@ def main():
                                      position,
                                      position + element["length"],
                                      element["interactions"].keys())
-        else:
+        elif element["type"] == "transcript":
+            transcript_template.append(element)
             new_element = False
         element["start"] = position
         element["stop"] = position + element["length"]
@@ -200,7 +206,7 @@ def main():
             dna_elements.append(new_element)
         position += element["length"]
 
-    genome = Polymer(params["genome"]["name"], position, dna_elements)
+    genome = Genome(params["genome"]["name"], position, dna_elements, transcript_template)
 
 
     for pol in params["polymerases"]:

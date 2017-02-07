@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-from polymer import *
+# from polymer import *
 
 class Feature:
     """
@@ -37,6 +37,7 @@ class Polymerase(Feature):
         super().__init__(name, start, start + footprint, interactions)
         self.speed = speed
         self.attached = True
+        self.bound = start
         self.type = "polymerase"
 
     def move(self):
@@ -84,7 +85,7 @@ class Terminator(Element):
     """
     def __init__(self, name, start, stop, interactions):
         super().__init__(name, start, stop, interactions)
-        self.type = "promoter"
+        self.type = "terminator"
 
     def react(self, pol):
         """

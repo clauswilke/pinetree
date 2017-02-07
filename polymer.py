@@ -3,6 +3,8 @@
 import heapq
 import random
 
+from feature import *
+
 class Polymer:
     """
     Track `Feature` objects, `Polymerase` objects, and collisions on a single
@@ -156,17 +158,56 @@ class Polymer:
         out_string += "\nfeatures: \n" + ''.join(map(str, feature_locs))
         return out_string
 
-def Genome(Polymer):
+class Genome(Polymer):
 
-    def __init__():
-        pass
+    def __init__(self, name, length, elements, transcript_template):
+        super().__init__(name, length, elements)
+        self.transcript_template = transcript_template
 
-    def build_transcript():
+    def execute(self):
+        """
+        Process `Polymerase` object at the top of the priority queue. Check for
+        collisions, uncovering of elements, and terminations.
+        """
+        time, pol = self.pop()
+
+        self.move_polymerase(pol)
+
+        if pol.attached == True:
+            self.push(pol, time)
+            # print("move!")
+        else:
+            polymer, species = self.build_transcript(pol.bound, pol.stop)
+            self.notify_observers(species = pol.name,
+                                  action = "terminate_transcript",
+                                  type = pol.type,
+                                  polymer = polymer,
+                                  reactants = species)
+            self.polymerases.remove(pol)
+            # print("terminate!")
+
+    def build_transcript(self, start, stop):
         """
         Build a transcript object corresponding to this genome.
         """
-        pass
+        species = []
+        elements = []
+        for element in self.transcript_template:
+            if element["start"] >= start and element["stop"] <= stop:
+                rbs = Promoter("rbs",
+                               element["start"]-element["rbs"],
+                               element["start"],
+                               ["ribosome"])
+                stop_site = Terminator("tstop",
+                                       element["stop"],
+                                       element["stop"] + 1,
+                                       ["ribosome"])
+                elements.append(rbs)
+                elements.append(stop_site)
+                species.append("rbs")
+            polymer = Polymer("rna", 150, elements)
+        return polymer, species
 
-def Transcript(Polymer):
+class Transcript(Polymer):
     def __init__():
         pass
