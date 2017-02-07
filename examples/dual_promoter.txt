@@ -33,12 +33,12 @@ elements:
   name: proteinX
   length: 40
   rbs: -15
-# - type: promoter
-#   name: phi10
-#   length: 10
-#   interactions:
-#       rnapol:
-#           binding_constant: 0.9
+- type: promoter
+  name: phi10
+  length: 10
+  interactions:
+      rnapol:
+          binding_constant: 0.9
 - type: transcript
   name: capsid
   length: 300

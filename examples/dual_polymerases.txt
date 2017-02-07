@@ -11,11 +11,11 @@ genome:
 # Define polymerases
 polymerases:
 - name: rnapol
+  copy_number: 0
+  speed: 40
+- name: ecoli
   copy_number: 10
   speed: 40
-# - name: ecoli
-#   copy_number: 10
-#   speed: 40
 # Define promoters, transcripts, and terminators, in the order that they
 # are encoded in the genome.
 elements:
@@ -23,8 +23,8 @@ elements:
   name: phi1
   length: 10
   interactions:
-      rnapol:
-          binding_constant: 0.5
+      ecoli:
+          binding_constant: 0.1
 - type: transcript
   name: rnapol
   length: 200
@@ -33,12 +33,12 @@ elements:
   name: proteinX
   length: 40
   rbs: -15
-# - type: promoter
-#   name: phi10
-#   length: 10
-#   interactions:
-#       rnapol:
-#           binding_constant: 0.9
+- type: promoter
+  name: phi10
+  length: 10
+  interactions:
+      rnapol:
+          binding_constant: 0.9
 - type: transcript
   name: capsid
   length: 300
@@ -48,4 +48,6 @@ elements:
   length: 10
   interactions:
     rnapol:
+        efficiency: 1.0
+    ecoli:
         efficiency: 1.0
