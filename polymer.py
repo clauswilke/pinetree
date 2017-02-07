@@ -155,7 +155,7 @@ class Polymer:
         for feature in self.polymerases:
             for i in range(feature.start - 1, feature.stop - 1):
                 feature_locs[i] = 1
-        out_string += "\nfeatures: \n" + ''.join(map(str, feature_locs))
+        out_string = "\nfeatures: \n" + ''.join(map(str, feature_locs))
         return out_string
 
 class Genome(Polymer):

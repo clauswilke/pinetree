@@ -1,8 +1,8 @@
 simulation:
     seed: 34
-    runtime: 100
+    runtime: 50
     time_step: 5
-    ribosomes: 1000
+    ribosomes: 100
 # Genome parameters
 genome:
     name: T7
@@ -23,7 +23,7 @@ elements:
   length: 10
   interactions:
       rnapol:
-          binding_constant: 0.01
+          binding_constant: 0.5
 - type: transcript
   name: rnapol
   length: 200
