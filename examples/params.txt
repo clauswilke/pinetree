@@ -1,7 +1,7 @@
 simulation:
     seed: 34
-    runtime: 50
-    time_step: 5
+    runtime: 1000
+    time_step: 10
     ribosomes: 100
 # Genome parameters
 genome:
@@ -27,6 +27,10 @@ elements:
 - type: transcript
   name: rnapol
   length: 200
+  rbs: -15
+- type: transcript
+  name: capsid
+  length: 300
   rbs: -15
 - type: terminator
   name: t1

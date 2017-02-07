@@ -86,6 +86,7 @@ class Terminator(Element):
     def __init__(self, name, start, stop, interactions):
         super().__init__(name, start, stop, interactions)
         self.type = "terminator"
+        self.gene = ""
 
     def react(self, pol):
         """
@@ -94,3 +95,4 @@ class Terminator(Element):
         :param pol: `Polymerase`.
         """
         pol.attached = False
+        pol.last_gene = self.gene

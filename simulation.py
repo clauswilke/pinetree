@@ -142,7 +142,7 @@ class Simulation:
         elif kwargs["action"] == "terminate" and kwargs["species"] == "ribosome":
             self.increment_reactant(kwargs["species"], 1)
             self.increment_reactant("rnapol", 1)
-            self.count_termination("full_protein", self.time)
+            self.count_termination(kwargs["name"], self.time)
 
     def count_termination(self, name, time):
         """

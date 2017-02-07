@@ -115,7 +115,8 @@ class Polymer:
         else:
             self.notify_observers(species = pol.name,
                                   action = "terminate",
-                                  type = pol.type)
+                                  type = pol.type,
+                                  name = pol.last_gene)
             self.polymerases.remove(pol)
             # print("terminate!")
 
@@ -202,6 +203,7 @@ class Genome(Polymer):
                                        element["stop"],
                                        element["stop"] + 1,
                                        ["ribosome"])
+                stop_site.gene = element["name"]
                 elements.append(rbs)
                 elements.append(stop_site)
                 species.append("rbs")
