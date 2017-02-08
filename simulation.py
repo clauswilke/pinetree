@@ -295,10 +295,14 @@ def main():
     with open(args.params[0], "r") as f:
         params = yaml.safe_load(f)
 
+    # Set seed
     random.seed(params["simulation"]["seed"])
 
+    # Build simulation
     simulation = Simulation()
 
+    # Construct list of DNA elements and a transcript template that includes
+    # RBS's and stop sites
     dna_elements = []
     transcript_template = []
     position = 0
@@ -322,9 +326,13 @@ def main():
             dna_elements.append(new_element)
         position += element["length"]
 
-    genome = Genome(params["genome"]["name"], position, dna_elements, transcript_template)
+    # Build genome
+    genome = Genome(params["genome"]["name"],
+                    position, dna_elements, transcript_template)
 
 
+    # Add species-level polymerase counts and construct list of partners
+    # that this polymerase interacts with (promoters, terminators, etc.)
     for pol in params["polymerases"]:
         # add polymerase as a reactant
         simulation.increment_reactant(pol["name"], pol["copy_number"])
@@ -335,7 +343,7 @@ def main():
                 if pol["name"] in element["interactions"].keys():
                     pol["interactions"].append(element["name"])
 
-
+    # Add binding reaction for each promoter-polymerase interaction pair
     for element in params["elements"]:
         if element["type"] == "promoter":
             simulation.increment_reactant(element["name"], 1)
@@ -346,7 +354,7 @@ def main():
                     if pol["name"] == partner:
                         pol_args = [partner,
                                     element["start"],
-                                    10,                 # footpring
+                                    10,                 # footprint
                                     pol["speed"],
                                     pol["interactions"]
                                     ]
@@ -357,37 +365,26 @@ def main():
                                         pol_args)
                         simulation.register_reaction(reaction)
 
+    # Register genome
     simulation.register_polymer(genome)
 
-    # Add binding reactions
-    # Add species
-
-    #     # Construct polymerases
-    #     rna_pol = Polymerase("rna_pol", 15, 10, args.speed[0], interactions)
-    #     # Construct features
-    #     promoter = Promoter("phi", 1, 10, ["rna_pol"])
-    #     terminator = Terminator("T", 90, 100, ["rna_pol"])
-    #     elements = [promoter, terminator]
-    #     # Construct polymer
-    #     tracker = Polymer("dna", 150, elements)
-    #     # tracker.bind_polymerase(rna_pol)
-    #
-    #     simulation.increment_reactant("rna_pol", 10)
-    #     simulation.increment_reactant("phi", 1)
+    # Add species-level ribosomes
     simulation.increment_reactant("ribosome", 100)
-    #     pol_args = ["rna_pol", 1, 10, 4, ["rna_pol", "T", "phi"]]
-    #     reaction = Bind(simulation, tracker, 0.1, ["rna_pol", "phi"], pol_args)
-    #     simulation.register_reaction(reaction)
-    #     simulation.register_polymer(tracker)
+
+    # Construct heap before first iteration of simulation
     simulation.build_heap()
 
     time_step = params["simulation"]["time_step"]
     old_time = 0
+    # Print initial conditions
+    print(simulation)
     while(simulation.time < params["simulation"]["runtime"]):
+        # Execute simulatio
         simulation.execute()
         if abs(simulation.time - old_time) > time_step:
+            # Output data every ~time_step
             print(simulation)
-            old_time = simulation.time
+            old_time += time_step
         elif params["simulation"]["debug"] == True:
             print(simulation)
             print(genome)
