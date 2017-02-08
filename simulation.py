@@ -9,16 +9,26 @@ from feature import *
 from polymer import *
 
 class SpeciesReaction:
+    """
+    Generic class for species-level reaction. (Not currently used).
+    """
     def __init__(self):
         pass
 
     def calculate_time(self, current_time):
         """
         Calculate the time at which this reaction will occur next.
+
+        :param current_time: current time of simulation
         """
         pass
 
-    def execute(self, time):
+    def execute(self, current_time):
+        """
+        Execute the reaction.
+
+        :param current_time: current time of simulation
+        """
         pass
 
 class Bind(SpeciesReaction):
@@ -26,6 +36,15 @@ class Bind(SpeciesReaction):
     Bind a polymerase to a polymer.
     """
     def __init__(self, sim, polymer, rate_constant, reactants, product_args):
+        """
+        :param sim: reference to simulation object in which this reaction occurs
+        :param polymer: polymer object involved in this reaction
+        :param rate_constant: rate constant of reaction
+        :param reactants: *names* of species-level reactants involved in this
+            reaction
+        :param product_args: list of arguments to pass to polymerase
+            constructor upon execution of this reaction.
+        """
         super().__init__()
         self.sim = sim
         self.polymer = polymer
@@ -34,20 +53,35 @@ class Bind(SpeciesReaction):
         self.reactants = reactants
 
     def calculate_time(self, current_time):
+        """
+        Calculate the time at which this reaction will occur next.
+
+        :param current_time: the current time of the simulation
+        :returns: time at which this reaction will next occur.
+        """
         propensity = self.rate_constant
         for reactant in self.reactants:
             propensity *= self.sim.reactants[reactant]
-
         try:
+            # calculate delta time according to exponential distribution with
+            # the propensity as the mean
             delta_time = random.expovariate(propensity)
         except ZeroDivisionError:
+            # propensity could be 0, causing divide-by-zero error
             delta_time = float('Inf')
 
         return current_time + delta_time
 
     def execute(self, current_time):
+        """
+        Execute this reaction.
+
+        :param current_time: the current time of the simulation
+        """
         for reactant in self.reactants:
+            # Decrement each reactant by 1
             self.sim.increment_reactant(reactant, -1)
+        # Construct and bind a new polymerase
         pol = Polymerase(*self.polymerase_args)
         self.polymer.bind_polymerase(pol, current_time)
 
@@ -56,91 +90,172 @@ class Bridge(SpeciesReaction):
     Encapsulate polymer so it can participate in species-level reaction queue.
     """
     def __init__(self, polymer):
+        """
+        :param polymer: polymer object that this reaction is encapsulating
+        """
         self.polymer = polymer
 
     def calculate_time(self, current_time):
+        """
+        Retrieve time of next reaction within the polymer (e.g. a polymerase
+        moving).
+
+        :param current_time: current time of simulation
+        :returns: time at which next reaction will occur within polymer
+        """
         return self.polymer.get_next_time()
 
     def execute(self, current_time):
+        """
+        Execute reaction within polymer (e.g. typically moving a polymerase).
+        """
         self.polymer.execute()
 
     def __str__(self):
+        """
+        Retrieve string representation of polymer.
+
+        :returns: string representation of polymer encapsulated by this object
+        """
         return str(self.polymer)
 
 
 class Simulation:
     """
-    Collect data from polymers.
+    Coordinate polymers and species-level reactions.
     """
     def __init__(self):
-        self.time = 0
-        self.terminations = {}
-        self.reactants = {}
-        self.reactions = []
-        self.heap = []
-        self.rebuild_heap = False
-        self.iteration = 0
+        self.time = 0 # simulation time
+        self.terminations = {} # track when polymerases terminate
+        self.reactants = {} # species-level reactant counts
+        self.reactions = [] # all reactions
+        self.heap = [] # heap with next reaction on top
+        self.iteration = 0 # iteration counter
 
     def increment_reactant(self, name, copy_number):
+        """
+        Increment (or decrement) the copy number of a species-level reactant by
+        copy_number.
+
+        :param name: name of reactant
+        :param copy_number: change in copy number (can be negative)
+        """
         if name in self.reactants.keys():
             self.reactants[name] += copy_number
         else:
             self.reactants[name] = copy_number
 
     def register_reaction(self, reaction):
+        """
+        Add a SpeciesReaction object to the list of reactions.
+
+        :param reaction: SpeciesReaction object
+        """
         if reaction not in self.reactions:
             self.reactions.append(reaction)
 
     def register_polymer(self, polymer):
+        """
+        Add a polymer to the simulation.
+
+        :param polymer: polymer object
+        """
+        # Register this simulation as an observer of the polymer, so the polymer
+        # can send messages to the simulation about its internal state.
         polymer.register_observer(self)
+        # Encapsulate polymer in Bridge reaction and add to reaction list
         self.reactions.append(Bridge(polymer))
 
     def build_heap(self):
+        """
+        Construct reaction min-heap.
+        """
+        # Empty out heap just in case
         self.heap = []
+        # Construct heap based on minimum next-reaction times for each reaction
+        # in this simulation.
         for i in range(len(self.reactions)):
             self.heap.append((self.reactions[i].calculate_time(self.time), i))
+        # Construct heap
         heapq.heapify(self.heap)
 
     def pop(self):
+        """
+        Remove next-occuring reaction from heap.
+
+        :returns: reaction time, index of reaction in self.reactions
+        """
         reaction = heapq.heappop(self.heap)
         return reaction[0], reaction[1]
 
     def push_reaction(self, reaction_index):
+        """
+        Add reaction back into min-heap.
+
+        :param reaction_index: index of reaction within self.reactions
+        """
         heapq.heappush(self.heap,
             (self.reactions[reaction_index].calculate_time(self.time),
              reaction_index))
 
     def execute(self):
+        """
+        Execute one cycle of reaction.
+
+        TODO: avoid reconstructing heap on every iteration
+        """
         time, index = self.pop()
         self.time = time
         self.reactions[index].execute(self.time)
+        # Reconstruct heap on each iteration
         self.build_heap()
         self.iteration += 1
 
     def notify(self, observable, **kwargs):
-        #######
-        # TODO: MAKE MORE GENERIC SO POLYMERASES, ETC CAN HAVE ARBITRARY NAMES
-        #######
+        """
+        Receive and respond to messages from polymers, and polymerases.
+
+        Messages include:
+        * terminate_transcript from polymerase: construct transcript, add
+            polymerase back into species-level pool, register transcript with simulation, add binding reaction for RBS, count completed transcript
+        * free_promoter from promoter: add promoter back to species-level pool
+        * free_promoter from rbs: add an RBS back to species-level pool
+        * terminate from ribosome: add ribosome and completed protein into
+            species-level pool, count completed protein
+
+        TODO: REFACTOR, DEAL WITH FOOTPRINT SIZES
+
+        :param observable: object delivering messages, usually a polymer?
+        :param kwargs: messages (e.g. "terminate_transcript", "free_promoter",
+            etc.)
+        """
         if kwargs["action"] == "terminate_transcript" and kwargs["type"] == "polymerase":
             self.increment_reactant(kwargs["species"], 1)
             self.register_polymer(kwargs["polymer"])
             for reactant in kwargs["reactants"]:
                 self.increment_reactant(reactant, 1)
+            # Construct binding reaction
             for element in kwargs["polymer"].elements:
                 if element.name == "rbs":
+                    # Template for ribosome to be constructed on transcript upon
+                    # binding.
                     ribo_args = ["ribosome", element.start, 10, #footprint
                                   10,
                                  ["ribosome", "tstop", "rbs"]]
+                    # Transcript-ribosome binding reaction
                     reaction = Bind(self, kwargs["polymer"], 0.05,
                                     ["rbs", "ribosome"],
                                     ribo_args)
                     self.register_reaction(reaction)
+            # Count that a transcript has been constructed
             self.count_termination("full_transcript", self.time)
         elif kwargs["action"] == "free_promoter" and kwargs["type"] == "promoter":
             self.increment_reactant(kwargs["species"], 1)
         elif kwargs["action"] == "free_promoter" and kwargs["type"] == "rbs":
+            # free ribosome binding site
             self.increment_reactant(kwargs["species"], 1)
         elif kwargs["action"] == "terminate" and kwargs["species"] == "ribosome":
+            # complete protein synthesis
             self.increment_reactant(kwargs["species"], 1)
             self.increment_reactant(kwargs["name"], 1)
             self.count_termination(kwargs["name"], self.time)
