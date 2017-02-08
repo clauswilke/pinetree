@@ -13,6 +13,13 @@ class Polymer:
     time-until-next move from an exponential distribution.
     """
     def __init__(self, name, length, elements):
+        """
+        :param name: name of this polymer (should it be unique?)
+        :param length: length of polymer (used purely for debugging, may not be
+            needed)
+        :param elements: all elements on this polymer, including promoters,
+            terminators, etc.
+        """
         self.name = name
         self.length = length
         self.polymerases = []
@@ -21,15 +28,25 @@ class Polymer:
         self.__observers = []
 
     def register_observer(self, observer):
+        """
+        Register an observer of this object with which to send messages.
+
+        :param observer: an observer
+        """
         self.__observers.append(observer)
 
     def notify_observers(self, **kwargs):
+        """
+        Notify registered observers
+
+        :param kwargs: kwargs to send to observers
+        """
         for observer in self.__observers:
             observer.notify(self, **kwargs)
 
     def bind_polymerase(self, pol, current_time):
         """
-        Bind a `Polymerase` object to the polymer and add it to priority queue.
+        Bind a `Polymerase` object to the polymer and add it to min-heap.
 
         :param pol: `Polymerase` object.
         """
@@ -39,7 +56,7 @@ class Polymer:
     def push(self, pol, current_time):
         """
         Calculate time-until-next reaction and add `Polymerase` object to
-        priority queue.
+        min-heap.
 
         :param pol: `Polymerase` object.
         """
@@ -56,6 +73,9 @@ class Polymer:
         return pol[0], pol[1]
 
     def get_next_time(self):
+        """
+        Return the time that the reaction at the top of the min-heap will occur.
+        """
         if len(self.heap) > 0:
             return self.heap[0][0]
         else:
@@ -73,6 +93,12 @@ class Polymer:
         return current_time + random.expovariate(pol.speed)
 
     def move_polymerase(self, pol):
+        """
+        Move polymerase and deal with collisions and covering/uncovering of
+        elements.
+
+        :param pol: polymerase to move
+        """
         # Record old covered elements
         old_covered_elements = self.find_intersections(pol, self.elements)
 
@@ -98,27 +124,26 @@ class Polymer:
                 self.notify_observers(species = element.name,
                                       type = element.type,
                                       action = "free_promoter")
-                # print("free promoter!")
 
     def execute(self):
         """
-        Process `Polymerase` object at the top of the priority queue. Check for
-        collisions, uncovering of elements, and terminations.
+        Process `Polymerase` object at the top of the min-heap. Check for
+        terminations (in which the polymerase will NOT be added back into
+        min-heap).
         """
         time, pol = self.pop()
 
         self.move_polymerase(pol)
 
+        # Is the polymerase still attached?
         if pol.attached == True:
             self.push(pol, time)
-            # print("move!")
         else:
             self.notify_observers(species = pol.name,
                                   action = "terminate",
                                   type = pol.type,
                                   name = pol.last_gene)
             self.polymerases.remove(pol)
-            # print("terminate!")
 
 
     def find_intersections(self, pol, elements):
@@ -167,7 +192,7 @@ class Genome(Polymer):
 
     def execute(self):
         """
-        Process `Polymerase` object at the top of the priority queue. Check for
+        Process `Transcript` object at the top of the priority queue. Check for
         collisions, uncovering of elements, and terminations.
         """
         time, pol = self.pop()
