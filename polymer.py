@@ -11,6 +11,8 @@ class Polymer:
     polymer. Move `Polymerase` objects along the polymer, maintain a priority
     queue of `Polymerase` objects that are expected to move, and calculate
     time-until-next move from an exponential distribution.
+
+    TODO: make class abstract?
     """
     def __init__(self, name, length, elements):
         """
@@ -185,8 +187,19 @@ class Polymer:
         return out_string
 
 class Genome(Polymer):
-
+    """
+    Track polymerases on DNA, deal with collisions, promoters, terminators, and
+    constructing transcripts.
+    """
     def __init__(self, name, length, elements, transcript_template):
+        """
+        :param name: name of this genome
+        :param length: length of genome (do we still need this?)
+        :param elements: DNA elements (promoters, terminators)
+        :param transcript_template: list of parameters for all possible
+            transcripts produced by this genome (i.e. the largest possible
+            polycistronic transcript)
+        """
         super().__init__(name, length, elements)
         self.transcript_template = transcript_template
 
@@ -201,8 +214,8 @@ class Genome(Polymer):
 
         if pol.attached == True:
             self.push(pol, time)
-            # print("move!")
         else:
+            # Handle termination
             polymer, species = self.build_transcript(pol.bound, pol.stop)
             self.notify_observers(species = pol.name,
                                   action = "terminate_transcript",
@@ -210,16 +223,23 @@ class Genome(Polymer):
                                   polymer = polymer,
                                   reactants = species)
             self.polymerases.remove(pol)
-            # print("terminate!")
 
     def build_transcript(self, start, stop):
         """
-        Build a transcript object corresponding to this genome.
+        Build a transcript object corresponding to start and stop positions
+        within this genome.
+
+        :param start: start position of transcript within genome
+        :param stop: stop position of transcript within genome
+
+        :returns: polymer object, list of species that need to be added to
+            species-level pool
         """
         species = []
         elements = []
         for element in self.transcript_template:
             if element["start"] >= start and element["stop"] <= stop:
+                # Is this element within the start and stop sites?
                 rbs = Promoter("rbs",
                                element["start"]-element["rbs"],
                                element["start"],
@@ -232,9 +252,13 @@ class Genome(Polymer):
                 elements.append(rbs)
                 elements.append(stop_site)
                 species.append("rbs")
+            # build transcript
             polymer = Polymer("rna", 150, elements)
         return polymer, species
 
 class Transcript(Polymer):
+    """
+    An mRNA transcript. Tracks ribosomes and protein production.
+    """
     def __init__():
         pass
