@@ -101,31 +101,42 @@ class Polymer:
 
         :param pol: polymerase to move
         """
-        # Record old covered elements
-        old_covered_elements = self.find_intersections(pol, self.elements)
+        # Find which elements this polymerase is covering and temporarily
+        # uncover them
+        for element in self.elements:
+            if self.segments_intersect(pol.start, pol.stop,
+                                       element.start, element.stop):
+                element.uncover()
 
         # Move polymerase
         pol.move()
 
-        # Record new collisions
-        collisions = self.find_intersections(pol, self.polymerases)
-
         # First resolve any collisions between polymerases
-        for other_pol in collisions:
-            other_pol.react(pol)
+        for other_pol in self.polymerases:
+            if pol == other_pol:
+                continue
+            if self.segments_intersect(pol.start, pol.stop,
+                                       other_pol.start, other_pol.stop):
+                if other_pol.check_interaction(pol):
+                    other_pol.react(pol)
 
-        # Now cover elements
-        new_covered_elements = self.find_intersections(pol, self.elements)
-        for element in new_covered_elements:
-            element.cover()
-            element.react(pol)
-
-        # Check for uncovered elements
-        for element in old_covered_elements:
-            if element not in new_covered_elements:
+        # Now recover elements
+        for element in self.elements:
+            if self.segments_intersect(pol.start, pol.stop,
+                                       element.start, element.stop):
+                element.cover()
+                if element.check_interaction(pol):
+                    # Resolve reactions between pol and element (e.g.,
+                    # terminators)
+                    element.react(pol)
+            # Check for just-uncovered elements
+            if element.old_covered >= 1 and element.covered == 0:
                 self.notify_observers(species = element.name,
                                       type = element.type,
                                       action = "free_promoter")
+                # Uncover element again in order to reset covering history
+                # and avoid re-triggering an uncovering event.
+                element.uncover()
 
     def execute(self):
         """
@@ -147,26 +158,6 @@ class Polymer:
                                   name = pol.last_gene)
             self.polymerases.remove(pol)
 
-
-    def find_intersections(self, pol, elements):
-        """
-        Detect overlap between a given `Polymerase` object and all other
-        `Feature` objects in `elements` currently in or on the polymer that it
-        interacts with.
-
-        :param pol: `Polymerase` object with which to check for collisions.
-        :returns: list of `Feature` objects that overlap and interact with
-            `pol`.
-        """
-        intersections = []
-        for element in elements:
-            if pol == element:
-                continue
-            if self.segments_intersect(pol.start, pol.stop,
-                                       element.start, element.stop):
-                if element.check_interaction(pol):
-                    intersections.append(element)
-        return intersections
 
     def segments_intersect(self, x1, x2, y1, y2):
         """

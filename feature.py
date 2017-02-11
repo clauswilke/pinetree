@@ -100,14 +100,20 @@ class Element(Feature):
     """
     def __init__(self, name, start, stop, interactions):
         super().__init__(name, start, stop, interactions)
-        self.covered = False # is this element covered? (i.e. inaccessible)
+        self.covered = 0 # is this element covered? (i.e. inaccessible)
+        self.old_covered = 0
         self.type = ""
 
     def cover(self):
         """
         Cover this element.
         """
-        self.covered = True
+        self.covered += 1
+
+    def uncover(self):
+        self.old_covered = self.covered
+        if self.covered > 0:
+            self.covered -= 1
 
 
 class Promoter(Element):
