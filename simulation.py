@@ -18,17 +18,13 @@ class SpeciesReaction:
 
     def calculate_propensity(self):
         """
-        Calculate the time at which this reaction will occur next.
-
-        :param current_time: current time of simulation
+        Calculate the propensity of this reaction
         """
         pass
 
-    def execute(self, tau):
+    def execute(self):
         """
         Execute the reaction.
-
-        :param current_time: current time of simulation
         """
         pass
 
@@ -55,10 +51,9 @@ class Bind(SpeciesReaction):
 
     def calculate_propensity(self):
         """
-        Calculate the time at which this reaction will occur next.
+        Calculate the propensity of this reaction.
 
-        :param current_time: the current time of the simulation
-        :returns: time at which this reaction will next occur.
+        :returns: propensity of this reaction.
         """
         propensity = self.rate_constant
         for reactant in self.reactants:
@@ -69,8 +64,6 @@ class Bind(SpeciesReaction):
     def execute(self):
         """
         Execute this reaction.
-
-        :param current_time: the current time of the simulation
         """
         for reactant in self.reactants:
             # Decrement each reactant by 1
@@ -91,11 +84,10 @@ class Bridge(SpeciesReaction):
 
     def calculate_propensity(self):
         """
-        Retrieve time of next reaction within the polymer (e.g. a polymerase
-        moving).
+        Retrieve the total propensity of all reactions that may occur within
+        this polymer.
 
-        :param current_time: current time of simulation
-        :returns: time at which next reaction will occur within polymer
+        :returns: total propensity of reactions within polymer
         """
         return self.polymer.calculate_propensity()
 
@@ -163,8 +155,6 @@ class Simulation:
     def execute(self):
         """
         Execute one cycle of reaction.
-
-        TODO: avoid reconstructing heap on every iteration
         """
 
         # Generate random number

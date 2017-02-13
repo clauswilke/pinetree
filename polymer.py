@@ -54,12 +54,10 @@ class Polymer:
 
     def calculate_propensity(self):
         """
-        Calculate time-until-next reaction from an exponential distribution
-        centered at a `Polymerase` object's `speed` attribute. Adds time to
-        current simulation time.
+        Calculate the total propensity of all polymerase movement in this
+        polymer.
 
-        :param pol: `Polymerase` object.
-        :returns: time that `pol` will move next.
+        :returns: total propensity
         """
         prop = 0
         for pol in self.polymerases:
@@ -112,11 +110,8 @@ class Polymer:
 
     def execute(self):
         """
-        Process `Polymerase` object at the top of the min-heap. Check for
-        terminations (in which the polymerase will NOT be added back into
-        min-heap).
+        Select a polymerase to move next and deal with terminations.
         """
-
         alpha_list = []
 
         for pol in self.polymerases:
@@ -173,8 +168,7 @@ class Genome(Polymer):
 
     def execute(self):
         """
-        Process `Transcript` object at the top of the priority queue. Check for
-        collisions, uncovering of elements, and terminations.
+        Select next polymerase to move and deal with terminations.
         """
         alpha_list = []
 
