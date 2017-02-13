@@ -1,6 +1,5 @@
 #! /usr/bin/env python3
 
-import heapq
 import random
 
 from feature import *

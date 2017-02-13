@@ -1,7 +1,5 @@
 #! /usr/bin/env python3
 
-# from polymer import *
-
 class Feature:
     """
     A generic feature in or on `Polymer`. Designed to be extended
