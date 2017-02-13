@@ -19,21 +19,7 @@ class Feature:
         self.start = start
         self.stop = stop
         self.interactions = interactions
-        self.__observers = [] # List of objects that are observing this feature
         self.type = "" # type of feature, i.e., polymerase, promoter, etc.
-
-    def register_observer(self, observer):
-        """
-        Observer pattern stuff.
-        """
-        self.__observers.append(observer)
-
-    def notify_observers(self, **kwargs):
-        """
-        Observer pattern stuff.
-        """
-        for observer in self.__observers:
-            observer.notify(self, **kwargs)
 
     def check_interaction(self, feature):
         """
@@ -91,6 +77,23 @@ class Polymerase(Feature):
         polymerase.
         """
         pol.move_back()
+
+class Mask(Feature):
+    """
+    A pseudo-feature that tracks which portion of a genome or polymer are not
+    yet accessible. For example, as the genome is entering the cell, or as a
+    transcript is being synthesized.
+    """
+    def __init__(self, name, start, stop, interactions):
+        super().__init__(name, start, stop, interactions)
+
+    def react(self, pol):
+        """
+        Shrink mask by one base pair.
+
+        TODO: have a dynamic step size?
+        """
+        self.start += 1
 
 class Element(Feature):
     """

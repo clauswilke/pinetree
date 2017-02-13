@@ -27,6 +27,8 @@ class Polymer:
         self.elements = elements
         self.termination_signal = Signal()
         self.promoter_signal = Signal()
+        self.block_signal = Signal()
+        self.mask = False
 
     def bind_polymerase(self, pol):
         """
@@ -61,6 +63,10 @@ class Polymer:
             if self.segments_intersect(pol.start, pol.stop,
                                        element.start, element.stop):
                 element.uncover()
+            if self.mask != False:
+                if self.segments_intersect(self.mask.start, self.mask.stop,
+                                           element.start, element.stop):
+                    element.uncover()
 
         # Move polymerase
         pol.move()
@@ -74,6 +80,12 @@ class Polymer:
                 if other_pol.check_interaction(pol):
                     other_pol.react(pol)
 
+        if self.mask != False:
+            if self.segments_intersect(pol.start, pol.stop,
+                                       self.mask.start, self.mask.stop):
+                if self.mask.check_interaction(pol):
+                    self.mask.react(pol)
+
         # Now recover elements
         for element in self.elements:
             if self.segments_intersect(pol.start, pol.stop,
@@ -83,9 +95,18 @@ class Polymer:
                     # Resolve reactions between pol and element (e.g.,
                     # terminators)
                     element.react(pol)
+            if self.mask != False:
+                if self.segments_intersect(self.mask.start, self.mask.stop,
+                                           element.start, element.stop):
+                    element.cover()
+            if element.old_covered == 0 and element.covered > 0 and element.type != "terminator":
+                self.block_signal.fire(element.name)
+                print(element.name, "covered!")
+                element.old_covered = 1
             # Check for just-uncovered elements
-            if element.old_covered >= 1 and element.covered == 0:
+            if element.old_covered >= 1 and element.covered == 0 and element.type != "terminator":
                 self.promoter_signal.fire(element.name)
+                print(element.name, "uncovered!")
                 # Uncover element again in order to reset covering history
                 # and avoid re-triggering an uncovering event.
                 element.uncover()
@@ -122,9 +143,15 @@ class Polymer:
         polymerases.
         """
         feature_locs = [0]*self.length
+        if self.mask != False:
+            for i in range(self.mask.start - 1, self.mask.stop - 1):
+                feature_locs[i] = "X"
         for feature in self.polymerases:
             for i in range(feature.start - 1, feature.stop - 1):
-                feature_locs[i] = 1
+                feature_locs[i] = "P"
+        for feature in self.elements:
+            for i in range(feature.start - 1, feature.stop - 1):
+                feature_locs[i] = feature.covered
         out_string = "\nfeatures: \n" + ''.join(map(str, feature_locs))
         return out_string
 
@@ -133,7 +160,7 @@ class Genome(Polymer):
     Track polymerases on DNA, deal with collisions, promoters, terminators, and
     constructing transcripts.
     """
-    def __init__(self, name, length, elements, transcript_template):
+    def __init__(self, name, length, elements, transcript_template, mask):
         """
         :param name: name of this genome
         :param length: length of genome (do we still need this?)
@@ -144,6 +171,11 @@ class Genome(Polymer):
         """
         super().__init__(name, length, elements)
         self.transcript_template = transcript_template
+        self.mask = mask
+        for element in self.elements:
+            if self.segments_intersect(element.start, element.stop,
+                                       self.mask.start, self.mask.stop):
+                element.cover()
 
     def execute(self):
         """

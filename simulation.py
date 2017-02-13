@@ -72,7 +72,8 @@ class Bind(SpeciesReaction):
         """
         for reactant in self.reactants:
             # Decrement each reactant by 1
-            self.sim.increment_reactant(reactant, -1)
+            if reactant == "rnapol" or reactant == "ribosome":
+                self.sim.increment_reactant(reactant, -1)
         # Construct and bind a new polymerase
         pol = Polymerase(*self.polymerase_args)
         self.polymer.bind_polymerase(pol)
@@ -184,6 +185,9 @@ class Simulation:
     def free_promoter(self, species):
         self.increment_reactant(species, 1)
 
+    def block_promoter(self, species):
+        self.increment_reactant(species, -1)
+
     def terminate_transcription(self, polymer, species, reactants):
         """
         Terminate transcription.
@@ -294,8 +298,9 @@ def main():
         position += element["length"]
 
     # Build genome
+    genome_mask = Mask("mask", 30, position, ["rnapol"])
     genome = Genome(params["genome"]["name"],
-                    position, dna_elements, transcript_template)
+                    position, dna_elements, transcript_template, genome_mask)
 
 
     # Add species-level polymerase counts and construct list of partners
@@ -313,7 +318,7 @@ def main():
     # Add binding reaction for each promoter-polymerase interaction pair
     for element in params["elements"]:
         if element["type"] == "promoter":
-            simulation.increment_reactant(element["name"], 1)
+            # simulation.increment_reactant(element["name"], 1)
             for partner, constant in element["interactions"].items():
                 binding_constant = constant["binding_constant"]
                 interactions = [partner, element["name"]]
@@ -331,10 +336,17 @@ def main():
                                         interactions,
                                         pol_args)
                         simulation.register_reaction(reaction)
+    # Add species level reactants for elements that are not masked
+    for element in dna_elements:
+        if element.type == "promoter" and element.stop < genome.mask.start:
+            simulation.increment_reactant(element.name, 1)
+        elif element.type == "promoter":
+            simulation.increment_reactant(element.name, 0)
 
     # Register genome
     genome.termination_signal.connect(simulation.terminate_transcription)
     genome.promoter_signal.connect(simulation.free_promoter)
+    genome.block_signal.connect(simulation.block_promoter)
     simulation.register_polymer(genome)
 
     # Add species-level ribosomes
