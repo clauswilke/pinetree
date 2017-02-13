@@ -120,7 +120,6 @@ class Simulation:
         self.terminations = {} # track when polymerases terminate
         self.reactants = {} # species-level reactant counts
         self.reactions = [] # all reactions
-        self.heap = [] # heap with next reaction on top
         self.iteration = 0 # iteration counter
 
     def increment_reactant(self, name, copy_number):
