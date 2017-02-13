@@ -150,9 +150,6 @@ class Simulation:
 
         :param polymer: polymer object
         """
-        # Register this simulation as an observer of the polymer, so the polymer
-        # can send messages to the simulation about its internal state.
-        polymer.register_observer(self)
         # Encapsulate polymer in Bridge reaction and add to reaction list
         self.reactions.append(Bridge(polymer))
 
@@ -184,29 +181,8 @@ class Simulation:
 
         self.iteration += 1
 
-    def notify(self, observable, **kwargs):
-        """
-        Receive and respond to messages from polymers, and polymerases.
-
-        Messages include:
-        * terminate_transcript from polymerase: construct transcript, add
-            polymerase back into species-level pool, register transcript with simulation, add binding reaction for RBS, count completed transcript
-        * free_promoter from promoter: add promoter back to species-level pool
-        * free_promoter from rbs: add an RBS back to species-level pool
-        * terminate from ribosome: add ribosome and completed protein into
-            species-level pool, count completed protein
-
-        TODO: REFACTOR, DEAL WITH FOOTPRINT SIZES
-
-        :param observable: object delivering messages, usually a polymer?
-        :param kwargs: messages (e.g. "terminate_transcript", "free_promoter",
-            etc.)
-        """
-        if kwargs["action"] == "free_promoter" and kwargs["type"] == "promoter":
-            self.increment_reactant(kwargs["species"], 1)
-        elif kwargs["action"] == "free_promoter" and kwargs["type"] == "rbs":
-            # free ribosome binding site
-            self.increment_reactant(kwargs["species"], 1)
+    def free_promoter(self, species):
+        self.increment_reactant(species, 1)
 
     def terminate_transcription(self, polymer, species, reactants):
         """
@@ -219,6 +195,7 @@ class Simulation:
         """
         self.increment_reactant(species, 1)
         self.register_polymer(polymer)
+        polymer.promoter_signal.connect(self.free_promoter)
         polymer.termination_signal.connect(self.terminate_translation)
         for reactant in reactants:
             self.increment_reactant(reactant, 1)
@@ -357,6 +334,7 @@ def main():
 
     # Register genome
     genome.termination_signal.connect(simulation.terminate_transcription)
+    genome.promoter_signal.connect(simulation.free_promoter)
     simulation.register_polymer(genome)
 
     # Add species-level ribosomes

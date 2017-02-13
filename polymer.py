@@ -25,25 +25,8 @@ class Polymer:
         self.length = length
         self.polymerases = []
         self.elements = elements
-        self.__observers = []
         self.termination_signal = Signal()
-
-    def register_observer(self, observer):
-        """
-        Register an observer of this object with which to send messages.
-
-        :param observer: an observer
-        """
-        self.__observers.append(observer)
-
-    def notify_observers(self, **kwargs):
-        """
-        Notify registered observers
-
-        :param kwargs: kwargs to send to observers
-        """
-        for observer in self.__observers:
-            observer.notify(self, **kwargs)
+        self.promoter_signal = Signal()
 
     def bind_polymerase(self, pol):
         """
@@ -102,9 +85,7 @@ class Polymer:
                     element.react(pol)
             # Check for just-uncovered elements
             if element.old_covered >= 1 and element.covered == 0:
-                self.notify_observers(species = element.name,
-                                      type = element.type,
-                                      action = "free_promoter")
+                self.promoter_signal.fire(element.name)
                 # Uncover element again in order to reset covering history
                 # and avoid re-triggering an uncovering event.
                 element.uncover()
@@ -125,13 +106,7 @@ class Polymer:
 
         # Is the polymerase still attached?
         if pol.attached == False:
-            if pol.name == "ribosome":
-                self.termination_signal.fire(pol.last_gene, pol.name)
-            else:
-                self.notify_observers(species = pol.name,
-                                      action = "terminate",
-                                      type = pol.type,
-                                      name = pol.last_gene)
+            self.termination_signal.fire(pol.last_gene, pol.name)
             self.polymerases.remove(pol)
 
 
@@ -187,11 +162,6 @@ class Genome(Polymer):
         if pol.attached == False:
             # Handle termination
             polymer, species = self.build_transcript(pol.bound, pol.stop)
-            self.notify_observers(species = pol.name,
-                                  action = "terminate_transcript",
-                                  type = pol.type,
-                                  polymer = polymer,
-                                  reactants = species)
             self.termination_signal.fire(polymer, pol.name, species)
             self.polymerases.remove(pol)
 
