@@ -72,8 +72,8 @@ class Bind(SpeciesReaction):
         """
         for reactant in self.reactants:
             # Decrement each reactant by 1
-            if reactant == "rnapol" or reactant == "ribosome":
-                self.sim.increment_reactant(reactant, -1)
+            #if reactant == "rnapol" or reactant == "ribosome":
+            self.sim.increment_reactant(reactant, -1)
         # Construct and bind a new polymerase
         pol = Polymerase(*self.polymerase_args)
         self.polymer.bind_polymerase(pol)

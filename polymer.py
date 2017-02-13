@@ -36,6 +36,11 @@ class Polymer:
 
         :param pol: `Polymerase` object.
         """
+        for element in self.elements:
+            if self.segments_intersect(element.start, element.stop,
+                                       pol.start, pol.stop):
+                element.cover()
+                element.old_covered = 1
         self.polymerases.append(pol)
 
     def calculate_propensity(self):
