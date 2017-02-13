@@ -105,6 +105,15 @@ class Element(Feature):
         self.old_covered = 0
         self.type = ""
 
+    def save_state(self):
+        self.old_covered = self.covered
+
+    def was_uncovered(self):
+        return self.old_covered >= 1 and self.covered == 0
+
+    def was_covered(self):
+        return self.old_covered == 0 and self.covered > 0
+
     def cover(self):
         """
         Cover this element.
@@ -112,7 +121,6 @@ class Element(Feature):
         self.covered += 1
 
     def uncover(self):
-        self.old_covered = self.covered
         if self.covered > 0:
             self.covered -= 1
 

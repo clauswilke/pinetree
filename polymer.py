@@ -40,7 +40,8 @@ class Polymer:
             if self.segments_intersect(element.start, element.stop,
                                        pol.start, pol.stop):
                 element.cover()
-                element.old_covered = 1
+                element.save_state()
+                break
         self.polymerases.append(pol)
 
     def calculate_propensity(self):
@@ -67,10 +68,12 @@ class Polymer:
         for element in self.elements:
             if self.segments_intersect(pol.start, pol.stop,
                                        element.start, element.stop):
+                element.save_state()
                 element.uncover()
             if self.mask != False:
                 if self.segments_intersect(self.mask.start, self.mask.stop,
                                            element.start, element.stop):
+                    element.save_state()
                     element.uncover()
 
         # Move polymerase
@@ -101,20 +104,20 @@ class Polymer:
                     # terminators)
                     element.react(pol)
             if self.mask != False:
+                # Re-cover masked elements
                 if self.segments_intersect(self.mask.start, self.mask.stop,
                                            element.start, element.stop):
                     element.cover()
-            if element.old_covered == 0 and element.covered > 0 and element.type != "terminator":
+            # Check for newly-covered elements
+            if element.was_covered() and element.type != "terminator":
                 self.block_signal.fire(element.name)
-                print(element.name, "covered!")
-                element.old_covered = 1
+                element.save_state()
             # Check for just-uncovered elements
-            if element.old_covered >= 1 and element.covered == 0 and element.type != "terminator":
+            if element.was_uncovered() and element.type != "terminator":
                 self.promoter_signal.fire(element.name)
-                print(element.name, "uncovered!")
                 # Uncover element again in order to reset covering history
                 # and avoid re-triggering an uncovering event.
-                element.uncover()
+                element.save_state()
 
     def execute(self):
         """
