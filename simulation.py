@@ -4,6 +4,7 @@ import heapq
 import random
 import argparse
 import yaml
+import math
 
 from feature import *
 from polymer import *
@@ -15,15 +16,15 @@ class SpeciesReaction:
     def __init__(self):
         pass
 
-    def calculate_time(self, current_time):
-        """
-        Calculate the time at which this reaction will occur next.
+    # def calculate_propensity(self):
+    #     """
+    #     Calculate the time at which this reaction will occur next.
+    #
+    #     :param current_time: current time of simulation
+    #     """
+    #     pass
 
-        :param current_time: current time of simulation
-        """
-        pass
-
-    def execute(self, current_time):
+    def execute(self, tau):
         """
         Execute the reaction.
 
@@ -52,7 +53,7 @@ class Bind(SpeciesReaction):
         self.rate_constant = rate_constant
         self.reactants = reactants
 
-    def calculate_time(self, current_time):
+    def calculate_propensity(self):
         """
         Calculate the time at which this reaction will occur next.
 
@@ -62,17 +63,10 @@ class Bind(SpeciesReaction):
         propensity = self.rate_constant
         for reactant in self.reactants:
             propensity *= self.sim.reactants[reactant]
-        try:
-            # calculate delta time according to exponential distribution with
-            # the propensity as the mean
-            delta_time = random.expovariate(propensity)
-        except ZeroDivisionError:
-            # propensity could be 0, causing divide-by-zero error
-            delta_time = float('Inf')
 
-        return current_time + delta_time
+        return propensity
 
-    def execute(self, current_time):
+    def execute(self):
         """
         Execute this reaction.
 
@@ -83,7 +77,7 @@ class Bind(SpeciesReaction):
             self.sim.increment_reactant(reactant, -1)
         # Construct and bind a new polymerase
         pol = Polymerase(*self.polymerase_args)
-        self.polymer.bind_polymerase(pol, current_time)
+        self.polymer.bind_polymerase(pol)
 
 class Bridge(SpeciesReaction):
     """
@@ -95,7 +89,7 @@ class Bridge(SpeciesReaction):
         """
         self.polymer = polymer
 
-    def calculate_time(self, current_time):
+    def calculate_propensity(self):
         """
         Retrieve time of next reaction within the polymer (e.g. a polymerase
         moving).
@@ -103,9 +97,9 @@ class Bridge(SpeciesReaction):
         :param current_time: current time of simulation
         :returns: time at which next reaction will occur within polymer
         """
-        return self.polymer.get_next_time()
+        return self.polymer.calculate_propensity()
 
-    def execute(self, current_time):
+    def execute(self):
         """
         Execute reaction within polymer (e.g. typically moving a polymerase).
         """
@@ -204,11 +198,28 @@ class Simulation:
 
         TODO: avoid reconstructing heap on every iteration
         """
-        time, index = self.pop()
-        self.time = time
-        self.reactions[index].execute(self.time)
-        # Reconstruct heap on each iteration
-        self.build_heap()
+
+        # Generate random number
+        r1 = random.random()
+
+        alpha_list = []
+
+        for i in range(len(self.reactions)):
+            prop = self.reactions[i].calculate_propensity()
+            alpha_list.append(prop)
+
+        alpha = sum(alpha_list)
+
+        # Calculate tau, i.e. time until next reaction
+        tau = (1/alpha)*math.log(1/r1)
+
+        self.time += tau
+
+        # Randomly select next reaction to execute, weighted by propensities
+        next_reaction = random.choices(self.reactions, weights = alpha_list)[0]
+
+        next_reaction.execute()
+
         self.iteration += 1
 
     def notify(self, observable, **kwargs):
@@ -372,7 +383,7 @@ def main():
     simulation.increment_reactant("ribosome", 100)
 
     # Construct heap before first iteration of simulation
-    simulation.build_heap()
+    # simulation.build_heap()
 
     time_step = params["simulation"]["time_step"]
     old_time = 0

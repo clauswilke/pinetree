@@ -46,14 +46,13 @@ class Polymer:
         for observer in self.__observers:
             observer.notify(self, **kwargs)
 
-    def bind_polymerase(self, pol, current_time):
+    def bind_polymerase(self, pol):
         """
         Bind a `Polymerase` object to the polymer and add it to min-heap.
 
         :param pol: `Polymerase` object.
         """
         self.polymerases.append(pol)
-        self.push(pol, current_time)
 
     def push(self, pol, current_time):
         """
@@ -83,7 +82,7 @@ class Polymer:
         else:
             return float('Inf')
 
-    def calculate_time(self, pol, current_time):
+    def calculate_propensity(self):
         """
         Calculate time-until-next reaction from an exponential distribution
         centered at a `Polymerase` object's `speed` attribute. Adds time to
@@ -92,7 +91,10 @@ class Polymer:
         :param pol: `Polymerase` object.
         :returns: time that `pol` will move next.
         """
-        return current_time + random.expovariate(pol.speed)
+        prop = 0
+        for pol in self.polymerases:
+            prop += pol.speed
+        return prop
 
     def move_polymerase(self, pol):
         """
@@ -144,13 +146,19 @@ class Polymer:
         terminations (in which the polymerase will NOT be added back into
         min-heap).
         """
-        time, pol = self.pop()
+
+        alpha_list = []
+
+        for pol in self.polymerases:
+            alpha_list.append(pol.speed)
+
+        pol = random.choices(self.polymerases, weights = alpha_list)[0]
 
         self.move_polymerase(pol)
 
         # Is the polymerase still attached?
         if pol.attached == True:
-            self.push(pol, time)
+            pass
         else:
             self.notify_observers(species = pol.name,
                                   action = "terminate",
@@ -199,12 +207,17 @@ class Genome(Polymer):
         Process `Transcript` object at the top of the priority queue. Check for
         collisions, uncovering of elements, and terminations.
         """
-        time, pol = self.pop()
+        alpha_list = []
+
+        for pol in self.polymerases:
+            alpha_list.append(pol.speed)
+
+        pol = random.choices(self.polymerases, weights = alpha_list)[0]
 
         self.move_polymerase(pol)
 
         if pol.attached == True:
-            self.push(pol, time)
+            pass
         else:
             # Handle termination
             polymer, species = self.build_transcript(pol.bound, pol.stop)
