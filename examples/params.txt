@@ -1,9 +1,9 @@
 simulation:
     seed: 34
-    runtime: 60
+    runtime: 2
     time_step: 5
     ribosomes: 100
-    debug: False
+    debug: True
 # Genome parameters
 genome:
     name: T7

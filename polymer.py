@@ -13,7 +13,7 @@ class Polymer:
 
     TODO: make class abstract?
     """
-    def __init__(self, name, length, elements):
+    def __init__(self, name, length, elements, mask):
         """
         :param name: name of this polymer (should it be unique?)
         :param length: length of polymer (used purely for debugging, may not be
@@ -28,7 +28,13 @@ class Polymer:
         self.termination_signal = Signal()
         self.promoter_signal = Signal()
         self.block_signal = Signal()
-        self.mask = False
+        self.mask = mask
+
+        # Cover masked elements
+        for element in self.elements:
+            if self.segments_intersect(element.start, element.stop,
+                                       self.mask.start, self.mask.stop):
+                element.cover()
 
     def bind_polymerase(self, pol):
         """
@@ -56,6 +62,17 @@ class Polymer:
             prop += pol.speed
         return prop
 
+    def choose_polymerase(self):
+        alpha_list = []
+
+        for pol in self.polymerases:
+            alpha_list.append(pol.speed)
+
+        # Randomly select next polymerase to move, weighted by propensity
+        pol = random.choices(self.polymerases, weights = alpha_list)[0]
+
+        return pol
+
     def move_polymerase(self, pol):
         """
         Move polymerase and deal with collisions and covering/uncovering of
@@ -70,11 +87,10 @@ class Polymer:
                                        element.start, element.stop):
                 element.save_state()
                 element.uncover()
-            if self.mask != False:
-                if self.segments_intersect(self.mask.start, self.mask.stop,
-                                           element.start, element.stop):
-                    element.save_state()
-                    element.uncover()
+            if self.segments_intersect(self.mask.start, self.mask.stop,
+                                       element.start, element.stop):
+                element.save_state()
+                element.uncover()
 
         # Move polymerase
         pol.move()
@@ -88,11 +104,10 @@ class Polymer:
                 if other_pol.check_interaction(pol):
                     other_pol.react(pol)
 
-        if self.mask != False:
-            if self.segments_intersect(pol.start, pol.stop,
-                                       self.mask.start, self.mask.stop):
-                if self.mask.check_interaction(pol):
-                    self.mask.react(pol)
+        if self.segments_intersect(pol.start, pol.stop,
+                                   self.mask.start, self.mask.stop):
+            if self.mask.check_interaction(pol):
+                self.mask.react(pol)
 
         # Now recover elements
         for element in self.elements:
@@ -103,11 +118,10 @@ class Polymer:
                     # Resolve reactions between pol and element (e.g.,
                     # terminators)
                     element.react(pol)
-            if self.mask != False:
-                # Re-cover masked elements
-                if self.segments_intersect(self.mask.start, self.mask.stop,
-                                           element.start, element.stop):
-                    element.cover()
+            # Re-cover masked elements
+            if self.segments_intersect(self.mask.start, self.mask.stop,
+                                       element.start, element.stop):
+                element.cover()
             # Check for newly-covered elements
             if element.was_covered() and element.type != "terminator":
                 self.block_signal.fire(element.name)
@@ -123,13 +137,8 @@ class Polymer:
         """
         Select a polymerase to move next and deal with terminations.
         """
-        alpha_list = []
 
-        for pol in self.polymerases:
-            alpha_list.append(pol.speed)
-
-        # Randomly select next polymerase to move, weighted by propensity
-        pol = random.choices(self.polymerases, weights = alpha_list)[0]
+        pol = self.choose_polymerase()
 
         self.move_polymerase(pol)
 
@@ -150,17 +159,16 @@ class Polymer:
         Convert `Polymer` object to string representation showing features and
         polymerases.
         """
-        feature_locs = [0]*self.length
-        if self.mask != False:
-            for i in range(self.mask.start - 1, self.mask.stop - 1):
-                feature_locs[i] = "X"
+        feature_locs = ["o"]*self.length
+        for i in range(self.mask.start - 1, self.mask.stop - 1):
+            feature_locs[i] = "x"
         for feature in self.polymerases:
             for i in range(feature.start - 1, feature.stop - 1):
                 feature_locs[i] = "P"
         for feature in self.elements:
             for i in range(feature.start - 1, feature.stop - 1):
                 feature_locs[i] = feature.covered
-        out_string = "\nfeatures: \n" + ''.join(map(str, feature_locs))
+        out_string = "\nfeatures: \n" + ''.join(map(str, feature_locs)) + "\n"
         return out_string
 
 class Genome(Polymer):
@@ -177,25 +185,14 @@ class Genome(Polymer):
             transcripts produced by this genome (i.e. the largest possible
             polycistronic transcript)
         """
-        super().__init__(name, length, elements)
+        super().__init__(name, length, elements, mask)
         self.transcript_template = transcript_template
-        self.mask = mask
-        for element in self.elements:
-            if self.segments_intersect(element.start, element.stop,
-                                       self.mask.start, self.mask.stop):
-                element.cover()
 
     def execute(self):
         """
         Select next polymerase to move and deal with terminations.
         """
-        alpha_list = []
-
-        for pol in self.polymerases:
-            alpha_list.append(pol.speed)
-
-        # Randomly select next polymerase to move, weighted by propensity
-        pol = random.choices(self.polymerases, weights = alpha_list)[0]
+        pol = self.choose_polymerase()
 
         self.move_polymerase(pol)
 
@@ -234,7 +231,10 @@ class Genome(Polymer):
                 elements.append(stop_site)
                 species.append("rbs")
             # build transcript
-            polymer = Polymer("rna", 150, elements)
+            polymer = Polymer("rna",
+                              stop - start,
+                              elements,
+                              Mask("mask", 0, 0, []))
         return polymer, species
 
 class Transcript(Polymer):
