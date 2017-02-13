@@ -1,8 +1,8 @@
 simulation:
     seed: 34
-    runtime: 1000
-    time_step: 50
-    ribosomes: 10000
+    runtime: 30
+    time_step: 5
+    ribosomes: 100
     debug: False
 # Genome parameters
 genome:

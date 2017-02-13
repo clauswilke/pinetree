@@ -16,13 +16,13 @@ class SpeciesReaction:
     def __init__(self):
         pass
 
-    # def calculate_propensity(self):
-    #     """
-    #     Calculate the time at which this reaction will occur next.
-    #
-    #     :param current_time: current time of simulation
-    #     """
-    #     pass
+    def calculate_propensity(self):
+        """
+        Calculate the time at which this reaction will occur next.
+
+        :param current_time: current time of simulation
+        """
+        pass
 
     def execute(self, tau):
         """
@@ -159,38 +159,6 @@ class Simulation:
         polymer.register_observer(self)
         # Encapsulate polymer in Bridge reaction and add to reaction list
         self.reactions.append(Bridge(polymer))
-
-    def build_heap(self):
-        """
-        Construct reaction min-heap.
-        """
-        # Empty out heap just in case
-        self.heap = []
-        # Construct heap based on minimum next-reaction times for each reaction
-        # in this simulation.
-        for i in range(len(self.reactions)):
-            self.heap.append((self.reactions[i].calculate_time(self.time), i))
-        # Construct heap
-        heapq.heapify(self.heap)
-
-    def pop(self):
-        """
-        Remove next-occuring reaction from heap.
-
-        :returns: reaction time, index of reaction in self.reactions
-        """
-        reaction = heapq.heappop(self.heap)
-        return reaction[0], reaction[1]
-
-    def push_reaction(self, reaction_index):
-        """
-        Add reaction back into min-heap.
-
-        :param reaction_index: index of reaction within self.reactions
-        """
-        heapq.heappush(self.heap,
-            (self.reactions[reaction_index].calculate_time(self.time),
-             reaction_index))
 
     def execute(self):
         """
@@ -380,10 +348,7 @@ def main():
     simulation.register_polymer(genome)
 
     # Add species-level ribosomes
-    simulation.increment_reactant("ribosome", 100)
-
-    # Construct heap before first iteration of simulation
-    # simulation.build_heap()
+    simulation.increment_reactant("ribosome", params["simulation"]["ribosomes"])
 
     time_step = params["simulation"]["time_step"]
     old_time = 0

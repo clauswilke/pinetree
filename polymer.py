@@ -8,9 +8,8 @@ from feature import *
 class Polymer:
     """
     Track `Feature` objects, `Polymerase` objects, and collisions on a single
-    polymer. Move `Polymerase` objects along the polymer, maintain a priority
-    queue of `Polymerase` objects that are expected to move, and calculate
-    time-until-next move from an exponential distribution.
+    polymer. Move `Polymerase` objects along the polymer. Handle logic for
+    covering and uncovering of elements.
 
     TODO: make class abstract?
     """
@@ -26,7 +25,6 @@ class Polymer:
         self.length = length
         self.polymerases = []
         self.elements = elements
-        self.heap = []
         self.__observers = []
 
     def register_observer(self, observer):
@@ -53,34 +51,6 @@ class Polymer:
         :param pol: `Polymerase` object.
         """
         self.polymerases.append(pol)
-
-    def push(self, pol, current_time):
-        """
-        Calculate time-until-next reaction and add `Polymerase` object to
-        min-heap.
-
-        :param pol: `Polymerase` object.
-        """
-        heapq.heappush(self.heap, (self.calculate_time(pol, current_time), pol))
-
-    def pop(self):
-        """
-        Remove and return `Polymerase` object from top of priority queue, along
-        with its reaction time.
-
-        :returns: time, `Polymerase` object
-        """
-        pol = heapq.heappop(self.heap)
-        return pol[0], pol[1]
-
-    def get_next_time(self):
-        """
-        Return the time that the reaction at the top of the min-heap will occur.
-        """
-        if len(self.heap) > 0:
-            return self.heap[0][0]
-        else:
-            return float('Inf')
 
     def calculate_propensity(self):
         """
@@ -152,14 +122,13 @@ class Polymer:
         for pol in self.polymerases:
             alpha_list.append(pol.speed)
 
+        # Randomly select next polymerase to move, weighted by propensity
         pol = random.choices(self.polymerases, weights = alpha_list)[0]
 
         self.move_polymerase(pol)
 
         # Is the polymerase still attached?
-        if pol.attached == True:
-            pass
-        else:
+        if pol.attached == False:
             self.notify_observers(species = pol.name,
                                   action = "terminate",
                                   type = pol.type,
@@ -212,13 +181,12 @@ class Genome(Polymer):
         for pol in self.polymerases:
             alpha_list.append(pol.speed)
 
+        # Randomly select next polymerase to move, weighted by propensity
         pol = random.choices(self.polymerases, weights = alpha_list)[0]
 
         self.move_polymerase(pol)
 
-        if pol.attached == True:
-            pass
-        else:
+        if pol.attached == False:
             # Handle termination
             polymer, species = self.build_transcript(pol.bound, pol.stop)
             self.notify_observers(species = pol.name,
