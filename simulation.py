@@ -32,6 +32,7 @@ class Bind(SpeciesReaction):
     """
     Bind a polymerase to a polymer.
     """
+
     def __init__(self, sim, polymer, rate_constant, reactants, product_args):
         """
         :param sim: reference to simulation object in which this reaction occurs
@@ -53,8 +54,13 @@ class Bind(SpeciesReaction):
         """
         Calculate the propensity of this reaction.
 
+        TODO: Propensities could be cached to increase performance, because
+        there will be many reactions in the simulation that have the exact same
+        reactants.
+
         :returns: propensity of this reaction.
         """
+
         propensity = self.rate_constant
         for reactant in self.reactants:
             propensity *= self.sim.reactants[reactant]
