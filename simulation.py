@@ -202,36 +202,69 @@ class Simulation:
         :param kwargs: messages (e.g. "terminate_transcript", "free_promoter",
             etc.)
         """
-        if kwargs["action"] == "terminate_transcript" and kwargs["type"] == "polymerase":
-            self.increment_reactant(kwargs["species"], 1)
-            self.register_polymer(kwargs["polymer"])
-            for reactant in kwargs["reactants"]:
-                self.increment_reactant(reactant, 1)
-            # Construct binding reaction
-            for element in kwargs["polymer"].elements:
-                if element.name == "rbs":
-                    # Template for ribosome to be constructed on transcript upon
-                    # binding.
-                    ribo_args = ["ribosome", element.start, 10, #footprint
-                                  10,
-                                 ["ribosome", "tstop", "rbs"]]
-                    # Transcript-ribosome binding reaction
-                    reaction = Bind(self, kwargs["polymer"], 0.05,
-                                    ["rbs", "ribosome"],
-                                    ribo_args)
-                    self.register_reaction(reaction)
-            # Count that a transcript has been constructed
-            self.count_termination("full_transcript", self.time)
-        elif kwargs["action"] == "free_promoter" and kwargs["type"] == "promoter":
+        # if kwargs["action"] == "terminate_transcript" and kwargs["type"] == "polymerase":
+        #     self.increment_reactant(kwargs["species"], 1)
+        #     self.register_polymer(kwargs["polymer"])
+        #     kwargs["polymer"].termination_signal.connect(self.terminate_translation)
+        #     for reactant in kwargs["reactants"]:
+        #         self.increment_reactant(reactant, 1)
+        #     # Construct binding reaction
+        #     for element in kwargs["polymer"].elements:
+        #         if element.name == "rbs":
+        #             # Template for ribosome to be constructed on transcript upon
+        #             # binding.
+        #             ribo_args = ["ribosome", element.start, 10, #footprint
+        #                           10,
+        #                          ["ribosome", "tstop", "rbs"]]
+        #             # Transcript-ribosome binding reaction
+        #             reaction = Bind(self, kwargs["polymer"], 0.05,
+        #                             ["rbs", "ribosome"],
+        #                             ribo_args)
+        #             self.register_reaction(reaction)
+        #     # Count that a transcript has been constructed
+        #     self.count_termination("full_transcript", self.time)
+        if kwargs["action"] == "free_promoter" and kwargs["type"] == "promoter":
             self.increment_reactant(kwargs["species"], 1)
         elif kwargs["action"] == "free_promoter" and kwargs["type"] == "rbs":
             # free ribosome binding site
             self.increment_reactant(kwargs["species"], 1)
-        elif kwargs["action"] == "terminate" and kwargs["species"] == "ribosome":
-            # complete protein synthesis
-            self.increment_reactant(kwargs["species"], 1)
-            self.increment_reactant(kwargs["name"], 1)
-            self.count_termination(kwargs["name"], self.time)
+
+
+
+    def terminate_translation(self, protein, species):
+        """
+        Terminate translation.
+
+        :param name: name of the protein being produced
+        :param species: name of species that just translated this protein
+            (usually 'ribosome')
+        """
+        self.increment_reactant(species, 1)
+        self.increment_reactant(protein, 1)
+        self.count_termination(protein, self.time)
+
+    #def terminate_transcription(self, polymer, species, reactants):
+    def terminate_transcription(self, polymer, species, reactants):
+        self.increment_reactant(species, 1)
+        self.register_polymer(polymer)
+        polymer.termination_signal.connect(self.terminate_translation)
+        for reactant in reactants:
+            self.increment_reactant(reactant, 1)
+        # Construct binding reaction
+        for element in polymer.elements:
+            if element.name == "rbs":
+                # Template for ribosome to be constructed on transcript upon
+                # binding.
+                ribo_args = ["ribosome", element.start, 10, #footprint
+                              10,
+                             ["ribosome", "tstop", "rbs"]]
+                # Transcript-ribosome binding reaction
+                reaction = Bind(self, polymer, 0.05,
+                                ["rbs", "ribosome"],
+                                ribo_args)
+                self.register_reaction(reaction)
+        # Count that a transcript has been constructed
+        self.count_termination("full_transcript", self.time)
 
     def count_termination(self, name, time):
         """
@@ -339,6 +372,7 @@ def main():
                         simulation.register_reaction(reaction)
 
     # Register genome
+    genome.termination_signal.connect(simulation.terminate_transcription)
     simulation.register_polymer(genome)
 
     # Add species-level ribosomes

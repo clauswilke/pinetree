@@ -3,6 +3,7 @@
 import random
 
 from feature import *
+from signal import *
 
 class Polymer:
     """
@@ -25,6 +26,7 @@ class Polymer:
         self.polymerases = []
         self.elements = elements
         self.__observers = []
+        self.termination_signal = Signal()
 
     def register_observer(self, observer):
         """
@@ -123,10 +125,13 @@ class Polymer:
 
         # Is the polymerase still attached?
         if pol.attached == False:
-            self.notify_observers(species = pol.name,
-                                  action = "terminate",
-                                  type = pol.type,
-                                  name = pol.last_gene)
+            if pol.name == "ribosome":
+                self.termination_signal.fire(pol.last_gene, pol.name)
+            else:
+                self.notify_observers(species = pol.name,
+                                      action = "terminate",
+                                      type = pol.type,
+                                      name = pol.last_gene)
             self.polymerases.remove(pol)
 
 
@@ -187,6 +192,7 @@ class Genome(Polymer):
                                   type = pol.type,
                                   polymer = polymer,
                                   reactants = species)
+            self.termination_signal.fire(polymer, pol.name, species)
             self.polymerases.remove(pol)
 
     def build_transcript(self, start, stop):
