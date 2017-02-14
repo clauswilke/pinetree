@@ -45,16 +45,20 @@ class Polymer:
 
         found = False
 
+        element_choices = []
+
         for element in self.elements:
             if element.name == promoter and element.covered == 0:
-                pol.start = element.start
-                pol.stop = element.start + pol.footprint
-                element.cover()
-                element.save_state()
-                self.polymerases.append(pol)
+                element_choices.append(element)
                 found = True
-                break
 
+        element = random.choices(element_choices)[0]
+
+        pol.start = element.start
+        pol.stop = element.start + pol.footprint
+        element.cover()
+        element.save_state()
+        self.polymerases.append(pol)
         assert(found == True)
 
     def count_uncovered(self, species):
