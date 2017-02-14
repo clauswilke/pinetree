@@ -1,5 +1,7 @@
 #! /usr/bin/env python3
 
+from signal import *
+
 class Feature:
     """
     A generic feature in or on `Polymer`. Designed to be extended
@@ -56,6 +58,7 @@ class Polymerase(Feature):
         self.attached = True # Is this polymerase attached to a polymer?
         self.bound = start # Record where polymerase bound to genome
         self.type = "polymerase"
+        self.move_signal = Signal()
 
     def move(self):
         """
@@ -94,6 +97,23 @@ class Mask(Feature):
         TODO: have a dynamic step size?
         """
         self.start += 1
+
+class TranscriptMask(Feature):
+    """
+    A pseudo-feature that tracks which portion of a genome or polymer are not
+    yet accessible. For example, as the genome is entering the cell, or as a
+    transcript is being synthesized.
+    """
+    def __init__(self, name, start, stop, interactions):
+        super().__init__(name, start, stop, interactions)
+
+    def react(self, pol):
+        """
+        Shrink mask by one base pair.
+
+        TODO: have a dynamic step size?
+        """
+        pol.move_back()
 
 class Element(Feature):
     """

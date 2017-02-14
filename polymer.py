@@ -73,6 +73,18 @@ class Polymer:
 
         return pol
 
+    def resolve_collisions(self, pol):
+        collision = False
+        for other_pol in self.polymerases:
+            if pol == other_pol:
+                continue
+            if self.segments_intersect(pol.start, pol.stop,
+                                       other_pol.start, other_pol.stop):
+                if other_pol.check_interaction(pol):
+                    other_pol.react(pol)
+                    collision = True
+        return collision
+
     def move_polymerase(self, pol):
         """
         Move polymerase and deal with collisions and covering/uncovering of
@@ -96,13 +108,10 @@ class Polymer:
         pol.move()
 
         # First resolve any collisions between polymerases
-        for other_pol in self.polymerases:
-            if pol == other_pol:
-                continue
-            if self.segments_intersect(pol.start, pol.stop,
-                                       other_pol.start, other_pol.stop):
-                if other_pol.check_interaction(pol):
-                    other_pol.react(pol)
+        collision = self.resolve_collisions(pol)
+
+        if collision == False:
+            pol.move_signal.fire()
 
         if self.segments_intersect(pol.start, pol.stop,
                                    self.mask.start, self.mask.stop):
@@ -132,6 +141,9 @@ class Polymer:
                 # Uncover element again in order to reset covering history
                 # and avoid re-triggering an uncovering event.
                 element.save_state()
+
+    def uncover_elements(self):
+        pass
 
     def execute(self):
         """
@@ -168,7 +180,8 @@ class Polymer:
         for feature in self.elements:
             for i in range(feature.start - 1, feature.stop - 1):
                 feature_locs[i] = feature.covered
-        out_string = "\nfeatures: \n" + ''.join(map(str, feature_locs)) + "\n"
+        out_string = "\n"+self.name+": \n" + ''.join(map(str, feature_locs)) + "\n"
+        print(self.elements)
         return out_string
 
 class Genome(Polymer):
@@ -187,6 +200,20 @@ class Genome(Polymer):
         """
         super().__init__(name, length, elements, mask)
         self.transcript_template = transcript_template
+        self.transcript_signal = Signal()
+
+    def bind_polymerase(self, pol):
+        for element in self.elements:
+            if self.segments_intersect(element.start, element.stop,
+                                       pol.start, pol.stop):
+                element.cover()
+                element.save_state()
+                break
+        self.polymerases.append(pol)
+
+        transcript, species = self.build_transcript(pol.start, self.length)
+        pol.move_signal.connect(transcript.uncover_elements)
+        self.transcript_signal.fire(transcript, species)
 
     def execute(self):
         """
@@ -198,8 +225,8 @@ class Genome(Polymer):
 
         if pol.attached == False:
             # Handle termination
-            polymer, species = self.build_transcript(pol.bound, pol.stop)
-            self.termination_signal.fire(polymer, pol.name, species)
+            # polymer, species = self.build_transcript(pol.bound, pol.stop)
+            self.termination_signal.fire(pol, pol.name, [])
             self.polymerases.remove(pol)
 
     def build_transcript(self, start, stop):
@@ -218,28 +245,103 @@ class Genome(Polymer):
         for element in self.transcript_template:
             if element["start"] >= start and element["stop"] <= stop:
                 # Is this element within the start and stop sites?
-                rbs = Promoter("rbs",
-                               element["start"]-element["rbs"],
+                rbs = Promoter("rbs_"+element["name"],
+                               element["start"]+element["rbs"],
                                element["start"],
                                ["ribosome"])
                 stop_site = Terminator("tstop",
-                                       element["stop"],
+                                       element["stop"]-1,
                                        element["stop"],
                                        ["ribosome"])
                 stop_site.gene = element["name"]
                 elements.append(rbs)
                 elements.append(stop_site)
-                species.append("rbs")
-            # build transcript
-            polymer = Polymer("rna",
-                              stop - start,
-                              elements,
-                              Mask("mask", 0, 0, []))
+                species.append("rbs_"+element["name"])
+        # build transcript
+        polymer = Transcript("rna",
+                          self.length,
+                          elements,
+                          TranscriptMask("mask", 0, self.length, ["ribosome"]))
         return polymer, species
 
 class Transcript(Polymer):
     """
     An mRNA transcript. Tracks ribosomes and protein production.
     """
-    def __init__():
-        pass
+    def __init__(self, name, length, elements, mask):
+        super().__init__(name, length, elements, mask)
+
+    def move_polymerase(self, pol):
+        """
+        Move polymerase and deal with collisions and covering/uncovering of
+        elements.
+
+        :param pol: polymerase to move
+        """
+        # Find which elements this polymerase is covering and temporarily
+        # uncover them
+        for element in self.elements:
+            if self.segments_intersect(pol.start, pol.stop,
+                                       element.start, element.stop):
+                element.save_state()
+                element.uncover()
+            if self.segments_intersect(self.mask.start, self.mask.stop,
+                                       element.start, element.stop):
+                element.save_state()
+                element.uncover()
+
+        # Move polymerase
+        pol.move()
+
+        # First resolve any collisions between polymerases
+        collision = self.resolve_collisions(pol)
+
+        if self.segments_intersect(pol.start, pol.stop,
+                                   self.mask.start, self.mask.stop):
+            if self.mask.check_interaction(pol):
+                self.mask.react(pol)
+
+        # Now recover elements
+        for element in self.elements:
+            if self.segments_intersect(pol.start, pol.stop,
+                                       element.start, element.stop):
+                element.cover()
+                if element.check_interaction(pol):
+                    # Resolve reactions between pol and element (e.g.,
+                    # terminators)
+                    element.react(pol)
+            # Re-cover masked elements
+            if self.segments_intersect(self.mask.start, self.mask.stop,
+                                       element.start, element.stop):
+                element.cover()
+            # Check for newly-covered elements
+            if element.was_covered() and element.type != "terminator":
+                self.block_signal.fire(element.name)
+                element.save_state()
+            # Check for just-uncovered elements
+            if element.was_uncovered() and element.type != "terminator":
+                self.promoter_signal.fire(element.name)
+                # Uncover element again in order to reset covering history
+                # and avoid re-triggering an uncovering event.
+                element.save_state()
+
+    def uncover_elements(self):
+        for element in self.elements:
+            if self.segments_intersect(self.mask.start, self.mask.stop,
+                                       element.start, element.stop):
+                element.save_state()
+                element.uncover()
+
+        self.mask.start += 1
+
+        for element in self.elements:
+            # Re-cover masked elements
+            if self.segments_intersect(self.mask.start, self.mask.stop,
+                                       element.start, element.stop):
+                element.cover()
+            # Check for just-uncovered elements
+            if element.was_uncovered() and element.type != "terminator":
+                self.promoter_signal.fire(element.name)
+                # Uncover element again in order to reset covering history
+                # and avoid re-triggering an uncovering event.
+                element.save_state()

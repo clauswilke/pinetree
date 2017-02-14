@@ -188,6 +188,26 @@ class Simulation:
     def block_promoter(self, species):
         self.increment_reactant(species, -1)
 
+    def register_transcript(self, polymer, reactants):
+        self.register_polymer(polymer)
+        polymer.promoter_signal.connect(self.free_promoter)
+        polymer.termination_signal.connect(self.terminate_translation)
+        for reactant in reactants:
+            self.increment_reactant(reactant, 0)
+        # Construct binding reactions
+        for element in polymer.elements:
+            if element.name[0:3] == "rbs":
+                # Template for ribosome to be constructed on transcript upon
+                # binding.
+                ribo_args = ["ribosome", element.start, 10, #footprint
+                              10,
+                             ["ribosome", "tstop", element.name]]
+                # Transcript-ribosome binding reaction
+                reaction = Bind(self, polymer, 0.05,
+                                [element.name, "ribosome"],
+                                ribo_args)
+                self.register_reaction(reaction)
+
     def terminate_transcription(self, polymer, species, reactants):
         """
         Terminate transcription.
@@ -198,24 +218,24 @@ class Simulation:
             (usually RBSs)
         """
         self.increment_reactant(species, 1)
-        self.register_polymer(polymer)
-        polymer.promoter_signal.connect(self.free_promoter)
-        polymer.termination_signal.connect(self.terminate_translation)
-        for reactant in reactants:
-            self.increment_reactant(reactant, 1)
-        # Construct binding reaction
-        for element in polymer.elements:
-            if element.name == "rbs":
-                # Template for ribosome to be constructed on transcript upon
-                # binding.
-                ribo_args = ["ribosome", element.start, 10, #footprint
-                              10,
-                             ["ribosome", "tstop", "rbs"]]
-                # Transcript-ribosome binding reaction
-                reaction = Bind(self, polymer, 0.05,
-                                ["rbs", "ribosome"],
-                                ribo_args)
-                self.register_reaction(reaction)
+        # self.register_polymer(polymer)
+        # polymer.promoter_signal.connect(self.free_promoter)
+        # polymer.termination_signal.connect(self.terminate_translation)
+        # for reactant in reactants:
+        #      self.increment_reactant(reactant, 1)
+        # # Construct binding reaction
+        # for element in polymer.elements:
+        #     if element.name == "rbs":
+        #         # Template for ribosome to be constructed on transcript upon
+        #         # binding.
+        #         ribo_args = ["ribosome", element.start, 10, #footprint
+        #                       10,
+        #                      ["ribosome", "tstop", "rbs"]]
+        #         # Transcript-ribosome binding reaction
+        #         reaction = Bind(self, polymer, 0.05,
+        #                         ["rbs", "ribosome"],
+        #                         ribo_args)
+        #         self.register_reaction(reaction)
         # Count that a transcript has been constructed
         self.count_termination("full_transcript", self.time)
 
@@ -290,6 +310,7 @@ def main():
                                      element["interactions"].keys())
         elif element["type"] == "transcript":
             transcript_template.append(element)
+            position -= element["rbs"]
             new_element = False
         element["start"] = position
         element["stop"] = position + element["length"]
@@ -347,6 +368,7 @@ def main():
     genome.termination_signal.connect(simulation.terminate_transcription)
     genome.promoter_signal.connect(simulation.free_promoter)
     genome.block_signal.connect(simulation.block_promoter)
+    genome.transcript_signal.connect(simulation.register_transcript)
     simulation.register_polymer(genome)
 
     # Add species-level ribosomes
@@ -365,7 +387,9 @@ def main():
             old_time += time_step
         elif params["simulation"]["debug"] == True:
             print(simulation)
-            print(genome)
+            # print(genome)
+            for pol in simulation.reactions:
+                print(pol)
 
 
 if __name__ == "__main__":

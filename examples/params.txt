@@ -1,6 +1,6 @@
 simulation:
     seed: 34
-    runtime: 2
+    runtime: 22
     time_step: 5
     ribosomes: 100
     debug: True
@@ -11,7 +11,7 @@ genome:
 # Define polymerases
 polymerases:
 - name: rnapol
-  copy_number: 10
+  copy_number: 1
   speed: 40
 # - name: ecoli
 #   copy_number: 10
@@ -25,20 +25,20 @@ elements:
   interactions:
       rnapol:
           binding_constant: 0.5
-- type: transcript
-  name: rnapol
-  length: 200
-  rbs: -15
+# - type: transcript
+#   name: rnapol
+#   length: 200
+#   rbs: -15
 - type: transcript
   name: proteinX
   length: 40
   rbs: -15
-- type: promoter
-  name: phi10
-  length: 10
-  interactions:
-      rnapol:
-          binding_constant: 0.9
+# - type: promoter
+#   name: phi10
+#   length: 10
+#   interactions:
+#       rnapol:
+#           binding_constant: 0.9
 - type: transcript
   name: capsid
   length: 300
