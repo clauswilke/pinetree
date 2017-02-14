@@ -1,6 +1,6 @@
 simulation:
     seed: 34
-    runtime: 22
+    runtime: 50
     time_step: 5
     ribosomes: 100
     debug: True
@@ -45,7 +45,7 @@ elements:
   rbs: -15
 - type: terminator
   name: t1
-  length: 10
+  length: 15
   interactions:
     rnapol:
         efficiency: 1.0

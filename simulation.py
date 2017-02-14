@@ -32,7 +32,7 @@ class Bind(SpeciesReaction):
     Bind a polymerase to a polymer.
     """
 
-    def __init__(self, sim, polymer, rate_constant, reactants, product_args):
+    def __init__(self, sim, polymer, rate_constant, promoter, product_args):
         """
         :param sim: reference to simulation object in which this reaction occurs
         :param polymer: polymer object involved in this reaction
@@ -47,7 +47,7 @@ class Bind(SpeciesReaction):
         self.polymer = polymer
         self.polymerase_args = product_args
         self.rate_constant = rate_constant
-        self.reactants = reactants
+        self.promoter = promoter
 
     def calculate_propensity(self):
         """
@@ -60,9 +60,13 @@ class Bind(SpeciesReaction):
         :returns: propensity of this reaction.
         """
 
-        propensity = self.rate_constant
-        for reactant in self.reactants:
-            propensity *= self.sim.reactants[reactant]
+        propensity = self.polymer.count_uncovered(self.promoter)
+
+        if propensity == 0:
+            return 0
+
+        propensity = propensity * self.rate_constant * \
+            self.sim.reactants[self.polymerase_args[0]]
 
         return propensity
 
@@ -70,13 +74,11 @@ class Bind(SpeciesReaction):
         """
         Execute this reaction.
         """
-        for reactant in self.reactants:
-            # Decrement each reactant by 1
-            #if reactant == "rnapol" or reactant == "ribosome":
-            self.sim.increment_reactant(reactant, -1)
+        self.sim.increment_reactant(self.promoter, -1)
+        self.sim.increment_reactant(self.polymerase_args[0], -1)
         # Construct and bind a new polymerase
         pol = Polymerase(*self.polymerase_args)
-        self.polymer.bind_polymerase(pol)
+        self.polymer.bind_polymerase(pol, self.promoter)
 
 class Bridge(SpeciesReaction):
     """
@@ -204,7 +206,7 @@ class Simulation:
                              ["ribosome", "tstop", element.name]]
                 # Transcript-ribosome binding reaction
                 reaction = Bind(self, polymer, 0.05,
-                                [element.name, "ribosome"],
+                                element.name,
                                 ribo_args)
                 self.register_reaction(reaction)
 
@@ -305,7 +307,7 @@ def main():
                                    element["interactions"].keys())
         elif element["type"] == "terminator":
             new_element = Terminator(element["name"],
-                                     position,
+                                     position + element["length"] - 1,
                                      position + element["length"],
                                      element["interactions"].keys())
         elif element["type"] == "transcript":
@@ -354,7 +356,7 @@ def main():
                         reaction = Bind(simulation,
                                         genome,
                                         binding_constant,
-                                        interactions,
+                                        element["name"],
                                         pol_args)
                         simulation.register_reaction(reaction)
     # Add species level reactants for elements that are not masked

@@ -58,6 +58,7 @@ class Polymerase(Feature):
         self.attached = True # Is this polymerase attached to a polymer?
         self.bound = start # Record where polymerase bound to genome
         self.type = "polymerase"
+        self.footprint = footprint
         self.move_signal = Signal()
 
     def move(self):

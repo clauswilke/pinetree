@@ -36,19 +36,33 @@ class Polymer:
                                        self.mask.start, self.mask.stop):
                 element.cover()
 
-    def bind_polymerase(self, pol):
+    def bind_polymerase(self, pol, promoter):
         """
-        Bind a `Polymerase` object to the polymer and add it to min-heap.
+        Bind a `Polymerase` object to the polymer.
 
         :param pol: `Polymerase` object.
         """
+
+        found = False
+
         for element in self.elements:
-            if self.segments_intersect(element.start, element.stop,
-                                       pol.start, pol.stop):
+            if element.name == promoter and element.covered == 0:
+                pol.start = element.start
+                pol.stop = element.start + pol.footprint
                 element.cover()
                 element.save_state()
+                self.polymerases.append(pol)
+                found = True
                 break
-        self.polymerases.append(pol)
+
+        assert(found == True)
+
+    def count_uncovered(self, species):
+        count = 0
+        for element in self.elements:
+            if element.name == species and element.covered == 0:
+                count += 1
+        return count
 
     def calculate_propensity(self):
         """
@@ -175,7 +189,7 @@ class Polymer:
         for i in range(self.mask.start - 1, self.mask.stop - 1):
             feature_locs[i] = "x"
         for feature in self.polymerases:
-            for i in range(feature.start - 1, feature.stop - 1):
+            for i in range(feature.start - 1, min(self.length, feature.stop - 1)):
                 feature_locs[i] = "P"
         for feature in self.elements:
             for i in range(feature.start - 1, feature.stop - 1):
@@ -202,14 +216,20 @@ class Genome(Polymer):
         self.transcript_template = transcript_template
         self.transcript_signal = Signal()
 
-    def bind_polymerase(self, pol):
+    def bind_polymerase(self, pol, promoter):
+        found = False
+
         for element in self.elements:
-            if self.segments_intersect(element.start, element.stop,
-                                       pol.start, pol.stop):
+            if element.name == promoter and element.covered == 0:
+                pol.start = element.start
+                pol.stop = element.start + pol.footprint
                 element.cover()
                 element.save_state()
+                self.polymerases.append(pol)
+                found = True
                 break
-        self.polymerases.append(pol)
+
+        assert(found == True)
 
         transcript, species = self.build_transcript(pol.start, self.length)
         pol.move_signal.connect(transcript.uncover_elements)
@@ -245,7 +265,7 @@ class Genome(Polymer):
         for element in self.transcript_template:
             if element["start"] >= start and element["stop"] <= stop:
                 # Is this element within the start and stop sites?
-                rbs = Promoter("rbs_"+element["name"],
+                rbs = Promoter("rbs",
                                element["start"]+element["rbs"],
                                element["start"],
                                ["ribosome"])
@@ -256,7 +276,7 @@ class Genome(Polymer):
                 stop_site.gene = element["name"]
                 elements.append(rbs)
                 elements.append(stop_site)
-                species.append("rbs_"+element["name"])
+                species.append("rbs")
         # build transcript
         polymer = Transcript("rna",
                           self.length,
