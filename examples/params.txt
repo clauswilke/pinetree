@@ -1,9 +1,9 @@
 simulation:
     seed: 34
-    runtime: 50
+    runtime: 10
     time_step: 5
     ribosomes: 1000
-    debug: False
+    debug: True
 # Genome parameters
 genome:
     name: T7
@@ -11,7 +11,7 @@ genome:
 # Define polymerases
 polymerases:
 - name: rnapol
-  copy_number: 10
+  copy_number: 1
   speed: 40
 # - name: ecoli
 #   copy_number: 10
@@ -24,11 +24,11 @@ elements:
   length: 10
   interactions:
       rnapol:
-          binding_constant: 0.01
-- type: transcript
-  name: rnapol
-  length: 200
-  rbs: -15
+          binding_constant: 0.5
+# - type: transcript
+#   name: rnapol
+#   length: 200
+#   rbs: -15
 - type: transcript
   name: proteinX
   length: 40

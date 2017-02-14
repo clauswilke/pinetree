@@ -174,3 +174,4 @@ class Terminator(Element):
         # tell polymerase the last gene that it transcribed so it can construct
         # the correct transcript
         pol.last_gene = self.gene
+        self.uncover()
