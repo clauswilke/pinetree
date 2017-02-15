@@ -1,6 +1,6 @@
 simulation:
     seed: 34
-    runtime: 10
+    runtime: 2
     time_step: 5
     ribosomes: 1000
     debug: True
