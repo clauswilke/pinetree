@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-from signal import *
+from signal import Signal
 
 class Feature:
     """
@@ -59,7 +59,7 @@ class Polymerase(Feature):
         self.bound = start # Record where polymerase bound to genome
         self.type = "polymerase"
         self.footprint = footprint
-        self.move_signal = Signal()
+        self.move_signal = Signal() # signal to fire when this polymerase moves
 
     def move(self):
         """
@@ -110,9 +110,8 @@ class TranscriptMask(Feature):
 
     def react(self, pol):
         """
-        Shrink mask by one base pair.
-
-        TODO: have a dynamic step size?
+        Move `pol` (ribosome) back by one base-pair. Ribosomes must wait for a
+        polymerase to push back the mask.
         """
         pol.move_back()
 
@@ -127,21 +126,33 @@ class Element(Feature):
         self.type = ""
 
     def save_state(self):
+        """
+        Save covering state.
+        """
         self.old_covered = self.covered
 
     def was_uncovered(self):
+        """
+        Was this element just uncovered?
+        """
         return self.old_covered >= 1 and self.covered == 0
 
     def was_covered(self):
+        """
+        Was this element just covered?
+        """
         return self.old_covered == 0 and self.covered > 0
 
     def cover(self):
         """
-        Cover this element.
+        Cover this element. Elements can be covered by multiple features.
         """
         self.covered += 1
 
     def uncover(self):
+        """
+        Uncover element
+        """
         if self.covered > 0:
             self.covered -= 1
 
@@ -167,6 +178,8 @@ class Terminator(Element):
     def react(self, pol):
         """
         Check for interaction with `pol` and detach `pol`.
+
+        TODO: add "attached" signal to event-firing system
 
         :param pol: `Polymerase`.
         """

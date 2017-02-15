@@ -25,10 +25,10 @@ elements:
   interactions:
       rnapol:
           binding_constant: 0.5
-# - type: transcript
-#   name: rnapol
-#   length: 200
-#   rbs: -15
+- type: transcript
+  name: rnapol
+  length: 200
+  rbs: -15
 - type: transcript
   name: proteinX
   length: 40

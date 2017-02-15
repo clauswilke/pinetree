@@ -82,7 +82,8 @@ class Bind(SpeciesReaction):
 
 class Bridge(SpeciesReaction):
     """
-    Encapsulate polymer so it can participate in species-level reaction queue.
+    Encapsulate polymer so it can participate in species-level reaction
+    processing.
     """
     def __init__(self, polymer):
         """
@@ -144,8 +145,7 @@ class Simulation:
 
         :param reaction: SpeciesReaction object
         """
-        if reaction not in self.reactions:
-            self.reactions.append(reaction)
+        self.reactions.append(reaction)
 
     def register_polymer(self, polymer):
         """
@@ -210,7 +210,7 @@ class Simulation:
                                 ribo_args)
                 self.register_reaction(reaction)
 
-    def terminate_transcription(self, polymer, species, reactants):
+    def terminate_transcription(self, polymer, species):
         """
         Terminate transcription.
 
@@ -220,26 +220,7 @@ class Simulation:
             (usually RBSs)
         """
         self.increment_reactant(species, 1)
-        # self.register_polymer(polymer)
-        # polymer.promoter_signal.connect(self.free_promoter)
-        # polymer.termination_signal.connect(self.terminate_translation)
-        # for reactant in reactants:
-        #      self.increment_reactant(reactant, 1)
-        # # Construct binding reaction
-        # for element in polymer.elements:
-        #     if element.name == "rbs":
-        #         # Template for ribosome to be constructed on transcript upon
-        #         # binding.
-        #         ribo_args = ["ribosome", element.start, 10, #footprint
-        #                       10,
-        #                      ["ribosome", "tstop", "rbs"]]
-        #         # Transcript-ribosome binding reaction
-        #         reaction = Bind(self, polymer, 0.05,
-        #                         ["rbs", "ribosome"],
-        #                         ribo_args)
-        #         self.register_reaction(reaction)
-        # Count that a transcript has been constructed
-        self.count_termination("full_transcript", self.time)
+        self.count_termination("full_transcript")
 
     def terminate_translation(self, protein, species):
         """
@@ -251,12 +232,13 @@ class Simulation:
         """
         self.increment_reactant(species, 1)
         self.increment_reactant(protein, 1)
-        self.count_termination(protein, self.time)
+        self.count_termination(protein)
 
-    def count_termination(self, name, time):
+    def count_termination(self, name):
         """
         Record the time at which a polymerase reaches a terminator.
         """
+        name = name + "_total"
         if name not in self.terminations.keys():
             self.terminations[name] = 1
         else:

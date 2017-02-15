@@ -115,8 +115,10 @@ class Polymer:
 
         # Is the polymerase still attached?
         if not pol.attached:
-            self.termination_signal.fire(pol.last_gene, pol.name)
-            self.polymerases.remove(pol)
+            self.terminate(pol)
+
+    def terminate(self, pol):
+        self.polymerases.remove(pol)
 
     def choose_polymerase(self):
         """
@@ -294,18 +296,9 @@ class Genome(Polymer):
         # Fire new transcript signal
         self.transcript_signal.fire(transcript, species)
 
-    def execute(self):
-        """
-        Select next polymerase to move and deal with terminations.
-        """
-        pol = self.choose_polymerase()
-
-        self.move_polymerase(pol)
-
-        if not pol.attached:
-            # Handle termination
-            self.termination_signal.fire(pol, pol.name, [])
-            self.polymerases.remove(pol)
+    def terminate(self, pol):
+        self.termination_signal.fire(pol, pol.name)
+        self.polymerases.remove(pol)
 
     def build_transcript(self, start, stop):
         """
@@ -352,6 +345,10 @@ class Transcript(Polymer):
     """
     def __init__(self, name, length, elements, mask):
         super().__init__(name, length, elements, mask)
+
+    def terminate(self, pol):
+        self.termination_signal.fire(pol.last_gene, pol.name)
+        self.polymerases.remove(pol)
 
     def shift_mask(self):
         """
