@@ -32,8 +32,7 @@ class Polymer:
 
         # Cover masked elements
         for element in self.elements:
-            if self.segments_intersect(element.start, element.stop,
-                                       self.mask.start, self.mask.stop):
+            if self.elements_intersect(element, self.mask):
                 element.cover()
 
     def bind_polymerase(self, pol, promoter):
@@ -125,8 +124,7 @@ class Polymer:
         if collision == False:
             pol.move_signal.fire()
 
-        if self.segments_intersect(pol.start, pol.stop,
-                                   self.mask.start, self.mask.stop):
+        if self.elements_intersect(pol, self.mask):
             if self.mask.check_interaction(pol):
                 self.mask.react(pol)
 
@@ -138,8 +136,7 @@ class Polymer:
         for other_pol in self.polymerases:
             if pol == other_pol:
                 continue
-            if self.segments_intersect(pol.start, pol.stop,
-                                       other_pol.start, other_pol.stop):
+            if self.elements_intersect(pol, other_pol):
                 if other_pol.check_interaction(pol):
                     other_pol.react(pol)
                     collision = True
@@ -147,27 +144,23 @@ class Polymer:
 
     def uncover_elements(self, pol):
         for element in self.elements:
-            if self.segments_intersect(pol.start, pol.stop,
-                                       element.start, element.stop):
+            if self.elements_intersect(pol, element):
                 element.save_state()
                 element.uncover()
-            if self.segments_intersect(self.mask.start, self.mask.stop,
-                                       element.start, element.stop):
+            if self.elements_intersect(self.mask, element):
                 element.save_state()
                 element.uncover()
 
     def recover_elements(self, pol):
         for element in self.elements:
-            if self.segments_intersect(pol.start, pol.stop,
-                                       element.start, element.stop):
+            if self.elements_intersect(pol, element):
                 element.cover()
                 if element.check_interaction(pol):
                     # Resolve reactions between pol and element (e.g.,
                     # terminators)
                     element.react(pol)
             # Re-cover masked elements
-            if self.segments_intersect(self.mask.start, self.mask.stop,
-                                       element.start, element.stop):
+            if self.elements_intersect(self.mask, element):
                 element.cover()
             # Check for newly-covered elements
             if element.was_covered() and element.type != "terminator":
@@ -180,11 +173,12 @@ class Polymer:
                 element.save_state()
 
 
-    def segments_intersect(self, x1, x2, y1, y2):
+    def elements_intersect(self, element1, element2):
         """
         Do two line segments (e.g. `Polymerase` objects) overlap?
         """
-        return x2 >= y1 and y2 >= x1
+        return element1.stop >= element2.start and \
+            element2.stop >= element1.start
 
     def __str__(self):
         """
@@ -195,12 +189,14 @@ class Polymer:
         for i in range(self.mask.start - 1, self.mask.stop - 1):
             feature_locs[i] = "x"
         for feature in self.polymerases:
-            for i in range(feature.start - 1, min(self.length, feature.stop - 1)):
+            for i in range(feature.start - 1,
+                           min(self.length, feature.stop - 1)):
                 feature_locs[i] = "P"
         for feature in self.elements:
             for i in range(feature.start - 1, feature.stop - 1):
                 feature_locs[i] = feature.covered
-        out_string = "\n"+self.name+": \n" + ''.join(map(str, feature_locs)) + "\n"
+        out_string = "\n"+self.name+": \n" + ''.join(map(str, feature_locs)) + \
+            "\n"
         print(self.elements)
         return out_string
 
@@ -223,19 +219,7 @@ class Genome(Polymer):
         self.transcript_signal = Signal()
 
     def bind_polymerase(self, pol, promoter):
-        found = False
-
-        for element in self.elements:
-            if element.name == promoter and element.covered == 0:
-                pol.start = element.start
-                pol.stop = element.start + pol.footprint
-                element.cover()
-                element.save_state()
-                self.polymerases.append(pol)
-                found = True
-                break
-
-        assert(found == True)
+        super().bind_polymerase(pol, promoter)
 
         transcript, species = self.build_transcript(pol.start, self.length)
         pol.move_signal.connect(transcript.shift_mask)
@@ -298,8 +282,7 @@ class Transcript(Polymer):
 
     def shift_mask(self):
         for element in self.elements:
-            if self.segments_intersect(self.mask.start, self.mask.stop,
-                                       element.start, element.stop):
+            if self.elements_intersect(self.mask, element):
                 element.save_state()
                 element.uncover()
 
@@ -307,8 +290,7 @@ class Transcript(Polymer):
 
         for element in self.elements:
             # Re-cover masked elements
-            if self.segments_intersect(self.mask.start, self.mask.stop,
-                                       element.start, element.stop):
+            if self.elements_intersect(self.mask, element):
                 element.cover()
             # Check for just-uncovered elements
             if element.was_uncovered() and element.type != "terminator":
