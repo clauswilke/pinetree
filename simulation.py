@@ -8,7 +8,7 @@ import yaml
 from feature import Polymerase, Terminator, Promoter, Mask
 from polymer import Genome
 
-class SpeciesReaction:
+class Reaction():
     """
     Generic class for species-level reaction. (Not currently used).
     """
@@ -27,7 +27,45 @@ class SpeciesReaction:
         """
         pass
 
-class Bind(SpeciesReaction):
+class SpeciesReaction(Reaction):
+    """
+    Generic class for species-level reaction.
+    """
+    def __init__(self, sim, rate_constant, reactants, products):
+        super().__init__()
+        self.sim = sim
+        self.rate_constant = rate_constant
+        self.reactants = reactants
+        self.products = products
+
+        for reactant in self.reactants:
+            self.sim.increment_reactant(reactant, 0)
+
+        for product in self.products:
+            self.sim.increment_reactant(product, 0)
+
+
+    def calculate_propensity(self):
+        """
+        Calculate the propensity of this reaction
+        """
+        propensity = self.rate_constant
+        for reactant in self.reactants:
+            propensity *= self.sim.reactants[reactant]
+
+        return propensity
+
+    def execute(self):
+        """
+        Execute the reaction.
+        """
+        for reactant in self.reactants:
+            self.sim.increment_reactant(reactant, -1)
+
+        for product in self.products:
+            self.sim.increment_reactant(product, 1)
+
+class Bind(Reaction):
     """
     Bind a polymerase to a polymer.
     """
@@ -79,7 +117,7 @@ class Bind(SpeciesReaction):
         pol = Polymerase(*self.polymerase_args)
         self.polymer.bind_polymerase(pol, self.promoter)
 
-class Bridge(SpeciesReaction):
+class Bridge(Reaction):
     """
     Encapsulate polymer so it can participate in species-level reaction
     processing.
@@ -288,6 +326,13 @@ def main():
 
     # Build simulation
     simulation = Simulation()
+
+    for reaction in params["reactions"]:
+        new_reaction = SpeciesReaction(simulation,
+                                       reaction["propensity"],
+                                       reaction["reactants"],
+                                       reaction["products"])
+        simulation.register_reaction(new_reaction)
 
     # Construct list of DNA elements and a transcript template that includes
     # RBS's and stop sites
