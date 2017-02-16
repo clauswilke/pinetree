@@ -1,12 +1,12 @@
 #! /usr/bin/env python3
 
 import random
+import math
 import argparse
 import yaml
-import math
 
-from feature import *
-from polymer import *
+from feature import Polymerase, Terminator, Promoter, Mask
+from polymer import Genome
 
 class SpeciesReaction:
     """
@@ -37,8 +37,7 @@ class Bind(SpeciesReaction):
         :param sim: reference to simulation object in which this reaction occurs
         :param polymer: polymer object involved in this reaction
         :param rate_constant: rate constant of reaction
-        :param reactants: *names* of species-level reactants involved in this
-            reaction
+        :param promoter: name of promoter involved in this reaction
         :param product_args: list of arguments to pass to polymerase
             constructor upon execution of this reaction.
         """
@@ -47,7 +46,7 @@ class Bind(SpeciesReaction):
         self.polymer = polymer
         self.polymerase_args = product_args
         self.rate_constant = rate_constant
-        self.promoter = promoter
+        self.promoter = promoter # name of promoter
 
     def calculate_propensity(self):
         """
@@ -89,6 +88,7 @@ class Bridge(SpeciesReaction):
         """
         :param polymer: polymer object that this reaction is encapsulating
         """
+        super().__init__()
         self.polymer = polymer
 
     def calculate_propensity(self):
@@ -131,6 +131,8 @@ class Simulation:
         Increment (or decrement) the copy number of a species-level reactant by
         copy_number.
 
+        TODO: replace with some counter class?
+
         :param name: name of reactant
         :param copy_number: change in copy number (can be negative)
         """
@@ -160,49 +162,56 @@ class Simulation:
         """
         Execute one cycle of reaction.
         """
-
         # Generate random number
-        r1 = random.random()
+        random_num = random.random()
 
+        # Sum propensities
         alpha_list = []
-
-        for i in range(len(self.reactions)):
-            prop = self.reactions[i].calculate_propensity()
+        for reaction in self.reactions:
+            prop = reaction.calculate_propensity()
             alpha_list.append(prop)
-
         alpha = sum(alpha_list)
 
         # Calculate tau, i.e. time until next reaction
-        tau = (1/alpha)*math.log(1/r1)
-
+        tau = (1/alpha)*math.log(1/random_num)
         self.time += tau
 
         # Randomly select next reaction to execute, weighted by propensities
-        next_reaction = random.choices(self.reactions, weights = alpha_list)[0]
-
+        next_reaction = random.choices(self.reactions, weights=alpha_list)[0]
         next_reaction.execute()
 
         self.iteration += 1
 
     def free_promoter(self, species):
+        """
+        Increment promoter count at species level.
+        """
         self.increment_reactant(species, 1)
 
     def block_promoter(self, species):
+        """
+        Decrement promoter count at species level.
+        """
         self.increment_reactant(species, -1)
 
     def register_transcript(self, polymer, reactants):
+        """
+        Register a new transcript with the simulation.
+        """
         self.register_polymer(polymer)
+        # Connect signals
         polymer.promoter_signal.connect(self.free_promoter)
         polymer.termination_signal.connect(self.terminate_translation)
+        # Add species level reactants (i.e. proteins to be produced)
         for reactant in reactants:
             self.increment_reactant(reactant, 0)
         # Construct binding reactions
         for element in polymer.elements:
-            if element.name[0:3] == "rbs":
+            if element.name == "rbs":
                 # Template for ribosome to be constructed on transcript upon
                 # binding.
                 ribo_args = ["ribosome", element.start, 10, #footprint
-                              10,
+                             10,
                              ["ribosome", "tstop", element.name]]
                 # Transcript-ribosome binding reaction
                 reaction = Bind(self, polymer, 0.05,
@@ -210,7 +219,7 @@ class Simulation:
                                 ribo_args)
                 self.register_reaction(reaction)
 
-    def terminate_transcription(self, polymer, species):
+    def terminate_transcription(self, species):
         """
         Terminate transcription.
 
@@ -220,7 +229,7 @@ class Simulation:
             (usually RBSs)
         """
         self.increment_reactant(species, 1)
-        self.count_termination("full_transcript")
+        self.count_termination("transcript")
 
     def terminate_translation(self, protein, species):
         """
@@ -251,24 +260,28 @@ class Simulation:
         """
         out_string = ""
         for name, count in self.terminations.items():
-            out_string += str(self.iteration) + ", " + str(self.time) + ", " + name + ", " + str(count) + "\n"
+            out_string += str(self.iteration) + ", " + str(self.time) + ", " + \
+                name + ", " + str(count) + "\n"
         for name, count in self.reactants.items():
-            out_string += str(self.iteration) + ", " + str(self.time) + ", " + name + ", " + str(count) + "\n"
+            out_string += str(self.iteration) + ", " + str(self.time) + ", " + \
+                name + ", " + str(count) + "\n"
         return out_string.strip()
 
 def main():
-
-    parser = argparse.ArgumentParser(description = "Simulate transcription \
+    """
+    TODO: REFACTOR AND VALIDATE INPUT PARAMETERS
+    """
+    parser = argparse.ArgumentParser(description="Simulate transcription \
         and translation.")
 
     # Add parameter file argument
-    parser.add_argument("params", metavar = "p", type = str, nargs = 1,
-                        help = "parameter file")
+    parser.add_argument("params", metavar="p", type=str, nargs=1,
+                        help="parameter file")
 
     args = parser.parse_args()
 
-    with open(args.params[0], "r") as f:
-        params = yaml.safe_load(f)
+    with open(args.params[0], "r") as my_file:
+        params = yaml.safe_load(my_file)
 
     # Set seed
     random.seed(params["simulation"]["seed"])
@@ -326,7 +339,6 @@ def main():
             # simulation.increment_reactant(element["name"], 1)
             for partner, constant in element["interactions"].items():
                 binding_constant = constant["binding_constant"]
-                interactions = [partner, element["name"]]
                 for pol in params["polymerases"]:
                     if pol["name"] == partner:
                         pol_args = [partner,
@@ -334,7 +346,7 @@ def main():
                                     10,                 # footprint
                                     pol["speed"],
                                     pol["interactions"]
-                                    ]
+                                   ]
                         reaction = Bind(simulation,
                                         genome,
                                         binding_constant,
@@ -362,14 +374,14 @@ def main():
     old_time = 0
     # Print initial conditions
     print(simulation)
-    while(simulation.time < params["simulation"]["runtime"]):
+    while simulation.time < params["simulation"]["runtime"]:
         # Execute simulatio
         simulation.execute()
         if abs(simulation.time - old_time) > time_step:
             # Output data every ~time_step
             print(simulation)
             old_time += time_step
-        elif params["simulation"]["debug"] == True:
+        elif params["simulation"]["debug"] is True:
             print(simulation)
             # print(genome)
             for pol in simulation.reactions:

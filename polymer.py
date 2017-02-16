@@ -297,7 +297,7 @@ class Genome(Polymer):
         self.transcript_signal.fire(transcript, species)
 
     def terminate(self, pol):
-        self.termination_signal.fire(pol, pol.name)
+        self.termination_signal.fire(pol.name)
         self.polymerases.remove(pol)
 
     def build_transcript(self, start, stop):
