@@ -225,6 +225,9 @@ class Polymer:
                 self.promoter_signal.fire(element.name)
                 # Save current state to avoid re-triggering an uncovering event.
                 element.save_state()
+            if element.was_uncovered() and element.type == "terminator":
+                # Reset readthrough state of terminator
+                element.readthrough = False
 
 
     def elements_intersect(self, element1, element2):
@@ -324,7 +327,7 @@ class Genome(Polymer):
                 stop_site = Terminator("tstop",
                                        element["stop"]-1,
                                        element["stop"],
-                                       ["ribosome"])
+                                       {"ribosome": {"efficiency": 1.0}})
                 stop_site.gene = element["name"]
                 elements.append(rbs)
                 elements.append(stop_site)

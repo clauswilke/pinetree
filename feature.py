@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 
 from signal import Signal
+import random
 
 class Feature:
     """
@@ -171,9 +172,11 @@ class Terminator(Element):
     Stops movement of `Polymerase` along a `Polymer`.
     """
     def __init__(self, name, start, stop, interactions):
-        super().__init__(name, start, stop, interactions)
+        super().__init__(name, start, stop, interactions.keys())
         self.type = "terminator"
         self.gene = ""
+        self.efficiency = interactions
+        self.readthrough = False
 
     def react(self, pol):
         """
@@ -183,8 +186,14 @@ class Terminator(Element):
 
         :param pol: `Polymerase`.
         """
-        pol.attached = False # signal to polymer to destroy polymerase
-        # tell polymerase the last gene that it transcribed so it can construct
-        # the correct transcript
-        pol.last_gene = self.gene
-        self.uncover()
+        if self.readthrough == True:
+            return
+        random_num = random.random()
+        if random_num <= self.efficiency[pol.name]["efficiency"]:
+            pol.attached = False # signal to polymer to destroy polymerase
+            # tell polymerase the last gene that it transcribed so it can construct
+            # the correct transcript
+            pol.last_gene = self.gene
+            self.uncover()
+        else:
+            self.readthrough = True

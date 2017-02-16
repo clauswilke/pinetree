@@ -349,7 +349,7 @@ def main():
             new_element = Terminator(element["name"],
                                      position + element["length"] - 1,
                                      position + element["length"],
-                                     element["interactions"].keys())
+                                     element["interactions"])
         elif element["type"] == "transcript":
             transcript_template.append(element)
             position -= element["rbs"]
