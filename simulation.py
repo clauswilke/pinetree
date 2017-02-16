@@ -342,9 +342,14 @@ def main():
     position = 0
     for element in params["elements"]:
         if element["type"] == "promoter":
+            length = element["length"]
+            if element["length"] < 10:
+                # if promoter is smaller than RNApol footprint, expand out
+                # promoter length to avoid polymerases getting stuck
+                length = 10
             new_element = Promoter(element["name"],
                                    position,
-                                   position + element["length"],
+                                   position + length,
                                    element["interactions"].keys())
         elif element["type"] == "terminator":
             new_element = Terminator(element["name"],

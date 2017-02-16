@@ -85,6 +85,8 @@ class Polymer:
         """
         Count the number of free promoters that match name `species`.
 
+        TODO: cache uncovered values
+        
         :param species: name of promoter to count
         """
         count = 0
