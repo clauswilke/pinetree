@@ -1,0 +1,271 @@
+simulation:
+    seed: 34
+    runtime: 30
+    time_step: 5
+    ribosomes: 10000
+    debug: False
+# Genome parameters
+genome:
+    name: T7
+    copy_number: 1
+    entered: 30
+# Define polymerases
+polymerases:
+- name: rnapol
+  copy_number: 0
+  speed: 230
+- name: ecolipol
+  copy_number: 10
+  speed: 40
+# elements
+elements:
+- interactions:
+    ecolipol:
+      binding_constant: 1.5e7
+  length: 15
+  name: E. coli B promoter
+  type: promoter
+- length: 1080
+  name: protein kinase
+  rbs: -15
+  type: transcript
+# - length: 2652
+#   name: rnapol
+#   rbs: -15
+#   type: transcript
+# - interactions:
+#     rnapol:
+#       binding_constant: 6e7
+#   length: 1
+#   name: T7 promoter phi1.1A
+#   type: promoter
+# - interactions:
+#     rnapol:
+#       binding_constant: 6e7
+#   length: 1
+#   name: T7 promoter phi1.1B
+#   type: promoter
+- length: 258
+  name: host dGTPase inhibitor
+  rbs: -15
+  type: transcript
+# - interactions:
+#     rnapol:
+#       binding_constant: 6e7
+#   length: 1
+#   name: T7 promoter phi1.3
+#   type: promoter
+- length: 1080
+  name: ATP-dependent DNA ligase
+  rbs: -15
+  type: transcript
+- interactions:
+    rnapol:
+      efficiency: 1.0
+    ecolipol:
+      efficiency: 1.0
+  length: 10
+  name: E. coli transcription terminator TE
+  type: terminator
+# - interactions:
+#     name:
+#       binding_constant: ' '
+#   length: 1
+#   name: T7 promoter phi1.5
+#   type: promoter
+# - interactions:
+#     name:
+#       binding_constant: ' '
+#   length: 1
+#   name: T7 promoter phi1.6
+#   type: promoter
+# - length: 195
+#   name: inhibitor of host bacterial RNA polymerase
+#   rbs: -15
+#   type: transcript
+# - interactions:
+#     name:
+#       binding_constant: ' '
+#   length: 1
+#   name: T7 promoter phi2.5
+#   type: promoter
+# - length: 699
+#   name: single-stranded DNA-binding protein
+#   rbs: -15
+#   type: transcript
+# - length: 450
+#   name: endonuclease I
+#   rbs: -15
+#   type: transcript
+# - length: 456
+#   name: lysozyme
+#   rbs: -15
+#   type: transcript
+# - interactions:
+#     name:
+#       binding_constant: ' '
+#   length: 1
+#   name: T7 promoter phi3.8
+#   type: promoter
+# - length: 366
+#   name: putative NHN endonuclease
+#   rbs: -15
+#   type: transcript
+# - length: 1701
+#   name: DNA primase/helicase
+#   rbs: -15
+#   type: transcript
+# - length: 1512
+#   name: helicase
+#   rbs: -15
+#   type: transcript
+# - interactions:
+#     name:
+#       binding_constant: ' '
+#   length: 1
+#   name: T7 promoter phi4c
+#   type: promoter
+# - interactions:
+#     name:
+#       binding_constant: ' '
+#   length: 1
+#   name: T7 promoter phi4.3
+#   type: promoter
+# - interactions:
+#     name:
+#       binding_constant: ' '
+#   length: 1
+#   name: T7 promoter phi4.7
+#   type: promoter
+# - length: 2115
+#   name: DNA polymerase
+#   rbs: -15
+#   type: transcript
+# - length: 300
+#   name: host protein H-NS-interacting protein
+#   rbs: -15
+#   type: transcript
+# - length: 159
+#   name: host recBCD nuclease inhibitor
+#   rbs: -15
+#   type: transcript
+# - length: 903
+#   name: exonuclease
+#   rbs: -15
+#   type: transcript
+# - interactions:
+#     name:
+#       binding_constant: ' '
+#   length: 1
+#   name: T7 promoter phi6.5
+#   type: promoter
+# - length: 300
+#   name: tail assembly protein
+#   rbs: -15
+#   type: transcript
+# - length: 1611
+#   name: head-tail connector protein
+#   rbs: -15
+#   type: transcript
+# - interactions:
+#     name:
+#       binding_constant: ' '
+#   length: 1
+#   name: T7 promoter phi9
+#   type: promoter
+# - length: 924
+#   name: capsid assembly protein
+#   rbs: -15
+#   type: transcript
+# - interactions:
+#     name:
+#       binding_constant: ' '
+#   length: 1
+#   name: T7 promoter phi10
+#   type: promoter
+# - length: 1196
+#   name: major capsid protein
+#   rbs: -15
+#   type: transcript
+# - length: 1038
+#   name: major capsid protein
+#   rbs: -15
+#   type: transcript
+# - interactions:
+#     name:
+#       efficiency: ' '
+#   length: 1
+#   name: T7 transcription terminator Tphi
+#   type: terminator
+# - length: 591
+#   name: tail tubular protein A
+#   rbs: -15
+#   type: transcript
+# - length: 2385
+#   name: tail tubular protein B
+#   rbs: -15
+#   type: transcript
+# - interactions:
+#     name:
+#       binding_constant: ' '
+#   length: 1
+#   name: T7 promoter phi13
+#   type: promoter
+# - length: 417
+#   name: internal virion protein A
+#   rbs: -15
+#   type: transcript
+# - length: 591
+#   name: internal virion protein B
+#   rbs: -15
+#   type: transcript
+# - length: 2244
+#   name: internal virion protein C
+#   rbs: -15
+#   type: transcript
+# - length: 3957
+#   name: internal virion protein D
+#   rbs: -15
+#   type: transcript
+# - interactions:
+#     name:
+#       binding_constant: ' '
+#   length: 1
+#   name: T7 promoter phi17
+#   type: promoter
+# - length: 1662
+#   name: tail fiber protein
+#   rbs: -15
+#   type: transcript
+# - length: 204
+#   name: type II holin
+#   rbs: -15
+#   type: transcript
+# - length: 270
+#   name: DNA packaging protein, small subunit
+#   rbs: -15
+#   type: transcript
+# - interactions:
+#     name:
+#       binding_constant: ' '
+#   length: 1
+#   name: E. coli promoter E[6]
+#   type: promoter
+# - length: 432
+#   name: phage lambda Rz-like lysis protein
+#   rbs: -15
+#   type: transcript
+# - length: 252
+#   name: phage lambda Rz1-like protein
+#   rbs: -15
+#   type: transcript
+# - length: 1761
+#   name: DNA maturation protein
+#   rbs: -15
+#   type: transcript
+# - interactions:
+#     name:
+#       binding_constant: ' '
+#   length: 1
+#   name: T7 promoter phiOR
+#   type: promoter

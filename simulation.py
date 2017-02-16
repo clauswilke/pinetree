@@ -249,7 +249,7 @@ class Simulation:
                 # Template for ribosome to be constructed on transcript upon
                 # binding.
                 ribo_args = ["ribosome", element.start, 10, #footprint
-                             10,
+                             40,
                              ["ribosome", "tstop", element.name]]
                 # Transcript-ribosome binding reaction
                 reaction = Bind(self, polymer, 0.05,
@@ -327,12 +327,13 @@ def main():
     # Build simulation
     simulation = Simulation()
 
-    for reaction in params["reactions"]:
-        new_reaction = SpeciesReaction(simulation,
-                                       reaction["propensity"],
-                                       reaction["reactants"],
-                                       reaction["products"])
-        simulation.register_reaction(new_reaction)
+    if "reactions" in params.keys():
+        for reaction in params["reactions"]:
+            new_reaction = SpeciesReaction(simulation,
+                                           reaction["propensity"],
+                                           reaction["reactants"],
+                                           reaction["products"])
+            simulation.register_reaction(new_reaction)
 
     # Construct list of DNA elements and a transcript template that includes
     # RBS's and stop sites
@@ -361,7 +362,7 @@ def main():
         position += element["length"]
 
     # Build genome
-    genome_mask = Mask("mask", 30, position, ["rnapol"])
+    genome_mask = Mask("mask", 30, position, ["rnapol", "ecolipol"])
     genome = Genome(params["genome"]["name"],
                     position, dna_elements, transcript_template, genome_mask)
 
@@ -394,7 +395,7 @@ def main():
                                    ]
                         reaction = Bind(simulation,
                                         genome,
-                                        binding_constant,
+                                        float(binding_constant),
                                         element["name"],
                                         pol_args)
                         simulation.register_reaction(reaction)
