@@ -97,12 +97,12 @@ class Bind(Reaction):
         :returns: propensity of this reaction.
         """
 
-        propensity = self.polymer.count_uncovered(self.promoter)
+        promoters = self.polymer.count_uncovered(self.promoter)
 
-        if propensity == 0:
+        if promoters == 0:
             return 0
 
-        propensity = propensity * self.rate_constant * \
+        propensity = promoters * self.rate_constant * \
             self.sim.reactants[self.polymerase_args[0]]
 
         return propensity

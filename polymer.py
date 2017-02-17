@@ -43,11 +43,19 @@ class Polymer:
         self.promoter_signal = Signal() # Fires when promoter is freed
         self.block_signal = Signal() # Fires when promoter is blocked
         self.mask = mask
+        self.uncovered = {}
 
         # Cover masked elements
         for element in self.elements:
             if self.elements_intersect(element, self.mask):
                 element.cover()
+                if element.name not in self.uncovered:
+                    self.uncovered[element.name] = 0
+            else:
+                if element.name not in self.uncovered:
+                    self.uncovered[element.name] = 1
+                else:
+                    self.uncovered[element.name] += 1
 
     def bind_polymerase(self, pol, promoter):
         """
@@ -75,6 +83,7 @@ class Polymer:
         # Cover promoter
         element.cover()
         element.save_state()
+        self.uncovered[element.name] -= 1
         # Add polymerase to tracked-polymerases list
         self.polymerases.append(pol)
         # Sanity check; this function should never be called if there are no
@@ -86,14 +95,10 @@ class Polymer:
         Count the number of free promoters that match name `species`.
 
         TODO: cache uncovered values
-        
+
         :param species: name of promoter to count
         """
-        count = 0
-        for element in self.elements:
-            if element.name == species and element.covered == 0:
-                count += 1
-        return count
+        return self.uncovered[species]
 
     def calculate_propensity(self):
         """
@@ -222,13 +227,16 @@ class Polymer:
             if element.was_covered() and element.type != "terminator":
                 self.block_signal.fire(element.name)
                 element.save_state()
+                self.uncovered[element.name] -= 1
             # Check for just-uncovered elements
             if element.was_uncovered() and element.type != "terminator":
                 self.promoter_signal.fire(element.name)
                 # Save current state to avoid re-triggering an uncovering event.
                 element.save_state()
+                self.uncovered[element.name] += 1
             if element.was_uncovered() and element.type == "terminator":
                 # Reset readthrough state of terminator
+                self.uncovered[element.name] += 1
                 element.readthrough = False
 
 
@@ -376,3 +384,4 @@ class Transcript(Polymer):
                 # Uncover element again in order to reset covering history
                 # and avoid re-triggering an uncovering event.
                 element.save_state()
+                self.uncovered[element.name] += 1
