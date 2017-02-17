@@ -7,6 +7,7 @@ import yaml
 
 from feature import Polymerase, Terminator, Promoter, Mask
 from polymer import Genome
+import numpy as np
 
 class Reaction():
     """
@@ -69,8 +70,8 @@ class Bind(Reaction):
     """
     Bind a polymerase to a polymer.
     """
-
-    def __init__(self, sim, polymer, rate_constant, promoter, product_args):
+    cache = {}
+    def __init__(self, sim, rate_constant, promoter, product_args):
         """
         :param sim: reference to simulation object in which this reaction occurs
         :param polymer: polymer object involved in this reaction
@@ -81,10 +82,9 @@ class Bind(Reaction):
         """
         super().__init__()
         self.sim = sim
-        self.polymer = polymer
         self.polymerase_args = product_args
         self.rate_constant = rate_constant
-        self.promoter = promoter # name of promoter
+        self.promoter = promoter
 
     def calculate_propensity(self):
         """
@@ -97,15 +97,10 @@ class Bind(Reaction):
         :returns: propensity of this reaction.
         """
 
-        promoters = self.polymer.count_uncovered(self.promoter)
+        # promoters = self.polymer.count_uncovered(self.promoter)
 
-        if promoters == 0:
-            return 0
-
-        propensity = promoters * self.rate_constant * \
-            self.sim.reactants[self.polymerase_args[0]]
-
-        return propensity
+        return self.rate_constant * self.sim.reactants[self.polymerase_args[0]]\
+            * self.sim.reactants[self.promoter]
 
     def execute(self):
         """
@@ -114,8 +109,15 @@ class Bind(Reaction):
         self.sim.increment_reactant(self.promoter, -1)
         self.sim.increment_reactant(self.polymerase_args[0], -1)
         # Construct and bind a new polymerase
-        pol = Polymerase(*self.polymerase_args)
-        self.polymer.bind_polymerase(pol, self.promoter)
+        weights = []
+        for pol in self.sim.promoter_polymer_map[self.promoter]:
+            weights.append(pol.count_uncovered(self.promoter))
+        pol = random.choices(self.sim.promoter_polymer_map[self.promoter], weights=weights)[0]
+        new_child_pol = Polymerase(*self.polymerase_args)
+        pol.bind_polymerase(new_child_pol, self.promoter)
+
+    def __str__(self):
+        return self.promoter + "-" + self.polymerase_args[0]
 
 class Bridge(Reaction):
     """
@@ -161,6 +163,7 @@ class Simulation:
         self.time = 0 # simulation time
         self.terminations = {} # track when polymerases terminate
         self.reactants = {} # species-level reactant counts
+        self.promoter_polymer_map = {}
         self.reactions = [] # all reactions
         self.iteration = 0 # iteration counter
 
@@ -185,7 +188,8 @@ class Simulation:
 
         :param reaction: SpeciesReaction object
         """
-        self.reactions.append(reaction)
+        if reaction not in self.reactions:
+            self.reactions.append(reaction)
 
     def register_polymer(self, polymer):
         """
@@ -248,14 +252,19 @@ class Simulation:
             if element.name == "rbs":
                 # Template for ribosome to be constructed on transcript upon
                 # binding.
-                ribo_args = ["ribosome", element.start, 10, #footprint
-                             40,
-                             ["ribosome", "tstop", element.name]]
-                # Transcript-ribosome binding reaction
-                reaction = Bind(self, polymer, 0.05,
-                                element.name,
-                                ribo_args)
-                self.register_reaction(reaction)
+                # ribo_args = ["ribosome", 0, 10, #footprint
+                #              40,
+                #              ["ribosome", "tstop", element.name]]
+                # # Transcript-ribosome binding reaction
+                # reaction = Bind(self, 0.05,
+                #                 element.name,
+                #                 ribo_args)
+                try:
+                    self.promoter_polymer_map[element.name].append(polymer)
+                except KeyError:
+                    self.promoter_polymer_map[element.name] = [polymer]
+                # self.register_reaction(reaction)
+                break
 
     def terminate_transcription(self, species):
         """
@@ -399,10 +408,13 @@ def main():
                                     pol["interactions"]
                                    ]
                         reaction = Bind(simulation,
-                                        genome,
                                         float(binding_constant),
                                         element["name"],
                                         pol_args)
+                        try:
+                            simulation.promoter_polymer_map[element["name"]].append(genome)
+                        except KeyError:
+                            simulation.promoter_polymer_map[element["name"]] = [genome]
                         simulation.register_reaction(reaction)
     # Add species level reactants for elements that are not masked
     for element in dna_elements:
@@ -417,6 +429,16 @@ def main():
     genome.block_signal.connect(simulation.block_promoter)
     genome.transcript_signal.connect(simulation.register_transcript)
     simulation.register_polymer(genome)
+
+    simulation.increment_reactant("rbs", 0)
+    ribo_args = ["ribosome", 0, 10, #footprint
+                 40,
+                 ["ribosome", "tstop", "rbs"]]
+    # Transcript-ribosome binding reaction
+    reaction = Bind(simulation, 0.05,
+                    "rbs",
+                    ribo_args)
+    simulation.register_reaction(reaction)
 
     # Add species-level ribosomes
     simulation.increment_reactant("ribosome", params["simulation"]["ribosomes"])
@@ -434,7 +456,6 @@ def main():
             old_time += time_step
         elif params["simulation"]["debug"] is True:
             print(simulation)
-            # print(genome)
             for pol in simulation.reactions:
                 print(pol)
 

@@ -268,7 +268,6 @@ class Polymer:
                 feature_locs[i] = feature.covered
         out_string = "\n"+self.name+": \n" + ''.join(map(str, feature_locs)) + \
             "\n"
-        print(self.elements)
         return out_string
 
 class Genome(Polymer):
