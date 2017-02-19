@@ -43,7 +43,8 @@ class Polymer:
         self.promoter_signal = Signal() # Fires when promoter is freed
         self.block_signal = Signal() # Fires when promoter is blocked
         self.mask = mask
-        self.uncovered = {}
+        self.prop_sum = 0
+        self.uncovered = {} # Running count of free promoters
 
         # Cover masked elements
         for element in self.elements:
@@ -86,6 +87,7 @@ class Polymer:
         self.uncovered[element.name] -= 1
         # Add polymerase to tracked-polymerases list
         self.polymerases.append(pol)
+        self.prop_sum += pol.speed
         # Sanity check; this function should never be called if there are no
         # free promoters with which to bind
         assert found
@@ -107,10 +109,7 @@ class Polymer:
 
         :returns: total propensity
         """
-        prop = 0
-        for pol in self.polymerases:
-            prop += pol.speed
-        return prop
+        return self.prop_sum
 
     def execute(self):
         """
@@ -125,6 +124,7 @@ class Polymer:
             self.terminate(pol)
 
     def terminate(self, pol):
+        self.prop_sum -= pol.speed
         self.polymerases.remove(pol)
 
     def choose_polymerase(self):
@@ -301,12 +301,12 @@ class Genome(Polymer):
         # Bind polymerase just like in parent Polymer
         super().bind_polymerase(pol, promoter)
         # Construct transcript
-        transcript, species = self.build_transcript(pol.start, self.length)
+        transcript = self.build_transcript(pol.start, self.length)
         # Connect polymerase movement signal to transcript, so that the
         # transcript knows when to expose new elements
         pol.move_signal.connect(transcript.shift_mask)
         # Fire new transcript signal
-        self.transcript_signal.fire(transcript, species)
+        self.transcript_signal.fire(transcript)
 
     def terminate(self, pol):
         self.termination_signal.fire(pol.name)
@@ -324,7 +324,6 @@ class Genome(Polymer):
         :returns: polymer object, list of species that need to be added to
             species-level pool
         """
-        species = []
         elements = []
         for element in self.transcript_template:
             if element["start"] >= start and element["stop"] <= stop:
@@ -340,14 +339,13 @@ class Genome(Polymer):
                 stop_site.gene = element["name"]
                 elements.append(rbs)
                 elements.append(stop_site)
-                species.append("rbs")
         # build transcript
         polymer = Transcript("rna",
                              self.length,
                              elements,
                              TranscriptMask("mask", 0, self.length,
                                             ["ribosome"]))
-        return polymer, species
+        return polymer
 
 class Transcript(Polymer):
     """
