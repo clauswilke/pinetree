@@ -1,7 +1,7 @@
 simulation:
     seed: 34
-    runtime: 10
-    time_step: 5
+    runtime: 1200
+    time_step: 10
     ribosomes: 10000
     debug: False
 # Genome parameters
@@ -29,32 +29,32 @@ elements:
   name: protein kinase
   rbs: -15
   type: transcript
-# - length: 2652
-#   name: rnapol
-#   rbs: -15
-#   type: transcript
-# - interactions:
-#     rnapol:
-#       binding_constant: 6e7
-#   length: 1
-#   name: T7 promoter phi1.1A
-#   type: promoter
-# - interactions:
-#     rnapol:
-#       binding_constant: 6e7
-#   length: 1
-#   name: T7 promoter phi1.1B
-#   type: promoter
+- length: 2652
+  name: rnapol
+  rbs: -15
+  type: transcript
+- interactions:
+    rnapol:
+      binding_constant: 6e7
+  length: 1
+  name: T7 promoter phi1.1A
+  type: promoter
+- interactions:
+    rnapol:
+      binding_constant: 6e7
+  length: 1
+  name: T7 promoter phi1.1B
+  type: promoter
 - length: 258
   name: host dGTPase inhibitor
   rbs: -15
   type: transcript
-# - interactions:
-#     rnapol:
-#       binding_constant: 6e7
-#   length: 1
-#   name: T7 promoter phi1.3
-#   type: promoter
+- interactions:
+    rnapol:
+      binding_constant: 6e7
+  length: 1
+  name: T7 promoter phi1.3
+  type: promoter
 - length: 1080
   name: ATP-dependent DNA ligase
   rbs: -15

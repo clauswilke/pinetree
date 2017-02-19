@@ -420,7 +420,7 @@ def main():
                  40,
                  ["ribosome", "tstop", "rbs"]]
     # Transcript-ribosome binding reaction
-    reaction = Bind(simulation, 0.05,
+    reaction = Bind(simulation, float(1.15e4),
                     "rbs",
                     ribo_args)
     simulation.register_reaction(reaction)
@@ -443,6 +443,8 @@ def main():
             print(simulation)
             for pol in simulation.reactions:
                 print(pol)
+
+    print("There are ", str(len(simulation.reactions)), "reactions.")
 
 
 if __name__ == "__main__":
