@@ -1,7 +1,7 @@
 simulation:
     seed: 34
-    runtime: 1200
-    time_step: 10
+    runtime: 90
+    time_step: 5
     ribosomes: 10000
     debug: False
 # Genome parameters
@@ -15,8 +15,9 @@ polymerases:
   copy_number: 0
   speed: 230
 - name: ecolipol
-  copy_number: 1800
-  speed: 40
+  copy_number: 1
+  #copy_number: 1800
+  speed: 60
 # elements
 elements:
 - interactions:
@@ -25,40 +26,40 @@ elements:
   length: 1
   name: E. coli B promoter
   type: promoter
-- length: 1080
-  name: protein kinase
-  rbs: -15
-  type: transcript
+# - length: 1080
+#   name: protein kinase
+#   rbs: -15
+#   type: transcript
 - length: 2652
   name: rnapol
   rbs: -15
   type: transcript
-- interactions:
-    rnapol:
-      binding_constant: 6e7
-  length: 1
-  name: T7 promoter phi1.1A
-  type: promoter
-- interactions:
-    rnapol:
-      binding_constant: 6e7
-  length: 1
-  name: T7 promoter phi1.1B
-  type: promoter
-- length: 258
-  name: host dGTPase inhibitor
-  rbs: -15
-  type: transcript
-- interactions:
-    rnapol:
-      binding_constant: 6e7
-  length: 1
-  name: T7 promoter phi1.3
-  type: promoter
-- length: 1080
-  name: ATP-dependent DNA ligase
-  rbs: -15
-  type: transcript
+# - interactions:
+#     rnapol:
+#       binding_constant: 6e7
+#   length: 1
+#   name: T7 promoter phi1.1A
+#   type: promoter
+# - interactions:
+#     rnapol:
+#       binding_constant: 6e7
+#   length: 1
+#   name: T7 promoter phi1.1B
+#   type: promoter
+# - length: 258
+#   name: host dGTPase inhibitor
+#   rbs: -15
+#   type: transcript
+# - interactions:
+#     rnapol:
+#       binding_constant: 6e7
+#   length: 1
+#   name: T7 promoter phi1.3
+#   type: promoter
+# - length: 1080
+#   name: ATP-dependent DNA ligase
+#   rbs: -15
+#   type: transcript
 - interactions:
     rnapol:
       efficiency: 1.0

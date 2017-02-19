@@ -305,6 +305,7 @@ class Genome(Polymer):
         # Connect polymerase movement signal to transcript, so that the
         # transcript knows when to expose new elements
         pol.move_signal.connect(transcript.shift_mask)
+        pol.termination_signal.connect(transcript.release)
         # Fire new transcript signal
         self.transcript_signal.fire(transcript)
 
@@ -360,25 +361,32 @@ class Transcript(Polymer):
         self.termination_signal.fire(pol.last_gene, pol.name)
         self.polymerases.remove(pol)
 
+    def release(self, stop):
+        jump = stop - self.mask.start
+        self.mask.start += jump
+
     def shift_mask(self):
         """
         Shift start of mask by 1 base-pair and check for uncovered elements.
         """
-        for element in self.elements:
+        index = -1
+        for index, element in enumerate(self.elements):
             if self.elements_intersect(self.mask, element):
                 element.save_state()
                 element.uncover()
+                break
 
         self.mask.start += 1
 
-        for element in self.elements:
-            # Re-cover masked elements
-            if self.elements_intersect(self.mask, element):
-                element.cover()
-            # Check for just-uncovered elements
-            if element.was_uncovered() and element.type != "terminator":
-                self.promoter_signal.fire(element.name)
-                # Uncover element again in order to reset covering history
-                # and avoid re-triggering an uncovering event.
-                element.save_state()
-                self.uncovered[element.name] += 1
+        if index == -1:
+            return
+        # Re-cover masked elements
+        if self.elements_intersect(self.mask, self.elements[index]):
+            self.elements[index].cover()
+        # Check for just-uncovered elements
+        if self.elements[index].was_uncovered() and self.elements[index].type != "terminator":
+            self.promoter_signal.fire(self.elements[index].name)
+            # Uncover element again in order to reset covering history
+            # and avoid re-triggering an uncovering event.
+            self.elements[index].save_state()
+            self.uncovered[self.elements[index].name] += 1
