@@ -445,8 +445,8 @@ def main():
                 print(pol)
 
     print("There are ", str(len(simulation.reactions)), "reactions.")
-    for pol in simulation.reactions:
-        print(pol)
+    # for pol in simulation.reactions:
+    #     print(pol)
 
 if __name__ == "__main__":
     main()

@@ -184,13 +184,14 @@ class Polymer:
         :returns: True if there was at least 1 collision, False otherwise
         """
         collision = False
-        for other_pol in self.polymerases:
-            if pol == other_pol:
-                continue
-            if self.elements_intersect(pol, other_pol):
-                if other_pol.check_interaction(pol):
-                    other_pol.react(pol)
-                    collision = True
+        index = self.polymerases.index(pol)
+        if index - 1 < 0:
+            return collision
+        if self.elements_intersect(pol,
+                                   self.polymerases[index - 1]):
+            if self.polymerases[index - 1].check_interaction(pol):
+                self.polymerases[index - 1].react(pol)
+                collision = True
         return collision
 
     def uncover_elements(self, pol):

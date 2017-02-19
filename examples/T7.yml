@@ -1,6 +1,6 @@
 simulation:
     seed: 34
-    runtime: 90
+    runtime: 10
     time_step: 5
     ribosomes: 10000
     debug: False
@@ -15,8 +15,8 @@ polymerases:
   copy_number: 0
   speed: 230
 - name: ecolipol
-  copy_number: 1
-  #copy_number: 1800
+  #copy_number: 1
+  copy_number: 1800
   speed: 60
 # elements
 elements:
