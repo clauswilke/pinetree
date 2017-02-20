@@ -88,12 +88,31 @@ class Polymer:
         element.save_state()
         self.uncovered[element.name] -= 1
         # Add polymerase to tracked-polymerases list
-        self.polymerases.append(pol)
+        # Polymerases are maintained in order, such that higher-index
+        # polymerases have moved further along the DNA
+        # This make collision detection very efficient
+        self.insert_polymerase(pol)
+        # self.polymerases.append(pol)
         self.prop_sum += pol.speed
         # Sanity check; this function should never be called if there are no
         # free promoters with which to bind
         self.propensity_signal.fire()
         assert found
+
+    def insert_polymerase(self, pol):
+        found_position = False
+        insert_position = 0
+        for index, old_pol in enumerate(self.polymerases):
+            # Find the first polymerase that is
+            print(index, old_pol.start, old_pol.stop)
+            insert_position = index
+            if pol.start < old_pol.start:
+                found_position = True
+                break
+        if found_position == False:
+            # Check to see if we're actually just adding to the end of the list
+            insert_position += 1
+        self.polymerases.insert(insert_position, pol)
 
     def count_uncovered(self, species):
         """
@@ -183,19 +202,18 @@ class Polymer:
         """
         Resolve collisions between polymerases.
 
-        TODO: Only check polymerases ahead of current polymerase.
-
         :param pol: polymerase with which to check for collisions
         :returns: True if there was at least 1 collision, False otherwise
         """
         collision = False
         index = self.polymerases.index(pol)
-        if index - 1 < 0:
+        # We only need to check the polymerase ahead of this polymerase
+        if index + 1 > len(self.polymerases) - 1:
             return collision
         if self.elements_intersect(pol,
-                                   self.polymerases[index - 1]):
-            if self.polymerases[index - 1].check_interaction(pol):
-                self.polymerases[index - 1].react(pol)
+                                   self.polymerases[index + 1]):
+            if self.polymerases[index + 1].check_interaction(pol):
+                self.polymerases[index + 1].react(pol)
                 collision = True
         return collision
 
@@ -265,10 +283,10 @@ class Polymer:
         feature_locs = ["o"]*self.length
         for i in range(self.mask.start - 1, self.mask.stop - 1):
             feature_locs[i] = "x"
-        for feature in self.polymerases:
+        for index, feature in enumerate(self.polymerases):
             for i in range(feature.start - 1,
                            min(self.length, feature.stop - 1)):
-                feature_locs[i] = "P"
+                feature_locs[i] = "P" + str(index)
         for feature in self.elements:
             for i in range(feature.start - 1, feature.stop - 1):
                 feature_locs[i] = feature.covered

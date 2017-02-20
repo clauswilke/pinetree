@@ -1,6 +1,6 @@
 simulation:
     seed: 34
-    runtime: 90
+    runtime: 1
     time_step: 5
     ribosomes: 100
     debug: False
@@ -37,6 +37,8 @@ elements:
 - interactions:
     rnapol:
       binding_constant: 6e7
+    ecolipol:
+      binding_constant: 1.5e7
   length: 1
   name: T7 promoter phi1.1A
   type: promoter

@@ -1,6 +1,6 @@
 simulation:
     seed: 34
-    runtime: 100
+    runtime: 10
     time_step: 1
     ribosomes: 100
     debug: False
@@ -24,7 +24,7 @@ elements:
   length: 10
   interactions:
       rnapol:
-          binding_constant: 0.5
+          binding_constant: 0.9
 - type: transcript
   name: rnapol
   length: 200
