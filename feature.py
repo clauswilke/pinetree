@@ -204,6 +204,6 @@ class Terminator(Element):
         # construct the correct transcript
         pol.last_gene = self.gene
         # Uncover terminator, mostly for debugging purposes
-        print("terminate!")
+        # print("terminate!")
         pol.termination_signal.fire(self.stop)
         self.uncover()

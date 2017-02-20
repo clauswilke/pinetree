@@ -7,13 +7,14 @@ import yaml
 
 from feature import Polymerase, Terminator, Promoter, Mask
 from polymer import Genome
+from signal import Signal
 
 class Reaction():
     """
     Generic class for species-level reaction. (Not currently used).
     """
     def __init__(self):
-        pass
+        self.index = 0
 
     def calculate_propensity(self):
         """
@@ -83,6 +84,8 @@ class Bind(Reaction):
         self.pol_args = pol_args
         self.rate_constant = rate_constant
         self.promoter = promoter
+        self.sim.reactant_bind_map[self.polymerase] = self
+        self.sim.reactant_bind_map[self.promoter] = self
 
     def calculate_propensity(self):
         """
@@ -116,6 +119,8 @@ class Bind(Reaction):
         new_pol = Polymerase(*self.pol_args)
         polymer.bind_polymerase(new_pol, self.promoter)
 
+        self.sim.update_propensity(self.index)
+
     def __str__(self):
         return self.promoter + "-" + self.polymerase
 
@@ -130,6 +135,8 @@ class Bridge(Reaction):
         """
         super().__init__()
         self.polymer = polymer
+        self.propensity_signal = Signal()
+        polymer.propensity_signal.connect(self.update)
 
     def calculate_propensity(self):
         """
@@ -145,6 +152,9 @@ class Bridge(Reaction):
         Execute reaction within polymer (e.g. typically moving a polymerase).
         """
         self.polymer.execute()
+
+    def update(self):
+        self.propensity_signal.fire(self.index)
 
     def __str__(self):
         """
@@ -165,8 +175,11 @@ class Simulation:
         self.reactants = {} # species-level reactant counts
         self.promoter_polymer_map = {} # Map of which polymers contain a given
                                        # promoter
+        self.reactant_bind_map = {} # Map of which binding reaction involves a
+                                    # given reactant
         self.reactions = [] # all reactions
         self.iteration = 0 # iteration counter
+        self.alpha_list = []
 
     def increment_reactant(self, name, copy_number):
         """
@@ -190,6 +203,11 @@ class Simulation:
         :param reaction: SpeciesReaction object
         """
         if reaction not in self.reactions:
+            reaction.index = len(self.reactions)
+            try:
+                self.alpha_list.append(reaction.calculate_propensity())
+            except KeyError:
+                self.alpha_list.append(0.0)
             self.reactions.append(reaction)
 
     def register_polymer(self, polymer):
@@ -207,7 +225,18 @@ class Simulation:
                     self.promoter_polymer_map[element.name] = [polymer]
 
         # Encapsulate polymer in Bridge reaction and add to reaction list
-        self.reactions.append(Bridge(polymer))
+        bridge = Bridge(polymer)
+        bridge.propensity_signal.connect(self.update_propensity)
+        self.register_reaction(bridge)
+
+    def initialize_propensity(self):
+        # print(self.reactions, self.alpha_list)
+        for index, reaction in enumerate(self.reactions):
+            self.alpha_list[index] = reaction.calculate_propensity()
+        # print(self.alpha_list)
+
+    def update_propensity(self, index):
+        self.alpha_list[index] = float(self.reactions[index].calculate_propensity())
 
     def execute(self):
         """
@@ -217,16 +246,17 @@ class Simulation:
         random_num = random.random()
 
         # Sum propensities
-        alpha_list = [reaction.calculate_propensity() for reaction \
-                      in self.reactions]
-        alpha = sum(alpha_list)
-
+        # self.alpha_list = [reaction.calculate_propensity() for reaction \
+        #               in self.reactions]
+        alpha = sum(self.alpha_list)
+        # print(self.alpha_list)
         # Calculate tau, i.e. time until next reaction
         tau = (1/alpha)*math.log(1/random_num)
         self.time += tau
 
         # Randomly select next reaction to execute, weighted by propensities
-        next_reaction = random.choices(self.reactions, weights=alpha_list)[0]
+        # print(self.reactions)
+        next_reaction = random.choices(self.reactions, weights=self.alpha_list)[0]
         next_reaction.execute()
 
         self.iteration += 1
@@ -236,12 +266,14 @@ class Simulation:
         Increment promoter count at species level.
         """
         self.increment_reactant(species, 1)
+        self.update_propensity(self.reactant_bind_map[species].index)
 
     def block_promoter(self, species):
         """
         Decrement promoter count at species level.
         """
         self.increment_reactant(species, -1)
+        self.update_propensity(self.reactant_bind_map[species].index)
 
     def register_transcript(self, polymer):
         """
@@ -265,6 +297,7 @@ class Simulation:
             (usually RBSs)
         """
         self.increment_reactant(species, 1)
+        self.update_propensity(self.reactant_bind_map[species].index)
         self.count_termination("transcript")
 
     def terminate_translation(self, protein, species):
@@ -277,6 +310,7 @@ class Simulation:
         """
         self.increment_reactant(species, 1)
         self.increment_reactant(protein, 1)
+        self.update_propensity(self.reactant_bind_map[species].index)
         self.count_termination(protein)
 
     def count_termination(self, name):
@@ -385,7 +419,7 @@ def main():
     # Add binding reaction for each promoter-polymerase interaction pair
     for element in params["elements"]:
         if element["type"] == "promoter":
-            # simulation.increment_reactant(element["name"], 1)
+            simulation.increment_reactant(element["name"], 0)
             for partner, constant in element["interactions"].items():
                 binding_constant = constant["binding_constant"]
                 for pol in params["polymerases"]:
@@ -428,6 +462,7 @@ def main():
     # Add species-level ribosomes
     simulation.increment_reactant("ribosome", params["simulation"]["ribosomes"])
 
+    simulation.initialize_propensity()
     time_step = params["simulation"]["time_step"]
     old_time = 0
     # Print initial conditions

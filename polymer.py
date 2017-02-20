@@ -35,6 +35,7 @@ class Polymer:
         :param mask: mask object which determines which portions of the polymer
             are currently inaccessible
         """
+        self.index = 0
         self.name = name
         self.length = length
         self.polymerases = []
@@ -42,6 +43,7 @@ class Polymer:
         self.termination_signal = Signal() # Fires on termination
         self.promoter_signal = Signal() # Fires when promoter is freed
         self.block_signal = Signal() # Fires when promoter is blocked
+        self.propensity_signal = Signal() # Fires when propensity changes
         self.mask = mask
         self.prop_sum = 0
         self.uncovered = {} # Running count of free promoters
@@ -90,6 +92,7 @@ class Polymer:
         self.prop_sum += pol.speed
         # Sanity check; this function should never be called if there are no
         # free promoters with which to bind
+        self.propensity_signal.fire()
         assert found
 
     def count_uncovered(self, species):
@@ -134,11 +137,13 @@ class Polymer:
 
         :returns: selected polymerase
         """
-        prop_list = []
         # Construct list of movement propensities
-        for pol in self.polymerases:
-            prop_list.append(pol.speed)
+        prop_list = [pol.speed for pol in self.polymerases]
         # Randomly select next polymerase to move, weighted by propensity
+        if len(prop_list) == 0:
+            print("There are no active polymerases.", str(self.prop_sum))
+            print(self.polymerases)
+            raise
         pol = random.choices(self.polymerases, weights=prop_list)[0]
 
         return pol
@@ -311,7 +316,9 @@ class Genome(Polymer):
         self.transcript_signal.fire(transcript)
 
     def terminate(self, pol):
+        self.prop_sum -= pol.speed
         self.termination_signal.fire(pol.name)
+        self.propensity_signal.fire()
         self.polymerases.remove(pol)
 
     def build_transcript(self, start, stop):
@@ -359,7 +366,9 @@ class Transcript(Polymer):
         super().__init__(name, length, elements, mask)
 
     def terminate(self, pol):
+        self.prop_sum -= pol.speed
         self.termination_signal.fire(pol.last_gene, pol.name)
+        self.propensity_signal.fire()
         self.polymerases.remove(pol)
 
     def release(self, stop):
