@@ -7,7 +7,8 @@ import yaml
 
 from feature import Polymerase, Terminator, Promoter, Mask
 from polymer import Genome
-from signal import Signal
+# from signal import Signal
+from eventsignal import Signal
 
 class Reaction():
     """

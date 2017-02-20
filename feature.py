@@ -1,7 +1,6 @@
 #! /usr/bin/env python3
 
-from signal import Signal
-import random
+from eventsignal import Signal
 
 class Feature:
     """

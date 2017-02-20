@@ -2,7 +2,7 @@
 
 import random
 
-from signal import Signal
+from eventsignal import Signal
 from feature import Promoter, Terminator, TranscriptMask
 
 class Polymer:
