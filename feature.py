@@ -1,5 +1,7 @@
 #! /usr/bin/env python3
 
+import random
+
 from eventsignal import Signal
 
 class Feature:
@@ -186,23 +188,16 @@ class Terminator(Element):
 
         :param pol: `Polymerase`.
         """
-        # if self.readthrough:
-        #     return
-        # random_num = random.random()
-        # if random_num <= self.efficiency[pol.name]["efficiency"]:
-        #     pol.attached = False # signal to polymer to destroy polymerase
-        #     # tell polymerase the last gene that it transcribed so it can
-        #     # construct the correct transcript
-        #     pol.last_gene = self.gene
-        #     # Uncover terminator, mostly for debugging purposes
-        #     self.uncover()
-        # else:
-        #     self.readthrough = True
-        pol.attached = False # signal to polymer to destroy polymerase
-        # tell polymerase the last gene that it transcribed so it can
-        # construct the correct transcript
-        pol.last_gene = self.gene
-        # Uncover terminator, mostly for debugging purposes
-        # print("terminate!")
-        pol.termination_signal.fire(self.stop)
-        self.uncover()
+        if self.readthrough:
+            return
+        random_num = random.random()
+        if random_num <= self.efficiency[pol.name]["efficiency"]:
+            pol.attached = False # signal to polymer to destroy polymerase
+            # tell polymerase the last gene that it transcribed so it can
+            # construct the correct transcript
+            pol.last_gene = self.gene
+            # Uncover terminator, mostly for debugging purposes
+            pol.termination_signal.fire(self.stop)
+            self.uncover()
+        else:
+            self.readthrough = True

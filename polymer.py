@@ -318,7 +318,7 @@ class Genome(Polymer):
     def terminate(self, pol):
         self.prop_sum -= pol.speed
         self.termination_signal.fire(pol.name)
-        self.propensity_signal.fire()
+        self.propensity_signal.fire() # Update propensities
         self.polymerases.remove(pol)
 
     def build_transcript(self, start, stop):
@@ -368,7 +368,7 @@ class Transcript(Polymer):
     def terminate(self, pol):
         self.prop_sum -= pol.speed
         self.termination_signal.fire(pol.last_gene, pol.name)
-        self.propensity_signal.fire()
+        self.propensity_signal.fire() # Update propensities
         self.polymerases.remove(pol)
 
     def release(self, stop):

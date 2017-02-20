@@ -7,15 +7,14 @@ import yaml
 
 from feature import Polymerase, Terminator, Promoter, Mask
 from polymer import Genome
-# from signal import Signal
 from eventsignal import Signal
 
 class Reaction():
     """
-    Generic class for species-level reaction. (Not currently used).
+    Generic class for a reaction. (Not currently used).
     """
     def __init__(self):
-        self.index = 0
+        self.index = -1 # Index inside propensity list, sim.alpha_list
 
     def calculate_propensity(self):
         """
@@ -107,8 +106,6 @@ class Bind(Reaction):
         Decrement reactants, choose a polymer, construct new polymerase, and
         bind the polymerase to the polymer.
         """
-        self.sim.increment_reactant(self.promoter, -1)
-        self.sim.increment_reactant(self.polymerase, -1)
         # Find which polymer we should bind to
         weights = []
         for polymer in self.sim.promoter_polymer_map[self.promoter]:
@@ -120,7 +117,10 @@ class Bind(Reaction):
         new_pol = Polymerase(*self.pol_args)
         polymer.bind_polymerase(new_pol, self.promoter)
 
-        self.sim.update_propensity(self.index)
+        self.sim.increment_reactant(self.promoter, -1)
+        self.sim.increment_reactant(self.polymerase, -1)
+
+        # self.sim.update_propensity(self.index)
 
     def __str__(self):
         return self.promoter + "-" + self.polymerase
@@ -136,7 +136,8 @@ class Bridge(Reaction):
         """
         super().__init__()
         self.polymer = polymer
-        self.propensity_signal = Signal()
+        self.propensity_signal = Signal() # Signal to fire when propensity needs
+                                          # to be updated
         polymer.propensity_signal.connect(self.update)
 
     def calculate_propensity(self):
@@ -155,6 +156,10 @@ class Bridge(Reaction):
         self.polymer.execute()
 
     def update(self):
+        """
+        Fires when polymer removes a polymerase from polymer and propensity
+        needs to be updated.
+        """
         self.propensity_signal.fire(self.index)
 
     def __str__(self):
@@ -197,6 +202,11 @@ class Simulation:
         else:
             self.reactants[name] = copy_number
 
+        if name in self.reactant_bind_map:
+            reaction = self.reactant_bind_map[name]
+            self.update_propensity(reaction.index)
+
+
     def register_reaction(self, reaction):
         """
         Add a SpeciesReaction object to the list of reactions.
@@ -231,12 +241,16 @@ class Simulation:
         self.register_reaction(bridge)
 
     def initialize_propensity(self):
-        # print(self.reactions, self.alpha_list)
+        """
+        Initialize all propensities before the start of the simulation.
+        """
         for index, reaction in enumerate(self.reactions):
             self.alpha_list[index] = reaction.calculate_propensity()
-        # print(self.alpha_list)
 
     def update_propensity(self, index):
+        """
+        Update a propensity of a reaction at a given index.
+        """
         self.alpha_list[index] = float(self.reactions[index].calculate_propensity())
 
     def execute(self):
@@ -247,17 +261,15 @@ class Simulation:
         random_num = random.random()
 
         # Sum propensities
-        # self.alpha_list = [reaction.calculate_propensity() for reaction \
-        #               in self.reactions]
         alpha = sum(self.alpha_list)
-        # print(self.alpha_list)
         # Calculate tau, i.e. time until next reaction
         tau = (1/alpha)*math.log(1/random_num)
         self.time += tau
 
         # Randomly select next reaction to execute, weighted by propensities
         # print(self.reactions)
-        next_reaction = random.choices(self.reactions, weights=self.alpha_list)[0]
+        next_reaction = random.choices(self.reactions,
+                                       weights=self.alpha_list)[0]
         next_reaction.execute()
 
         self.iteration += 1
@@ -267,14 +279,12 @@ class Simulation:
         Increment promoter count at species level.
         """
         self.increment_reactant(species, 1)
-        self.update_propensity(self.reactant_bind_map[species].index)
 
     def block_promoter(self, species):
         """
         Decrement promoter count at species level.
         """
         self.increment_reactant(species, -1)
-        self.update_propensity(self.reactant_bind_map[species].index)
 
     def register_transcript(self, polymer):
         """
@@ -298,7 +308,6 @@ class Simulation:
             (usually RBSs)
         """
         self.increment_reactant(species, 1)
-        self.update_propensity(self.reactant_bind_map[species].index)
         self.count_termination("transcript")
 
     def terminate_translation(self, protein, species):
@@ -311,12 +320,11 @@ class Simulation:
         """
         self.increment_reactant(species, 1)
         self.increment_reactant(protein, 1)
-        self.update_propensity(self.reactant_bind_map[species].index)
         self.count_termination(protein)
 
     def count_termination(self, name):
         """
-        Record the time at which a polymerase reaches a terminator.
+        Record when a polymerase reaches a terminator.
         """
         name = name + "_total"
         if name not in self.terminations.keys():
