@@ -1,6 +1,6 @@
 simulation:
     seed: 34
-    runtime: 10
+    runtime: 60
     time_step: 1
     ribosomes: 100
     debug: False
@@ -48,4 +48,8 @@ elements:
   length: 10
   interactions:
     rnapol:
-        efficiency: 1.0
+        efficiency: 0.5
+- type: transcript
+  name: proteinY
+  length: 100
+  rbs: -15

@@ -104,7 +104,6 @@ class Polymer:
         insert_position = 0
         for index, old_pol in enumerate(self.polymerases):
             # Find the first polymerase that is
-            print(index, old_pol.start, old_pol.stop)
             insert_position = index
             if pol.start < old_pol.start:
                 found_position = True
