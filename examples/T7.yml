@@ -1,8 +1,8 @@
 simulation:
     seed: 34
-    runtime: 1
+    runtime: 1200
     time_step: 5
-    ribosomes: 100
+    ribosomes: 10000
     debug: False
 # Genome parameters
 genome:
@@ -18,7 +18,7 @@ polymerases:
   copy_number: 0
   speed: 230
 - name: ecolipol
-  copy_number: 18
+  copy_number: 1800
   speed: 45
 - name: ecolipol-p
   copy_number: 0

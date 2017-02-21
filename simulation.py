@@ -9,8 +9,9 @@ from feature import Polymerase, Terminator, Promoter, Mask
 from polymer import Genome
 from eventsignal import Signal
 
-AVAGADRO = 6.0221409e+23
-CELL_VOLUME = 8e-16
+AVAGADRO = float(6.0221409e+23)
+# CELL_VOLUME = float(8e-16)
+CELL_VOLUME = float(8e-16)
 
 class Reaction():
     """
@@ -39,9 +40,9 @@ class SpeciesReaction(Reaction):
         super().__init__()
         self.sim = sim
         if len(reactants) == 2:
-            self.rate_constant = rate_constant/(AVAGADRO*CELL_VOLUME)
+            self.rate_constant = float(rate_constant)/(AVAGADRO*CELL_VOLUME)
         else:
-            self.rate_constant = rate_constant
+            self.rate_constant = float(rate_constant)
         self.reactants = reactants
         self.products = products
 
@@ -96,7 +97,7 @@ class Bind(Reaction):
         self.sim = sim
         self.polymerase = pol_args[0]
         self.pol_args = pol_args
-        self.rate_constant = rate_constant/(AVAGADRO*CELL_VOLUME)
+        self.rate_constant = float(rate_constant)/(AVAGADRO*CELL_VOLUME)
         self.promoter = promoter
         if self.polymerase not in self.sim.reactant_bind_map:
             self.sim.reactant_bind_map[self.polymerase] = [self]
@@ -483,7 +484,7 @@ def main():
                  30,
                  ["ribosome", "tstop", "rbs"]]
     # Transcript-ribosome binding reaction
-    reaction = Bind(simulation, float(1.15e2),
+    reaction = Bind(simulation, float(1e7),
                     "rbs",
                     ribo_args)
     simulation.register_reaction(reaction)
