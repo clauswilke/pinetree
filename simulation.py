@@ -9,6 +9,9 @@ from feature import Polymerase, Terminator, Promoter, Mask
 from polymer import Genome
 from eventsignal import Signal
 
+AVAGADRO = 6.0221409e+23
+CELL_VOLUME = 8e-16
+
 class Reaction():
     """
     Generic class for a reaction. (Not currently used).
@@ -35,7 +38,10 @@ class SpeciesReaction(Reaction):
     def __init__(self, sim, rate_constant, reactants, products):
         super().__init__()
         self.sim = sim
-        self.rate_constant = rate_constant
+        if len(reactants) == 2:
+            self.rate_constant = rate_constant/(AVAGADRO*CELL_VOLUME)
+        else:
+            self.rate_constant = rate_constant
         self.reactants = reactants
         self.products = products
 
@@ -90,7 +96,7 @@ class Bind(Reaction):
         self.sim = sim
         self.polymerase = pol_args[0]
         self.pol_args = pol_args
-        self.rate_constant = rate_constant
+        self.rate_constant = rate_constant/(AVAGADRO*CELL_VOLUME)
         self.promoter = promoter
         if self.polymerase not in self.sim.reactant_bind_map:
             self.sim.reactant_bind_map[self.polymerase] = [self]
