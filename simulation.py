@@ -41,9 +41,17 @@ class SpeciesReaction(Reaction):
 
         for reactant in self.reactants:
             self.sim.increment_reactant(reactant, 0)
+            if reactant not in self.sim.reactant_bind_map:
+                self.sim.reactant_bind_map[reactant] = [self]
+            else:
+                self.sim.reactant_bind_map[reactant].append(self)
 
         for product in self.products:
             self.sim.increment_reactant(product, 0)
+            if product not in self.sim.reactant_bind_map:
+                self.sim.reactant_bind_map[product] = [self]
+            else:
+                self.sim.reactant_bind_map[product].append(self)
 
 
     def calculate_propensity(self):
@@ -84,8 +92,14 @@ class Bind(Reaction):
         self.pol_args = pol_args
         self.rate_constant = rate_constant
         self.promoter = promoter
-        self.sim.reactant_bind_map[self.polymerase] = self
-        self.sim.reactant_bind_map[self.promoter] = self
+        if self.polymerase not in self.sim.reactant_bind_map:
+            self.sim.reactant_bind_map[self.polymerase] = [self]
+        else:
+            self.sim.reactant_bind_map[self.polymerase].append(self)
+        if self.promoter not in self.sim.reactant_bind_map:
+            self.sim.reactant_bind_map[self.promoter] = [self]
+        else:
+            self.sim.reactant_bind_map[self.promoter].append(self)
 
     def calculate_propensity(self):
         """
@@ -203,8 +217,8 @@ class Simulation:
             self.reactants[name] = copy_number
 
         if name in self.reactant_bind_map:
-            reaction = self.reactant_bind_map[name]
-            self.update_propensity(reaction.index)
+            for reaction in self.reactant_bind_map[name]:
+                self.update_propensity(reaction.index)
 
 
     def register_reaction(self, reaction):

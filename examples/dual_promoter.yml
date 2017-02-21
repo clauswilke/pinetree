@@ -48,8 +48,14 @@ elements:
   length: 10
   interactions:
     rnapol:
-        efficiency: 0.5
+        efficiency: 1.0
 - type: transcript
   name: proteinY
   length: 100
   rbs: -15
+- type: terminator
+  name: t1
+  length: 10
+  interactions:
+    rnapol:
+        efficiency: 1.0
