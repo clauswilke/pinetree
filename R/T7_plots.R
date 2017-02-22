@@ -18,14 +18,19 @@ data$count <- as.numeric(data$count)
 
 data <- filter(data, !str_detect(species, "_total$"), species != " rbs", !str_detect(species, "phi")) %>% filter(species != " rbs", !str_detect(species, "promoter"), !str_detect(species, "ecolipol"), !str_detect(species, "kinase"))
 
-ggplot(data, aes(x = time, y = count, group = species, color = species)) + 
+plot <- ggplot(data, aes(x = time, y = count, group = species, color = species)) + 
   geom_line() +
-  geom_text_repel(
+  geom_label_repel(
     data = filter(data, time == max(time)),
-    aes(label = species),
+    aes(label = species, fill = species),
     size = 4,
+    color = 'white',
     nudge_x = 45,
-    point.padding = unit(0.5, "lines")
+    point.padding = unit(0.5, "lines"),
+    segment.color = 'grey50',
+    force = 5
   ) +
-  coord_cartesian(xlim = c(0, max(data$time) + 150)) +
+  coord_cartesian(xlim = c(0, max(data$time) + 300)) +
   theme(legend.position = "none")
+
+save_plot("runs/T7.pdf", plot, base_width = 12, base_height = 9)
