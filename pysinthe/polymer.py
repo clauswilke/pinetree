@@ -2,8 +2,8 @@
 
 import random
 
-from pysinthe.eventsignal import Signal
-from pysinthe.feature import Promoter, Terminator, TranscriptMask
+from .eventsignal import Signal
+from .feature import Promoter, Terminator, TranscriptMask
 
 class Polymer:
     """
