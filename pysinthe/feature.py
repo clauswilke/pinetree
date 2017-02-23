@@ -1,8 +1,13 @@
 #! /usr/bin/env python3
 
+"""
+Defines promoters, terminators, polymerases, and other objects that are either
+fixed components of a polymer or move on a polymer.
+"""
+
 import random
 
-from eventsignal import Signal
+from . import eventsignal
 
 class Feature:
     """
@@ -61,8 +66,9 @@ class Polymerase(Feature):
         self.bound = start # Record where polymerase bound to genome
         self.type = "polymerase"
         self.footprint = footprint
-        self.move_signal = Signal() # signal to fire when this polymerase moves
-        self.termination_signal = Signal()
+        self.move_signal = eventsignal.Signal() # signal to fire when this
+                                                # polymerase moves
+        self.termination_signal = eventsignal.Signal()
 
     def move(self):
         """

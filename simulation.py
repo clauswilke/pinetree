@@ -5,9 +5,9 @@ import math
 import argparse
 import yaml
 
-from feature import Polymerase, Terminator, Promoter, Mask
-from polymer import Genome
-from eventsignal import Signal
+from pysinthe.feature import Polymerase, Terminator, Promoter, Mask
+from pysinthe.polymer import Genome
+from pysinthe.eventsignal import Signal
 
 AVAGADRO = float(6.0221409e+23)
 # CELL_VOLUME = float(8e-16)
@@ -367,20 +367,23 @@ class Simulation:
                 name + ", " + str(count) + "\n"
         return out_string.strip()
 
-def main():
+def main(my_params_file=""):
     """
     TODO: REFACTOR AND VALIDATE INPUT PARAMETERS
     """
-    parser = argparse.ArgumentParser(description="Simulate transcription \
-        and translation.")
 
-    # Add parameter file argument
-    parser.add_argument("params", metavar="p", type=str, nargs=1,
-                        help="parameter file")
+    if my_params_file == "":
+        parser = argparse.ArgumentParser(description="Simulate transcription \
+            and translation.")
 
-    args = parser.parse_args()
+        # Add parameter file argument
+        parser.add_argument("params", metavar="p", type=str, nargs=1,
+                            help="parameter file")
 
-    with open(args.params[0], "r") as my_file:
+        args = parser.parse_args()
+        my_params_file = args.params[0]
+
+    with open(my_params_file, "r") as my_file:
         params = yaml.safe_load(my_file)
 
     # Set seed
@@ -509,7 +512,7 @@ def main():
             for pol in simulation.reactions:
                 print(pol)
 
-    print("There are ", str(len(simulation.reactions)), "reactions.")
+    # print("There are ", str(len(simulation.reactions)), "reactions.")
     # for pol in simulation.reactions:
     #     print(pol)
 
