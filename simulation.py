@@ -360,10 +360,10 @@ class Simulation:
         """
         out_string = ""
         for name, count in self.terminations.items():
-            out_string += str(self.iteration) + ", " + str(self.time) + ", " + \
+            out_string += str(self.iteration) + ", " + str(float(self.time)) + ", " + \
                 name + ", " + str(count) + "\n"
         for name, count in self.reactants.items():
-            out_string += str(self.iteration) + ", " + str(self.time) + ", " + \
+            out_string += str(self.iteration) + ", " + str(float(self.time)) + ", " + \
                 name + ", " + str(count) + "\n"
         return out_string.strip()
 
@@ -432,7 +432,10 @@ def main(my_params_file=""):
         position += element["length"]
 
     # Build genome
-    genome_mask = Mask("mask", 30, position, ["rnapol", "ecolipol"])
+    if "mask" in params["genome"]:
+        genome_mask = Mask("mask", 30, position, ["rnapol", "ecolipol"])
+    else:
+        genome_mask = Mask("mask", position, position, [])
     genome = Genome(params["genome"]["name"],
                     position, dna_elements, transcript_template, genome_mask)
 

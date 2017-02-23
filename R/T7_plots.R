@@ -10,20 +10,25 @@ col_types = c(
   X4 = col_integer()
 )
 
-data <- read_delim("runs/full_T7_test_high_ribo.csv", ",", col_names = FALSE, col_types = col_types)
+data <- read_delim("runs/full_T7_test.csv", ",", col_names = FALSE, col_types = col_types)
 colnames(data) <- c("iteration", "time", "species", "count")
 
 data$time <- as.numeric(data$time)
 data$count <- as.numeric(data$count)
+data$species <- trimws(data$species)
 
-data <- filter(data, !str_detect(species, "_total$"), species != " rbs", !str_detect(species, "phi")) %>% filter(species != " rbs", !str_detect(species, "promoter"), !str_detect(species, "ecolipol"), !str_detect(species, "kinase"))
+classes <- read_csv("runs/classes.csv")
 
-plot <- ggplot(data, aes(x = time, y = count, group = species, color = species)) + 
-  geom_line() +
+data <- filter(data, !str_detect(species, "_total$"), species != " rbs", !str_detect(species, "phi")) %>% filter(species != "rbs", species != "ribosome", !str_detect(species, "promoter"), !str_detect(species, "ecolipol"))
+
+data <- left_join(data, classes)
+
+plot <- ggplot(data, aes(x = time, y = count, group = species, color = factor(class, levels = c("ribo", 1, 2, 3)))) + 
+  geom_line(size = 0.8) +
   geom_label_repel(
     data = filter(data, time == max(time)),
-    aes(label = species, fill = species),
-    size = 4,
+    aes(label = species, fill = factor(class)),
+    size = 2,
     color = 'white',
     nudge_x = 45,
     point.padding = unit(0.5, "lines"),
@@ -33,4 +38,4 @@ plot <- ggplot(data, aes(x = time, y = count, group = species, color = species))
   coord_cartesian(xlim = c(0, max(data$time) + 300)) +
   theme(legend.position = "none")
 
-save_plot("runs/T7.pdf", plot, base_width = 12, base_height = 9)
+save_plot("runs/T7_mini_kinase.pdf", plot, base_aspect_ratio = 1.4)
