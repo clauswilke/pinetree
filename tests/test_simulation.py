@@ -11,10 +11,46 @@ class MainTest(unittest.TestCase):
         stdout = sys.stdout  #keep a handle on the real standard output
         results = io.StringIO()
         sys.stdout = results #Choose a file-like object to write to
-        simulation.main("examples/three_genes.yml")
+        simulation.main("tests/params/three_genes.yml")
         sys.stdout = stdout
 
-        with open('tests/integration/three_genes.out') as f:
+        with open('tests/output/three_genes_out.csv') as f:
+            text = f.read()
+
+        self.assertEqual(results.getvalue(), text)
+
+    def test_dual_polymerases(self):
+        stdout = sys.stdout  #keep a handle on the real standard output
+        results = io.StringIO()
+        sys.stdout = results #Choose a file-like object to write to
+        simulation.main("tests/params/dual_polymerases.yml")
+        sys.stdout = stdout
+
+        with open('tests/output/dual_polymerases_out.csv') as f:
+            text = f.read()
+
+        self.assertEqual(results.getvalue(), text)
+
+    def test_dual_promoters(self):
+        stdout = sys.stdout  #keep a handle on the real standard output
+        results = io.StringIO()
+        sys.stdout = results #Choose a file-like object to write to
+        simulation.main("tests/params/dual_promoter.yml")
+        sys.stdout = stdout
+
+        with open('tests/output/dual_promoter_out.csv') as f:
+            text = f.read()
+
+        self.assertEqual(results.getvalue(), text)
+
+    def test_readthrough(self):
+        stdout = sys.stdout  #keep a handle on the real standard output
+        results = io.StringIO()
+        sys.stdout = results #Choose a file-like object to write to
+        simulation.main("tests/params/readthrough.yml")
+        sys.stdout = stdout
+
+        with open('tests/output/readthrough_out.csv') as f:
             text = f.read()
 
         self.assertEqual(results.getvalue(), text)
