@@ -30,13 +30,13 @@ class Feature:
         self.interactions = interactions
         self.type = "" # type of feature, i.e., polymerase, promoter, etc.
 
-    def check_interaction(self, feature):
+    def check_interaction(self, feature_name):
         """
         Check to see if some other feature interacts with this feature.
 
         :param feature: a feature object
         """
-        return feature.name in self.interactions
+        return feature_name in self.interactions
 
     def react(self, pol):
         """

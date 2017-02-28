@@ -191,7 +191,7 @@ class Polymer:
         # If this polymerase interacts with the mask, push the mask back and
         # uncover more elements on the polymer
         if self.elements_intersect(pol, self.mask):
-            if self.mask.check_interaction(pol):
+            if self.mask.check_interaction(pol.name):
                 self.mask.react(pol)
 
         # Now recover elements and check for changes in covered elements
@@ -211,7 +211,7 @@ class Polymer:
             return collision
         if self.elements_intersect(pol,
                                    self.polymerases[index + 1]):
-            if self.polymerases[index + 1].check_interaction(pol):
+            if self.polymerases[index + 1].check_interaction(pol.name):
                 self.polymerases[index + 1].react(pol)
                 collision = True
         return collision
@@ -239,7 +239,7 @@ class Polymer:
         for element in self.elements:
             if self.elements_intersect(pol, element):
                 element.cover()
-                if element.check_interaction(pol):
+                if element.check_interaction(pol.name):
                     # Resolve reactions between pol and element (e.g.,
                     # terminators)
                     element.react(pol)

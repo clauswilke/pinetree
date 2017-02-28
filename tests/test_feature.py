@@ -9,12 +9,8 @@ class TestFeatureMethods(unittest.TestCase):
                                      0,
                                      10,
                                      ["test", "test2"])
-        my_feature2 = feature.Feature("test2",
-                                     0,
-                                     10,
-                                     ["test2"])
-        self.assertTrue(my_feature.check_interaction(my_feature2))
-        self.assertFalse(my_feature2.check_interaction(my_feature))
+        self.assertTrue(my_feature.check_interaction("test2"))
+        self.assertFalse(my_feature.check_interaction("test3"))
 
 if __name__ == '__main__':
     unittest.main()
