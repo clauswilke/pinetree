@@ -8,9 +8,9 @@ import simulation
 class MainTest(unittest.TestCase):
 
     def test_three_genes(self):
-        stdout = sys.stdout  #keep a handle on the real standard output
+        stdout = sys.stdout  # keep a handle on the real standard output
         results = io.StringIO()
-        sys.stdout = results #Choose a file-like object to write to
+        sys.stdout = results  # Choose a file-like object to write to
         simulation.main("tests/params/three_genes.yml")
         sys.stdout = stdout
 
@@ -20,9 +20,9 @@ class MainTest(unittest.TestCase):
         self.assertEqual(results.getvalue(), text)
 
     def test_dual_polymerases(self):
-        stdout = sys.stdout  #keep a handle on the real standard output
+        stdout = sys.stdout  # keep a handle on the real standard output
         results = io.StringIO()
-        sys.stdout = results #Choose a file-like object to write to
+        sys.stdout = results  # Choose a file-like object to write to
         simulation.main("tests/params/dual_polymerases.yml")
         sys.stdout = stdout
 
@@ -32,9 +32,9 @@ class MainTest(unittest.TestCase):
         self.assertEqual(results.getvalue(), text)
 
     def test_dual_promoters(self):
-        stdout = sys.stdout  #keep a handle on the real standard output
+        stdout = sys.stdout  # keep a handle on the real standard output
         results = io.StringIO()
-        sys.stdout = results #Choose a file-like object to write to
+        sys.stdout = results  # Choose a file-like object to write to
         simulation.main("tests/params/dual_promoter.yml")
         sys.stdout = stdout
 
@@ -44,9 +44,9 @@ class MainTest(unittest.TestCase):
         self.assertEqual(results.getvalue(), text)
 
     def test_readthrough(self):
-        stdout = sys.stdout  #keep a handle on the real standard output
+        stdout = sys.stdout  # keep a handle on the real standard output
         results = io.StringIO()
-        sys.stdout = results #Choose a file-like object to write to
+        sys.stdout = results  # Choose a file-like object to write to
         simulation.main("tests/params/readthrough.yml")
         sys.stdout = stdout
 
@@ -54,6 +54,7 @@ class MainTest(unittest.TestCase):
             text = f.read()
 
         self.assertEqual(results.getvalue(), text)
+
 
 if __name__ == '__main__':
     unittest.main()

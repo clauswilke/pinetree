@@ -63,12 +63,12 @@ class Polymerase(Feature):
         """
         super().__init__(name, start, start + footprint, interactions)
         self.speed = speed
-        self.attached = True # Is this polymerase attached to a polymer?
-        self.bound = start # Record where polymerase bound to genome
+        self.attached = True  # Is this polymerase attached to a polymer?
+        self.bound = start  # Record where polymerase bound to genome
         self.type = "polymerase"
         self.footprint = footprint
-        self.move_signal = eventsignal.Signal() # signal to fire when this
-                                                # polymerase moves
+        self.move_signal = eventsignal.Signal()  # signal to fire when this
+        # polymerase moves
         self.termination_signal = eventsignal.Signal()
 
     def move(self):
@@ -85,13 +85,6 @@ class Polymerase(Feature):
         self.start -= 1
         self.stop -= 1
 
-    def react(self, pol):
-        """
-        Move polymerase back one position of it collides with another
-        polymerase.
-        """
-        pol.move_back()
-
 
 class Mask(Feature):
     """
@@ -102,30 +95,13 @@ class Mask(Feature):
     def __init__(self, name, start, stop, interactions):
         super().__init__(name, start, stop, interactions)
 
-    def react(self, pol):
+    def recede(self):
         """
         Shrink mask by one base pair.
 
         TODO: have a dynamic step size?
         """
         self.start += 1
-
-
-class TranscriptMask(Feature):
-    """
-    A pseudo-feature that tracks which portion of a genome or polymer are not
-    yet accessible. For example, as the genome is entering the cell, or as a
-    transcript is being synthesized.
-    """
-    def __init__(self, name, start, stop, interactions):
-        super().__init__(name, start, stop, interactions)
-
-    def react(self, pol):
-        """
-        Move `pol` (ribosome) back by one base-pair. Ribosomes must wait for a
-        polymerase to push back the mask.
-        """
-        pol.move_back()
 
 
 class Element(Feature):
@@ -202,7 +178,7 @@ class Terminator(Element):
             return
         random_num = random.random()
         if random_num <= self.efficiency[pol.name]["efficiency"]:
-            pol.attached = False # signal to polymer to destroy polymerase
+            pol.attached = False  # signal to polymer to destroy polymerase
             # tell polymerase the last gene that it transcribed so it can
             # construct the correct transcript
             pol.last_gene = self.gene

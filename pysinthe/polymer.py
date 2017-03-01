@@ -3,7 +3,7 @@
 import random
 
 from .eventsignal import Signal
-from .feature import Promoter, Terminator, TranscriptMask
+from .feature import Promoter, Terminator, Mask
 
 
 class Polymer:
@@ -191,12 +191,15 @@ class Polymer:
 
         # If this polymerase interacts with the mask, push the mask back and
         # uncover more elements on the polymer
-        if self.elements_intersect(pol, self.mask):
-            if self.mask.check_interaction(pol.name):
-                self.mask.react(pol)
+        self.resolve_mask_collisions(pol)
 
         # Now recover elements and check for changes in covered elements
         self.recover_elements(pol)
+
+    def resolve_mask_collisions(self, pol):
+        if self.elements_intersect(pol, self.mask):
+            if self.mask.check_interaction(pol.name):
+                self.mask.recede()
 
     def resolve_collisions(self, pol):
         """
@@ -213,7 +216,7 @@ class Polymer:
         if self.elements_intersect(pol,
                                    self.polymerases[index + 1]):
             if self.polymerases[index + 1].check_interaction(pol.name):
-                self.polymerases[index + 1].react(pol)
+                pol.move_back()
                 collision = True
         return collision
 
@@ -262,7 +265,6 @@ class Polymer:
                 # Reset readthrough state of terminator
                 self.uncovered[element.name] += 1
                 element.readthrough = False
-
 
     def elements_intersect(self, element1, element2):
         """
@@ -370,9 +372,10 @@ class Genome(Polymer):
         polymer = Transcript("rna",
                              self.length,
                              elements,
-                             TranscriptMask("mask", 0, self.length,
-                                            ["ribosome"]))
+                             Mask("mask", 0, self.length,
+                                  ["ribosome"]))
         return polymer
+
 
 class Transcript(Polymer):
     """
@@ -383,10 +386,15 @@ class Transcript(Polymer):
     def __init__(self, name, length, elements, mask):
         super().__init__(name, length, elements, mask)
 
+    def resolve_mask_collisions(self, pol):
+        if self.elements_intersect(pol, self.mask):
+            if self.mask.check_interaction(pol.name):
+                pol.move_back()
+
     def terminate(self, pol):
         self.prop_sum -= pol.speed
         self.termination_signal.fire(pol.last_gene, pol.name)
-        self.propensity_signal.fire() # Update propensities
+        self.propensity_signal.fire()  # Update propensities
         self.polymerases.remove(pol)
 
     def release(self, stop):
@@ -404,7 +412,7 @@ class Transcript(Polymer):
                 element.uncover()
                 break
 
-        self.mask.start += 1
+        self.mask.recede()
 
         if index == -1:
             return
