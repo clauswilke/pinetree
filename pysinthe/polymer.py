@@ -75,7 +75,7 @@ class Polymer:
         element_choices = []
         # Make list of free promoters that pol can bind
         for element in self.elements:
-            if element.name == promoter and element.covered == 0:
+            if element.name == promoter and not element.is_covered():
                 element_choices.append(element)
                 found = True
 
@@ -291,7 +291,7 @@ class Polymer:
                 feature_locs[i] = "P" + str(index)
         for feature in self.elements:
             for i in range(feature.start - 1, feature.stop - 1):
-                feature_locs[i] = feature.covered
+                feature_locs[i] = feature._covered
         out_string = "\n"+self.name+": \n" + ''.join(map(str, feature_locs)) + \
             "\n"
         return out_string

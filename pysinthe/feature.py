@@ -110,40 +110,46 @@ class Element(Feature):
     """
     def __init__(self, name, start, stop, interactions):
         super().__init__(name, start, stop, interactions)
-        self.covered = 0  # is this element covered? (i.e. inaccessible)
-        self.old_covered = 0
+        self._covered = 0  # is this element covered? (i.e. inaccessible)
+        self._old_covered = 0
         self.type = ""
 
     def save_state(self):
         """
         Save covering state.
         """
-        self.old_covered = self.covered
+        self._old_covered = self._covered
 
     def was_uncovered(self):
         """
         Was this element just uncovered?
         """
-        return self.old_covered >= 1 and self.covered == 0
+        return self._old_covered >= 1 and self._covered == 0
 
     def was_covered(self):
         """
         Was this element just covered?
         """
-        return self.old_covered == 0 and self.covered > 0
+        return self._old_covered == 0 and self._covered > 0
 
     def cover(self):
         """
         Cover this element. Elements can be covered by multiple features.
         """
-        self.covered += 1
+        self._covered += 1
 
     def uncover(self):
         """
         Uncover element
         """
-        if self.covered > 0:
-            self.covered -= 1
+        if self._covered > 0:
+            self._covered -= 1
+
+    def is_covered(self):
+        """
+        Is this element covered?
+        """
+        return self._covered > 0
 
 
 class Promoter(Element):
