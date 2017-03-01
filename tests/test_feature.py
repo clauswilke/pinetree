@@ -91,10 +91,24 @@ class TestElementMethods(unittest.TestCase):
         self.assertTrue(self.element._covered >= 0)
 
     def test_was_covered(self):
-        pass
+        self.element._covered = 0
+        self.element.save_state()
+        self.element.cover()
+        self.assertTrue(self.element.was_covered())
+        self.element.save_state()
+        self.element.cover()
+        self.assertFalse(self.element.was_covered())
 
     def test_was_uncovered(self):
-        pass
+        self.element._covered = 3
+        self.element.save_state()
+        self.element.uncover()
+        self.element.uncover()
+        self.element.save_state()
+        self.assertFalse(self.element.was_uncovered())
+        self.element.save_state()
+        self.element.uncover()
+        self.assertTrue(self.element.was_uncovered())
 
 
 if __name__ == '__main__':
