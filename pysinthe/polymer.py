@@ -176,7 +176,7 @@ class Polymer:
         """
         # Find which elements this polymerase (or mask) is covering and
         # temporarily uncover them
-        self.uncover_elements(pol)
+        element_index, mask_index = self.uncover_elements(pol)
 
         # Move polymerase
         pol.move()
@@ -194,7 +194,7 @@ class Polymer:
         self.resolve_mask_collisions(pol)
 
         # Now recover elements and check for changes in covered elements
-        self.recover_elements(pol)
+        self.recover_elements(pol, element_index, mask_index)
 
     def resolve_mask_collisions(self, pol):
         if self.elements_intersect(pol, self.mask):
@@ -227,44 +227,80 @@ class Polymer:
 
         :param pol: polymerase
         """
-        for element in self.elements:
+        element_index = None
+        mask_index = None
+        for i, element in enumerate(self.elements):
             if self.elements_intersect(pol, element):
                 element.save_state()
                 element.uncover()
+                if not element_index:
+                    element_index = i
+            if pol.stop < element.start:
+                element_index = i
+                break
+        for i, element in enumerate(self.elements):
             if self.elements_intersect(self.mask, element):
                 element.save_state()
                 element.uncover()
+                if not mask_index:
+                    mask_index = i
 
-    def recover_elements(self, pol):
+        return element_index, mask_index
+
+    def cover_ahead(self, pol, index):
+        if index < len(self.elements):
+            if self.elements_intersect(pol,
+                                       self.elements[index]):
+                self.elements[index].cover()
+                if self.elements[index].check_interaction(pol.name):
+                    # Resolve reactions between pol and element (e.g.,
+                    # terminators)
+                    self.elements[index].react(pol)
+                self.cover_ahead(pol, index + 1)
+            # self.check_state(self.elements[index])
+
+    def cover_behind(self, pol, index):
+        if index >= 0:
+            if self.elements_intersect(pol,
+                                       self.elements[index]):
+                self.elements[index].cover()
+                self.cover_behind(pol, index - 1)
+            # self.check_state(self.elements[index])
+
+
+    def recover_elements(self, pol, element_index, mask_index):
         """
         Recover elements covered by `pol` and the polymer mask, and fire
         appropriate signals for elements that have changed state.
         """
+        self.cover_ahead(pol, element_index)
+        self.cover_behind(pol, element_index - 1)
+
+        if mask_index:
+            self.cover_ahead(self.mask, mask_index)
+            self.cover_behind(self.mask, mask_index - 1)
+
         for element in self.elements:
-            if self.elements_intersect(pol, element):
-                element.cover()
-                if element.check_interaction(pol.name):
-                    # Resolve reactions between pol and element (e.g.,
-                    # terminators)
-                    element.react(pol)
-            # Re-cover masked elements
-            if self.elements_intersect(self.mask, element):
-                element.cover()
-            # Check for newly-covered elements
-            if element.was_covered() and element.type != "terminator":
-                self.block_signal.fire(element.name)
-                element.save_state()
-                self.uncovered[element.name] -= 1
-            # Check for just-uncovered elements
-            if element.was_uncovered() and element.type != "terminator":
-                self.promoter_signal.fire(element.name)
-                # Save current state to avoid re-triggering an uncovering event.
-                element.save_state()
-                self.uncovered[element.name] += 1
-            if element.was_uncovered() and element.type == "terminator":
+            self.check_state(element)
+
+
+    def check_state(self, element):
+        if element.was_covered() and element.type != "terminator":
+            # print("covered: ", self.elements.index(element), element.name)
+            self.uncovered[element.name] -= 1
+            self.block_signal.fire(element.name)
+            element.save_state()
+        # Check for just-uncovered elements
+        if element.was_uncovered():
+            # print("uncovered: ", self.elements.index(element), element.name)
+            # Save current state to avoid re-triggering an uncovering event.
+            element.save_state()
+            if element.type == "terminator":
                 # Reset readthrough state of terminator
-                self.uncovered[element.name] += 1
                 element.readthrough = False
+            else:
+                self.uncovered[element.name] += 1
+                self.promoter_signal.fire(element.name)
 
     def elements_intersect(self, element1, element2):
         """
