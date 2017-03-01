@@ -5,6 +5,7 @@ import random
 from .eventsignal import Signal
 from .feature import Promoter, Terminator, TranscriptMask
 
+
 class Polymer:
     """
     Track element objects, polymerase objects, and collisions on a single
@@ -40,13 +41,13 @@ class Polymer:
         self.length = length
         self.polymerases = []
         self.elements = elements
-        self.termination_signal = Signal() # Fires on termination
-        self.promoter_signal = Signal() # Fires when promoter is freed
-        self.block_signal = Signal() # Fires when promoter is blocked
-        self.propensity_signal = Signal() # Fires when propensity changes
+        self.termination_signal = Signal()  # Fires on termination
+        self.promoter_signal = Signal()  # Fires when promoter is freed
+        self.block_signal = Signal()  # Fires when promoter is blocked
+        self.propensity_signal = Signal()  # Fires when propensity changes
         self.mask = mask
         self.prop_sum = 0
-        self.uncovered = {} # Running count of free promoters
+        self.uncovered = {}  # Running count of free promoters
 
         # Cover masked elements
         for element in self.elements:

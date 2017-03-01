@@ -9,6 +9,7 @@ import random
 
 from . import eventsignal
 
+
 class Feature:
     """
     A generic feature in or on `Polymer`. Designed to be extended
@@ -28,7 +29,7 @@ class Feature:
         self.start = start
         self.stop = stop
         self.interactions = interactions
-        self.type = "" # type of feature, i.e., polymerase, promoter, etc.
+        self.type = ""  # type of feature, i.e., polymerase, promoter, etc.
 
     def check_interaction(self, feature_name):
         """
@@ -91,6 +92,7 @@ class Polymerase(Feature):
         """
         pol.move_back()
 
+
 class Mask(Feature):
     """
     A pseudo-feature that tracks which portion of a genome or polymer are not
@@ -108,6 +110,7 @@ class Mask(Feature):
         """
         self.start += 1
 
+
 class TranscriptMask(Feature):
     """
     A pseudo-feature that tracks which portion of a genome or polymer are not
@@ -124,13 +127,14 @@ class TranscriptMask(Feature):
         """
         pol.move_back()
 
+
 class Element(Feature):
     """
     A fixed feature in the polymer that can be covered or uncovered.
     """
     def __init__(self, name, start, stop, interactions):
         super().__init__(name, start, stop, interactions)
-        self.covered = 0 # is this element covered? (i.e. inaccessible)
+        self.covered = 0  # is this element covered? (i.e. inaccessible)
         self.old_covered = 0
         self.type = ""
 

@@ -227,7 +227,6 @@ class Simulation:
             for reaction in self.reactant_bind_map[name]:
                 self.update_propensity(reaction.index)
 
-
     def register_reaction(self, reaction):
         """
         Add a SpeciesReaction object to the list of reactions.
