@@ -257,7 +257,6 @@ class Polymer:
                     # terminators)
                     self.elements[index].react(pol)
                 self.cover_ahead(pol, index + 1)
-            # self.check_state(self.elements[index])
 
     def cover_behind(self, pol, index):
         if index >= 0:
@@ -265,7 +264,6 @@ class Polymer:
                                        self.elements[index]):
                 self.elements[index].cover()
                 self.cover_behind(pol, index - 1)
-            # self.check_state(self.elements[index])
 
 
     def recover_elements(self, pol, element_index, mask_index):
@@ -275,10 +273,12 @@ class Polymer:
         """
         self.cover_ahead(pol, element_index)
         self.cover_behind(pol, element_index - 1)
+        self.check_state(self.elements[element_index])
 
         if mask_index:
             self.cover_ahead(self.mask, mask_index)
             self.cover_behind(self.mask, mask_index - 1)
+            self.check_state(self.elements[mask_index])
 
         for element in self.elements:
             self.check_state(element)
