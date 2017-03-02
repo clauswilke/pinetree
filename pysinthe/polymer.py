@@ -152,12 +152,13 @@ class Polymer:
         if self.elements_intersect(self.mask, self.elements[index]):
             self.elements[index].cover()
         # Check for just-uncovered elements
-        if self.elements[index].was_uncovered() and self.elements[index].type != "terminator":
-            self.promoter_signal.fire(self.elements[index].name)
-            # Uncover element again in order to reset covering history
-            # and avoid re-triggering an uncovering event.
-            self.elements[index].save_state()
-            self.uncovered[self.elements[index].name] += 1
+        self._check_state(self.elements[index])
+        # if self.elements[index].was_uncovered() and self.elements[index].type != "terminator":
+        #     self.promoter_signal.fire(self.elements[index].name)
+        #     # Uncover element again in order to reset covering history
+        #     # and avoid re-triggering an uncovering event.
+        #     self.elements[index].save_state()
+        #     self.uncovered[self.elements[index].name] += 1
 
     def terminate(self, pol):
         self.prop_sum -= pol.speed
@@ -239,14 +240,14 @@ class Polymer:
         # First resolve any collisions between polymerases
         collision = self._resolve_collisions(pol)
 
+        # If this polymerase interacts with the mask, push the mask back and
+        # uncover more elements on the polymer
+        self._resolve_mask_collisions(pol)
+
         # If no collisions occurred, it's safe to broadcast that polymerase
         # has moved
         if not collision:
             pol.move_signal.fire()
-
-        # If this polymerase interacts with the mask, push the mask back and
-        # uncover more elements on the polymer
-        self._resolve_mask_collisions(pol)
 
         # Now recover elements and check for changes in covered elements
         self._recover_elements(pol, element_index, mask_index)

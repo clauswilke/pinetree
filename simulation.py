@@ -431,8 +431,8 @@ def main(my_params_file=""):
         position += element["length"]
 
     # Build genome
-    if "mask" in params["genome"]:
-        genome_mask = Mask("mask", 30, position, ["rnapol", "ecolipol"])
+    if "entered" in params["genome"]:
+        genome_mask = Mask("mask", params["genome"]["entered"], position, ["rnapol", "ecolipol"])
     else:
         genome_mask = Mask("mask", position, position, [])
     genome = Genome(params["genome"]["name"],

@@ -55,6 +55,18 @@ class MainTest(unittest.TestCase):
 
         self.assertEqual(results.getvalue(), text)
 
+    def test_genome_entry(self):
+        stdout = sys.stdout  # keep a handle on the real standard output
+        results = io.StringIO()
+        sys.stdout = results  # Choose a file-like object to write to
+        simulation.main("tests/params/genome_entry.yml")
+        sys.stdout = stdout
+
+        with open('tests/output/genome_entry_out.csv') as f:
+            text = f.read()
+
+        self.assertEqual(results.getvalue(), text)
+
 
 if __name__ == '__main__':
     unittest.main()
