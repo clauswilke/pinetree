@@ -79,11 +79,29 @@ class Polymer:
                 element_choices.append(element)
                 found = True
 
+        if found is False:
+            raise RuntimeError("Polymerase '{0}' could not find free "
+                               "promoter '{1}' to bind to in polymer"
+                               " '{2}'."
+                               .format(pol.name, promoter, self.name))
+
         # Randomly select promoter
         element = random.choices(element_choices)[0]
         # Update polymerase coordinates
         pol.start = element.start
         pol.stop = element.start + pol.footprint
+
+        if element.stop < pol.stop:
+            raise RuntimeError("Polymerase '{0}' footprint is larger than "
+                               "that of promoter '{1}' it is binding to. This "
+                               "could cause unexpected behavior."
+                               .format(pol.name, promoter))
+        if pol.stop > self.mask.start:
+            raise RuntimeError("Polymerase '{1}' will overlap with mask "
+                               "upon promoter binding. This may "
+                               "cause the polymerase to stall and "
+                               "produce unexpected behavior."
+                               .format(pol.name))
         # Cover promoter
         element.cover()
         element.save_state()
@@ -313,6 +331,32 @@ class Polymer:
         """
         return element1.stop >= element2.start and \
             element2.stop >= element1.start
+
+    def shift_mask(self):
+        """
+        Shift start of mask by 1 base-pair and check for uncovered elements.
+        """
+        index = -1
+        for index, element in enumerate(self.elements):
+            if self.elements_intersect(self.mask, element):
+                element.save_state()
+                element.uncover()
+                break
+
+        self.mask.recede()
+
+        if index == -1:
+            return
+        # Re-cover masked elements
+        if self.elements_intersect(self.mask, self.elements[index]):
+            self.elements[index].cover()
+        # Check for just-uncovered elements
+        if self.elements[index].was_uncovered() and self.elements[index].type != "terminator":
+            self.promoter_signal.fire(self.elements[index].name)
+            # Uncover element again in order to reset covering history
+            # and avoid re-triggering an uncovering event.
+            self.elements[index].save_state()
+            self.uncovered[self.elements[index].name] += 1
 
     def __str__(self):
         """

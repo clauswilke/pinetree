@@ -18,7 +18,7 @@ class TestPolymerMethods(unittest.TestCase):
                                          "ecolipol": {"efficiency": 0.6}
                                          })
         mask = feature.Mask("mask",
-                            16,
+                            10,
                             100,
                             ["ecolipol"])
 
@@ -28,20 +28,28 @@ class TestPolymerMethods(unittest.TestCase):
                                        mask)
 
         self.assertTrue(terminator.is_covered())
-        self.assertFalse(promoter.is_covered())
-        self.assertEqual(self.polymer.uncovered["promoter1"], 1)
+        self.assertTrue(promoter.is_covered())
+        self.assertEqual(self.polymer.uncovered["promoter1"], 0)
         self.assertEqual(self.polymer.uncovered["myterm"], 0)
 
     def test_bind_polymerase(self):
         random.seed(22)
         pol = feature.Polymerase("ecolipol",
                                  20,
-                                 40,
+                                 10,
                                  30,
                                  ["ecolipol", "terminator", "rnapol"]
                                  )
+
+        self.assertRaises(RuntimeError,
+                          self.polymer.bind_polymerase, pol, "promoter1")
+
+        for i in range(10):
+            self.polymer.shift_mask()
+
         self.polymer.bind_polymerase(pol, "promoter1")
+
         self.assertEqual(pol.start, 5)
-        self.assertEqual(pol.stop, 45)
+        self.assertEqual(pol.stop, 15)
         self.assertEqual(self.polymer.uncovered["promoter1"], 0)
         self.assertEqual(self.polymer.prop_sum, 30)
