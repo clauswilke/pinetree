@@ -215,13 +215,11 @@ class Polymer:
         """
         # Construct list of movement propensities
         prop_list = [pol.speed for pol in self.polymerases]
-        # Randomly select next polymerase to move, weighted by propensity
         if len(prop_list) == 0:
-            print("There are no active polymerases.", str(self.prop_sum))
-            print(self.polymerases)
-            raise
+            raise RuntimeError("There are no active polymerases on"
+                               "polymer '{0}'.".format(self.name))
+        # Randomly select next polymerase to move, weighted by propensity
         pol = random.choices(self.polymerases, weights=prop_list)[0]
-
         return pol
 
     def _move_polymerase(self, pol):
