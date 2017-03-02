@@ -226,7 +226,13 @@ class Polymer:
         """
         # Find which elements this polymerase (or mask) is covering and
         # temporarily uncover them
-        element_index, mask_index = self._uncover_elements(pol)
+        for element in self.elements:
+            if self.elements_intersect(pol, element):
+                element.save_state()
+                element.uncover()
+            if self.elements_intersect(self.mask, element):
+                element.save_state()
+                element.uncover()
 
         # Move polymerase
         pol.move()
@@ -234,22 +240,33 @@ class Polymer:
         # First resolve any collisions between polymerases
         collision = self._resolve_collisions(pol)
 
-        # If this polymerase interacts with the mask, push the mask back and
-        # uncover more elements on the polymer
-        self._resolve_mask_collisions(pol)
-
         # If no collisions occurred, it's safe to broadcast that polymerase
         # has moved
         if not collision:
             pol.move_signal.fire()
+            # If this polymerase interacts with the mask, push the mask back and
+            # uncover more elements on the polymer
+            self._resolve_mask_collisions(pol)
 
         # Now recover elements and check for changes in covered elements
-        self._recover_elements(pol, element_index, mask_index)
+        for element in self.elements:
+            if self.elements_intersect(pol, element):
+                element.cover()
+                if element.check_interaction(pol.name) and \
+                        element.type == "terminator":
+                    # Resolve reactions between pol and element (e.g.,
+                    # terminators)
+                    element.resolve_termination(pol)
+            if self.elements_intersect(self.mask, element):
+                element.cover()
+        for element in self.elements:
+            self._check_state(element)
 
     def _resolve_mask_collisions(self, pol):
         if self.elements_intersect(pol, self.mask):
             if self.mask.check_interaction(pol.name):
                 self.mask.recede()
+        return False
 
     def _resolve_collisions(self, pol):
         """
@@ -268,70 +285,10 @@ class Polymer:
             if self.polymerases[index + 1].check_interaction(pol.name):
                 pol.move_back()
                 collision = True
+        if collision is False:
+            pass
+            # collision = self._resolve_mask_collisions(pol)
         return collision
-
-    def _uncover_elements(self, pol):
-        """
-        Uncover all elements currently covered by `pol` or the polymer's mask.
-        Save the state of each element to check for uncoverings later.
-
-        :param pol: polymerase
-        """
-        element_index = None
-        mask_index = None
-        for i, element in enumerate(self.elements):
-            if self.elements_intersect(pol, element):
-                element.save_state()
-                element.uncover()
-                if not element_index:
-                    element_index = i
-            if pol.stop < element.start:
-                element_index = i
-                break
-        for i, element in enumerate(self.elements):
-            if self.elements_intersect(self.mask, element):
-                element.save_state()
-                element.uncover()
-                if not mask_index:
-                    mask_index = i
-
-        return element_index, mask_index
-
-    def _cover_ahead(self, pol, index):
-        if index < len(self.elements):
-            if self.elements_intersect(pol,
-                                       self.elements[index]):
-                self.elements[index].cover()
-                if self.elements[index].check_interaction(pol.name) and \
-                        self.elements[index].type == "terminator":
-                    # Resolve reactions between pol and element (e.g.,
-                    # terminators)
-                    self.elements[index].resolve_termination(pol)
-                self._cover_ahead(pol, index + 1)
-
-    def _cover_behind(self, pol, index):
-        if index >= 0:
-            if self.elements_intersect(pol,
-                                       self.elements[index]):
-                self.elements[index].cover()
-                self._cover_behind(pol, index - 1)
-
-    def _recover_elements(self, pol, element_index, mask_index):
-        """
-        Recover elements covered by `pol` and the polymer mask, and fire
-        appropriate signals for elements that have changed state.
-        """
-        self._cover_ahead(pol, element_index)
-        self._cover_behind(pol, element_index - 1)
-        self._check_state(self.elements[element_index])
-
-        if mask_index:
-            self._cover_ahead(self.mask, mask_index)
-            self._cover_behind(self.mask, mask_index - 1)
-            self._check_state(self.elements[mask_index])
-
-        for element in self.elements:
-            self._check_state(element)
 
     def _check_state(self, element):
         if element.was_covered() and element.type != "terminator":
@@ -475,6 +432,8 @@ class Transcript(Polymer):
         if self.elements_intersect(pol, self.mask):
             if self.mask.check_interaction(pol.name):
                 pol.move_back()
+                return True
+        return False
 
     def terminate(self, pol):
         self.prop_sum -= pol.speed
