@@ -59,3 +59,60 @@ class TestPolymerMethods(unittest.TestCase):
         self.assertEqual(self.polymer.uncovered["promoter1"], 0)
         self.assertEqual(self.polymer.prop_sum, 30)
         self.assertTrue(self.fired)
+
+    def test_insert_polymerase(self):
+        pol = feature.Polymerase("ecolipol",
+                                 20,
+                                 10,
+                                 30,
+                                 []
+                                 )
+        pol2 = feature.Polymerase("ecolipol",
+                                  60,
+                                  10,
+                                  30,
+                                  []
+                                  )
+        pol3 = feature.Polymerase("ecolipol",
+                                  40,
+                                  10,
+                                  30,
+                                  []
+                                  )
+        # Clear out any polymerases that may be on polymer
+        self.polymer.polymerases = []
+
+        self.polymer.insert_polymerase(pol2)
+        self.assertEqual(self.polymer.polymerases.index(pol2), 0)
+
+        self.polymer.insert_polymerase(pol)
+        self.assertEqual(self.polymer.polymerases.index(pol), 0)
+        self.assertEqual(self.polymer.polymerases.index(pol2), 1)
+
+        self.polymer.insert_polymerase(pol3)
+        self.assertEqual(self.polymer.polymerases.index(pol), 0)
+        self.assertEqual(self.polymer.polymerases.index(pol2), 2)
+        self.assertEqual(self.polymer.polymerases.index(pol3), 1)
+
+        # Trying to insert the same pol object twice should throw an error
+        self.assertRaises(RuntimeError, self.polymer.insert_polymerase, pol2)
+
+    def test_count_uncovered(self):
+        # Check that cached count matches true count
+        count = 0
+        for element in self.polymer.elements:
+            if element.name == "promoter1" and not element.is_covered():
+                count += 1
+        self.assertEqual(self.polymer.count_uncovered("promoter1"), count)
+
+        count = 0
+        for element in self.polymer.elements:
+            if element.name == "myterm" and not element.is_covered():
+                count += 1
+        self.assertEqual(self.polymer.count_uncovered("myterm"), count)
+
+    def test_calculate_propensity(self):
+        prop_sum = 0
+        for pol in self.polymer.polymerases:
+            prop_sum += pol.speed
+        self.assertEqual(prop_sum, self.polymer.calculate_propensity())

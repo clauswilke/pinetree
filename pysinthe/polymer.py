@@ -122,6 +122,18 @@ class Polymer:
         self.propensity_signal.fire()
 
     def insert_polymerase(self, pol):
+        """
+        Add a polymerase to polymerase list, while maintaining the
+        order in which polymerases currently on the polymer. Higher
+        indices correspond to downstream polymerases, and lower
+        indices correspond to upstream polymerases.
+
+        :param pol: polymerase object
+        """
+        if pol in self.polymerases:
+            raise RuntimeError("Polymerase '{0}' is already present on polymer"
+                               " '{1}'.".format(pol.name, self.name)
+                               )
         found_position = False
         insert_position = 0
         for index, old_pol in enumerate(self.polymerases):
@@ -130,7 +142,7 @@ class Polymer:
             if pol.start < old_pol.start:
                 found_position = True
                 break
-        if found_position == False:
+        if found_position is False:
             # Check to see if we're actually just adding to the end of the list
             insert_position += 1
         self.polymerases.insert(insert_position, pol)
@@ -138,8 +150,6 @@ class Polymer:
     def count_uncovered(self, species):
         """
         Count the number of free promoters that match name `species`.
-
-        TODO: cache uncovered values
 
         :param species: name of promoter to count
         """
