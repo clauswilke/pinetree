@@ -31,6 +31,11 @@ class TestPolymerMethods(unittest.TestCase):
         self.assertTrue(promoter.is_covered())
         self.assertEqual(self.polymer.uncovered["promoter1"], 0)
         self.assertEqual(self.polymer.uncovered["myterm"], 0)
+        self.fired = False
+        self.polymer.propensity_signal.connect(self.fire)
+
+    def fire(self):
+        self.fired = True
 
     def test_bind_polymerase(self):
         random.seed(22)
@@ -40,16 +45,17 @@ class TestPolymerMethods(unittest.TestCase):
                                  30,
                                  ["ecolipol", "terminator", "rnapol"]
                                  )
-
+        # Promoter should be covered and inaccessible
         self.assertRaises(RuntimeError,
                           self.polymer.bind_polymerase, pol, "promoter1")
-
+        # Shift mask back 10 positions
         for i in range(10):
             self.polymer.shift_mask()
-
+        # Bind polymerase
         self.polymer.bind_polymerase(pol, "promoter1")
-
+        # Check changes in coverings and positions
         self.assertEqual(pol.start, 5)
         self.assertEqual(pol.stop, 15)
         self.assertEqual(self.polymer.uncovered["promoter1"], 0)
         self.assertEqual(self.polymer.prop_sum, 30)
+        self.assertTrue(self.fired)

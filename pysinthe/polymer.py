@@ -87,6 +87,12 @@ class Polymer:
 
         # Randomly select promoter
         element = random.choices(element_choices)[0]
+
+        if not element.check_interaction(pol.name):
+            raise RuntimeError("Polymerase '{0}' does not interact with "
+                               "promoter '{1}'."
+                               .format(pol.name, promoter))
+
         # Update polymerase coordinates
         pol.start = element.start
         pol.stop = element.start + pol.footprint
@@ -111,12 +117,9 @@ class Polymer:
         # polymerases have moved further along the DNA
         # This make collision detection very efficient
         self.insert_polymerase(pol)
-        # self.polymerases.append(pol)
+        # Update total move propensity for this polymer
         self.prop_sum += pol.speed
-        # Sanity check; this function should never be called if there are no
-        # free promoters with which to bind
         self.propensity_signal.fire()
-        assert found
 
     def insert_polymerase(self, pol):
         found_position = False
