@@ -172,7 +172,7 @@ class Terminator(Element):
         self.efficiency = interactions
         self.readthrough = False
 
-    def react(self, pol):
+    def resolve_termination(self, pol):
         """
         Check for interaction with `pol` and detach `pol`.
 

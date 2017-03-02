@@ -252,10 +252,11 @@ class Polymer:
             if self.elements_intersect(pol,
                                        self.elements[index]):
                 self.elements[index].cover()
-                if self.elements[index].check_interaction(pol.name):
+                if self.elements[index].check_interaction(pol.name) and \
+                        self.elements[index].type == "terminator":
                     # Resolve reactions between pol and element (e.g.,
                     # terminators)
-                    self.elements[index].react(pol)
+                    self.elements[index].resolve_termination(pol)
                 self.cover_ahead(pol, index + 1)
 
     def cover_behind(self, pol, index):

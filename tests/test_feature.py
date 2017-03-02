@@ -1,4 +1,5 @@
 import unittest
+import random
 from pysinthe import feature
 
 
@@ -109,6 +110,54 @@ class TestElementMethods(unittest.TestCase):
         self.element.save_state()
         self.element.uncover()
         self.assertTrue(self.element.was_uncovered())
+
+    def test_is_covered(self):
+        self.element._covered = 1
+        self.assertTrue(self.element.is_covered())
+        self.element._covered = 0
+        self.assertFalse(self.element.is_covered())
+
+
+class TestTerminatorMethods(unittest.TestCase):
+    def setUp(self):
+        random.seed(22)
+        self.term = feature.Terminator("myterm",
+                                       23,
+                                       60,
+                                       {"rnapol": {"efficiency": 1.0},
+                                        "ecolipol": {"efficiency": 0.6}
+                                        }
+                                       )
+        self.pol = feature.Polymerase("rnapol",
+                                      20,
+                                      40,
+                                      30,
+                                      ["rnapol", "ecolipol", "myterm"]
+                                      )
+        self.pol2 = feature.Polymerase("ecolipol",
+                                       20,
+                                       40,
+                                       30,
+                                       ["ecolipol", "rnapol", "myterm"]
+                                       )
+        self.term.gene = "mygene"
+
+    def test_init(self):
+        self.assertFalse(self.term.readthrough)
+
+    def test_resolve_termination(self):
+        self.term.readthrough = True
+        self.assertIsNone(self.term.resolve_termination(self.pol))
+        self.assertIsNone(self.term.resolve_termination(self.pol2))
+
+        self.term.readthrough = False
+        self.term.resolve_termination(self.pol2)
+        self.assertTrue(self.term.readthrough)
+
+        self.term.readthrough = False
+        self.term.resolve_termination(self.pol)
+        self.assertFalse(self.pol.attached)
+        self.assertEqual(self.pol.last_gene, "mygene")
 
 
 if __name__ == '__main__':
