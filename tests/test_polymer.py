@@ -137,3 +137,6 @@ class TestPolymerMethods(unittest.TestCase):
         self.assertEqual(self.polymer._choose_polymerase(), self.pol3)
         self.assertEqual(self.polymer._choose_polymerase(), self.pol1)
         self.assertEqual(self.polymer._choose_polymerase(), self.pol1)
+
+    def test_move_polymerase(self):
+        pass
