@@ -116,12 +116,71 @@ class Polymer:
         # Polymerases are maintained in order, such that higher-index
         # polymerases have moved further along the DNA
         # This make collision detection very efficient
-        self.insert_polymerase(pol)
+        self._insert_polymerase(pol)
         # Update total move propensity for this polymer
         self.prop_sum += pol.speed
         self.propensity_signal.fire()
 
-    def insert_polymerase(self, pol):
+    def execute(self):
+        """
+        Select a polymerase to move next and deal with terminations.
+        """
+        # Randomly choose polymerase to move
+        pol = self._choose_polymerase()
+        self._move_polymerase(pol)
+
+        # Is the polymerase still attached?
+        if not pol.attached:
+            self.terminate(pol)
+
+    def shift_mask(self):
+        """
+        Shift start of mask by 1 base-pair and check for uncovered elements.
+        """
+        index = -1
+        for index, element in enumerate(self.elements):
+            if self.elements_intersect(self.mask, element):
+                element.save_state()
+                element.uncover()
+                break
+
+        self.mask.recede()
+
+        if index == -1:
+            return
+        # Re-cover masked elements
+        if self.elements_intersect(self.mask, self.elements[index]):
+            self.elements[index].cover()
+        # Check for just-uncovered elements
+        if self.elements[index].was_uncovered() and self.elements[index].type != "terminator":
+            self.promoter_signal.fire(self.elements[index].name)
+            # Uncover element again in order to reset covering history
+            # and avoid re-triggering an uncovering event.
+            self.elements[index].save_state()
+            self.uncovered[self.elements[index].name] += 1
+
+    def terminate(self, pol):
+        self.prop_sum -= pol.speed
+        self.polymerases.remove(pol)
+
+    def count_uncovered(self, species):
+        """
+        Count the number of free promoters that match name `species`.
+
+        :param species: name of promoter to count
+        """
+        return self.uncovered[species]
+
+    def calculate_propensity(self):
+        """
+        Calculate the total propensity of all polymerase movement in this
+        polymer.
+
+        :returns: total propensity
+        """
+        return self.prop_sum
+
+    def _insert_polymerase(self, pol):
         """
         Add a polymerase to polymerase list, while maintaining the
         order in which polymerases currently on the polymer. Higher
@@ -147,40 +206,7 @@ class Polymer:
             insert_position += 1
         self.polymerases.insert(insert_position, pol)
 
-    def count_uncovered(self, species):
-        """
-        Count the number of free promoters that match name `species`.
-
-        :param species: name of promoter to count
-        """
-        return self.uncovered[species]
-
-    def calculate_propensity(self):
-        """
-        Calculate the total propensity of all polymerase movement in this
-        polymer.
-
-        :returns: total propensity
-        """
-        return self.prop_sum
-
-    def execute(self):
-        """
-        Select a polymerase to move next and deal with terminations.
-        """
-        # Randomly choose polymerase to move
-        pol = self.choose_polymerase()
-        self.move_polymerase(pol)
-
-        # Is the polymerase still attached?
-        if not pol.attached:
-            self.terminate(pol)
-
-    def terminate(self, pol):
-        self.prop_sum -= pol.speed
-        self.polymerases.remove(pol)
-
-    def choose_polymerase(self):
+    def _choose_polymerase(self):
         """
         Randomly select next polymerase to move, weighted by move propensity
         (i.e. speed)
@@ -198,7 +224,7 @@ class Polymer:
 
         return pol
 
-    def move_polymerase(self, pol):
+    def _move_polymerase(self, pol):
         """
         Move polymerase and deal with collisions and covering/uncovering of
         elements.
@@ -207,13 +233,13 @@ class Polymer:
         """
         # Find which elements this polymerase (or mask) is covering and
         # temporarily uncover them
-        element_index, mask_index = self.uncover_elements(pol)
+        element_index, mask_index = self._uncover_elements(pol)
 
         # Move polymerase
         pol.move()
 
         # First resolve any collisions between polymerases
-        collision = self.resolve_collisions(pol)
+        collision = self._resolve_collisions(pol)
 
         # If no collisions occurred, it's safe to broadcast that polymerase
         # has moved
@@ -222,17 +248,17 @@ class Polymer:
 
         # If this polymerase interacts with the mask, push the mask back and
         # uncover more elements on the polymer
-        self.resolve_mask_collisions(pol)
+        self._resolve_mask_collisions(pol)
 
         # Now recover elements and check for changes in covered elements
-        self.recover_elements(pol, element_index, mask_index)
+        self._recover_elements(pol, element_index, mask_index)
 
-    def resolve_mask_collisions(self, pol):
+    def _resolve_mask_collisions(self, pol):
         if self.elements_intersect(pol, self.mask):
             if self.mask.check_interaction(pol.name):
                 self.mask.recede()
 
-    def resolve_collisions(self, pol):
+    def _resolve_collisions(self, pol):
         """
         Resolve collisions between polymerases.
 
@@ -251,7 +277,7 @@ class Polymer:
                 collision = True
         return collision
 
-    def uncover_elements(self, pol):
+    def _uncover_elements(self, pol):
         """
         Uncover all elements currently covered by `pol` or the polymer's mask.
         Save the state of each element to check for uncoverings later.
@@ -278,7 +304,7 @@ class Polymer:
 
         return element_index, mask_index
 
-    def cover_ahead(self, pol, index):
+    def _cover_ahead(self, pol, index):
         if index < len(self.elements):
             if self.elements_intersect(pol,
                                        self.elements[index]):
@@ -288,35 +314,33 @@ class Polymer:
                     # Resolve reactions between pol and element (e.g.,
                     # terminators)
                     self.elements[index].resolve_termination(pol)
-                self.cover_ahead(pol, index + 1)
+                self._cover_ahead(pol, index + 1)
 
-    def cover_behind(self, pol, index):
+    def _cover_behind(self, pol, index):
         if index >= 0:
             if self.elements_intersect(pol,
                                        self.elements[index]):
                 self.elements[index].cover()
-                self.cover_behind(pol, index - 1)
+                self._cover_behind(pol, index - 1)
 
-
-    def recover_elements(self, pol, element_index, mask_index):
+    def _recover_elements(self, pol, element_index, mask_index):
         """
         Recover elements covered by `pol` and the polymer mask, and fire
         appropriate signals for elements that have changed state.
         """
-        self.cover_ahead(pol, element_index)
-        self.cover_behind(pol, element_index - 1)
-        self.check_state(self.elements[element_index])
+        self._cover_ahead(pol, element_index)
+        self._cover_behind(pol, element_index - 1)
+        self._check_state(self.elements[element_index])
 
         if mask_index:
-            self.cover_ahead(self.mask, mask_index)
-            self.cover_behind(self.mask, mask_index - 1)
-            self.check_state(self.elements[mask_index])
+            self._cover_ahead(self.mask, mask_index)
+            self._cover_behind(self.mask, mask_index - 1)
+            self._check_state(self.elements[mask_index])
 
         for element in self.elements:
-            self.check_state(element)
+            self._check_state(element)
 
-
-    def check_state(self, element):
+    def _check_state(self, element):
         if element.was_covered() and element.type != "terminator":
             # print("covered: ", self.elements.index(element), element.name)
             self.uncovered[element.name] -= 1
@@ -344,32 +368,6 @@ class Polymer:
         """
         return element1.stop >= element2.start and \
             element2.stop >= element1.start
-
-    def shift_mask(self):
-        """
-        Shift start of mask by 1 base-pair and check for uncovered elements.
-        """
-        index = -1
-        for index, element in enumerate(self.elements):
-            if self.elements_intersect(self.mask, element):
-                element.save_state()
-                element.uncover()
-                break
-
-        self.mask.recede()
-
-        if index == -1:
-            return
-        # Re-cover masked elements
-        if self.elements_intersect(self.mask, self.elements[index]):
-            self.elements[index].cover()
-        # Check for just-uncovered elements
-        if self.elements[index].was_uncovered() and self.elements[index].type != "terminator":
-            self.promoter_signal.fire(self.elements[index].name)
-            # Uncover element again in order to reset covering history
-            # and avoid re-triggering an uncovering event.
-            self.elements[index].save_state()
-            self.uncovered[self.elements[index].name] += 1
 
     def __str__(self):
         """
@@ -421,7 +419,7 @@ class Genome(Polymer):
         # Bind polymerase just like in parent Polymer
         super().bind_polymerase(pol, promoter)
         # Construct transcript
-        transcript = self.build_transcript(pol.start, self.length)
+        transcript = self._build_transcript(pol.start, self.length)
         # Connect polymerase movement signal to transcript, so that the
         # transcript knows when to expose new elements
         pol.move_signal.connect(transcript.shift_mask)
@@ -435,7 +433,7 @@ class Genome(Polymer):
         self.propensity_signal.fire() # Update propensities
         self.polymerases.remove(pol)
 
-    def build_transcript(self, start, stop):
+    def _build_transcript(self, start, stop):
         """
         Build a transcript object corresponding to start and stop positions
         within this genome.
@@ -480,7 +478,7 @@ class Transcript(Polymer):
     def __init__(self, name, length, elements, mask):
         super().__init__(name, length, elements, mask)
 
-    def resolve_mask_collisions(self, pol):
+    def _resolve_mask_collisions(self, pol):
         if self.elements_intersect(pol, self.mask):
             if self.mask.check_interaction(pol.name):
                 pol.move_back()

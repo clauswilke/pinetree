@@ -82,20 +82,20 @@ class TestPolymerMethods(unittest.TestCase):
         # Clear out any polymerases that may be on polymer
         self.polymer.polymerases = []
 
-        self.polymer.insert_polymerase(pol2)
+        self.polymer._insert_polymerase(pol2)
         self.assertEqual(self.polymer.polymerases.index(pol2), 0)
 
-        self.polymer.insert_polymerase(pol)
+        self.polymer._insert_polymerase(pol)
         self.assertEqual(self.polymer.polymerases.index(pol), 0)
         self.assertEqual(self.polymer.polymerases.index(pol2), 1)
 
-        self.polymer.insert_polymerase(pol3)
+        self.polymer._insert_polymerase(pol3)
         self.assertEqual(self.polymer.polymerases.index(pol), 0)
         self.assertEqual(self.polymer.polymerases.index(pol2), 2)
         self.assertEqual(self.polymer.polymerases.index(pol3), 1)
 
         # Trying to insert the same pol object twice should throw an error
-        self.assertRaises(RuntimeError, self.polymer.insert_polymerase, pol2)
+        self.assertRaises(RuntimeError, self.polymer._insert_polymerase, pol2)
 
     def test_count_uncovered(self):
         # Check that cached count matches true count
