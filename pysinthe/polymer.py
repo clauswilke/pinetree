@@ -153,12 +153,6 @@ class Polymer:
             self.elements[index].cover()
         # Check for just-uncovered elements
         self._check_state(self.elements[index])
-        # if self.elements[index].was_uncovered() and self.elements[index].type != "terminator":
-        #     self.promoter_signal.fire(self.elements[index].name)
-        #     # Uncover element again in order to reset covering history
-        #     # and avoid re-triggering an uncovering event.
-        #     self.elements[index].save_state()
-        #     self.uncovered[self.elements[index].name] += 1
 
     def terminate(self, pol):
         self.prop_sum -= pol.speed
@@ -491,29 +485,3 @@ class Transcript(Polymer):
     def release(self, stop):
         jump = stop - self.mask.start
         self.mask.start += jump
-
-    def shift_mask(self):
-        """
-        Shift start of mask by 1 base-pair and check for uncovered elements.
-        """
-        index = -1
-        for index, element in enumerate(self.elements):
-            if self.elements_intersect(self.mask, element):
-                element.save_state()
-                element.uncover()
-                break
-
-        self.mask.recede()
-
-        if index == -1:
-            return
-        # Re-cover masked elements
-        if self.elements_intersect(self.mask, self.elements[index]):
-            self.elements[index].cover()
-        # Check for just-uncovered elements
-        if self.elements[index].was_uncovered() and self.elements[index].type != "terminator":
-            self.promoter_signal.fire(self.elements[index].name)
-            # Uncover element again in order to reset covering history
-            # and avoid re-triggering an uncovering event.
-            self.elements[index].save_state()
-            self.uncovered[self.elements[index].name] += 1
