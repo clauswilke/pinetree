@@ -39,14 +39,6 @@ class Feature:
         """
         return feature_name in self.interactions
 
-    def react(self, pol):
-        """
-        React with a feature.
-
-        :param pol: a feature object
-        """
-        pass
-
 
 class Polymerase(Feature):
     """
