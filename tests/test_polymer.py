@@ -228,4 +228,5 @@ class TestPolymerMethods(unittest.TestCase):
         self.polymer.bind_polymerase(self.pol1, "promoter1")
         for i in range(35):
             self.polymer._move_polymerase(self.pol1)
+        self.assertFalse(self.polymer.elements[1].readthrough)
         self.assertFalse(self.pol1.attached)

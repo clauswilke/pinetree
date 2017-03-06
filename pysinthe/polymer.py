@@ -137,10 +137,11 @@ class Polymer:
         Shift start of mask by 1 base-pair and check for uncovered elements.
         """
         index = -1
-        for index, element in enumerate(self.elements):
+        for i, element in enumerate(self.elements):
             if self.elements_intersect(self.mask, element):
                 element.save_state()
                 element.uncover()
+                index = i
                 break
 
         self.mask.recede()
@@ -254,6 +255,7 @@ class Polymer:
         for element in self.elements:
             if self.elements_intersect(self.mask, element):
                 element.cover()
+                self._check_state(element)
             if self.elements_intersect(pol, element):
                 element.cover()
                 if element.check_interaction(pol.name) and \
@@ -263,9 +265,6 @@ class Polymer:
                     element.resolve_termination(pol)
                     if pol.attached is False:
                         self.terminate(pol)
-            # if self.elements_intersect(self.mask, element):
-            #     element.cover()
-        for element in self.elements:
             self._check_state(element)
 
     def _resolve_mask_collisions(self, pol):
