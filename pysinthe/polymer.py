@@ -129,10 +129,6 @@ class Polymer:
         pol = self._choose_polymerase()
         self._move_polymerase(pol)
 
-        # Is the polymerase still attached?
-        if not pol.attached:
-            self.terminate(pol)
-
     def shift_mask(self):
         """
         Shift start of mask by 1 base-pair and check for uncovered elements.
@@ -224,6 +220,11 @@ class Polymer:
 
         :param pol: polymerase to move
         """
+
+        if pol not in self.polymerases:
+            raise RuntimeError("Attempting to move unbound polymerase '{0}' "
+                               "on polymer '{1}'".format(pol.name, self.name))
+
         # Find which elements this polymerase (or mask) is covering and
         # temporarily uncover them
         for element in self.elements:
@@ -254,6 +255,8 @@ class Polymer:
                     # Resolve reactions between pol and element (e.g.,
                     # terminators)
                     element.resolve_termination(pol)
+                    if pol.attached is False:
+                        self.terminate(pol)
             if self.elements_intersect(self.mask, element):
                 element.cover()
         for element in self.elements:

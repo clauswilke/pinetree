@@ -125,7 +125,7 @@ class TestPolymerMethods(unittest.TestCase):
             self.polymer.shift_mask()
         # Arrange polymerases along polymer
         self.polymer.bind_polymerase(self.pol1, "promoter1")
-        for i in range(40):
+        for i in range(35):
             self.polymer._move_polymerase(self.pol1)
         self.polymer.bind_polymerase(self.pol2, "promoter1")
         for i in range(25):
@@ -134,8 +134,8 @@ class TestPolymerMethods(unittest.TestCase):
         # Set seed and randomly select polymerases by propensity
         random.seed(13)
         self.assertEqual(self.polymer._choose_polymerase(), self.pol3)
-        self.assertEqual(self.polymer._choose_polymerase(), self.pol1)
-        self.assertEqual(self.polymer._choose_polymerase(), self.pol1)
+        self.assertEqual(self.polymer._choose_polymerase(), self.pol2)
+        self.assertEqual(self.polymer._choose_polymerase(), self.pol2)
 
     def test_move_polymerase(self):
         # Start with clean polymer
@@ -172,6 +172,36 @@ class TestPolymerMethods(unittest.TestCase):
         self.assertEqual(old_mask_start, self.polymer.mask.start)
         self.assertEqual(self.polymer.mask.start, self.pol2.stop + 1)
 
-        # Coverings/uncoverings
-        # Shifting of mask
-        pass
+        # Move back mask to expose terminator
+        for i in range(60):
+            self.polymer.shift_mask()
+        self.assertFalse(self.polymer.elements[1].is_covered())
+        self.assertTrue(self.pol2 in self.polymer.polymerases)
+        # Test termination, pol should detach as soon as it hits terminator
+        for i in range(24):
+            self.polymer._move_polymerase(self.pol2)
+        self.assertTrue(
+            self.polymer.elements_intersect(self.pol2,
+                                            self.polymer.elements[1])
+            )
+        self.assertFalse(self.pol2.attached)
+        with self.assertRaises(ValueError):
+            self.polymer.polymerases.index(self.pol2)
+
+        # Now check for readthrough
+        self.pol1.attached = True
+        self.polymer.bind_polymerase(self.pol1, "promoter1")
+        random.seed(19)
+        for i in range(42):
+            self.polymer._move_polymerase(self.pol1)
+        self.assertTrue(self.polymer.elements[1].readthrough)
+        # Move and remove polymerase
+        for i in range(20):
+            self.polymer._move_polymerase(self.pol1)
+        self.polymer.terminate(self.pol1)
+        # Run polymerase through terminator again, this time it should terminate
+        self.pol1.attached = True
+        self.polymer.bind_polymerase(self.pol1, "promoter1")
+        for i in range(35):
+            self.polymer._move_polymerase(self.pol1)
+        self.assertFalse(self.pol1.attached)
