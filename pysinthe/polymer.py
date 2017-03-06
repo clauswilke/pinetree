@@ -125,6 +125,9 @@ class Polymer:
         """
         Select a polymerase to move next and deal with terminations.
         """
+        if self.prop_sum == 0:
+            raise RuntimeError("Attempting to execute polymer '{0}' with a "
+                               "reaction propensity of 0.".format(self.name))
         # Randomly choose polymerase to move
         pol = self._choose_polymerase()
         self._move_polymerase(pol)
@@ -152,6 +155,7 @@ class Polymer:
 
     def terminate(self, pol):
         self.prop_sum -= pol.speed
+        self.propensity_signal.fire()
         self.polymerases.remove(pol)
 
     def count_uncovered(self, species):
@@ -248,6 +252,8 @@ class Polymer:
 
         # Now recover elements and check for changes in covered elements
         for element in self.elements:
+            if self.elements_intersect(self.mask, element):
+                element.cover()
             if self.elements_intersect(pol, element):
                 element.cover()
                 if element.check_interaction(pol.name) and \
@@ -257,8 +263,8 @@ class Polymer:
                     element.resolve_termination(pol)
                     if pol.attached is False:
                         self.terminate(pol)
-            if self.elements_intersect(self.mask, element):
-                element.cover()
+            # if self.elements_intersect(self.mask, element):
+            #     element.cover()
         for element in self.elements:
             self._check_state(element)
 
@@ -266,6 +272,7 @@ class Polymer:
         if self.elements_intersect(pol, self.mask):
             if self.mask.check_interaction(pol.name):
                 self.mask.recede()
+                # self.shift_mask()
             else:
                 pol.move_back()
                 return True
@@ -381,10 +388,8 @@ class Genome(Polymer):
         self.transcript_signal.fire(transcript)
 
     def terminate(self, pol):
-        self.prop_sum -= pol.speed
+        super().terminate(pol)
         self.termination_signal.fire(pol.name)
-        self.propensity_signal.fire() # Update propensities
-        self.polymerases.remove(pol)
 
     def _build_transcript(self, start, stop):
         """
@@ -418,7 +423,7 @@ class Genome(Polymer):
                              self.length,
                              elements,
                              Mask("mask", 0, self.length,
-                                  ["ribosome"]))
+                                  []))
         return polymer
 
 
@@ -431,18 +436,9 @@ class Transcript(Polymer):
     def __init__(self, name, length, elements, mask):
         super().__init__(name, length, elements, mask)
 
-    def _resolve_mask_collisions(self, pol):
-        if self.elements_intersect(pol, self.mask):
-            if self.mask.check_interaction(pol.name):
-                pol.move_back()
-                return True
-        return False
-
     def terminate(self, pol):
-        self.prop_sum -= pol.speed
+        super().terminate(pol)
         self.termination_signal.fire(pol.last_gene, pol.name)
-        self.propensity_signal.fire()  # Update propensities
-        self.polymerases.remove(pol)
 
     def release(self, stop):
         jump = stop - self.mask.start

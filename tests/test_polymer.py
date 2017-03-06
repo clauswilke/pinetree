@@ -73,6 +73,30 @@ class TestPolymerMethods(unittest.TestCase):
         self.assertEqual(self.polymer.prop_sum, 30)
         self.assertTrue(self.fired)
 
+    def test_execute(self):
+        self.setUp()
+        for i in range(100):
+            self.polymer.shift_mask()
+        # Arrange polymerases along polymer
+        self.polymer.bind_polymerase(self.pol1, "promoter1")
+        for i in range(35):
+            self.polymer._move_polymerase(self.pol1)
+        self.polymer.bind_polymerase(self.pol2, "promoter1")
+        for i in range(25):
+            self.polymer._move_polymerase(self.pol2)
+        self.polymer.bind_polymerase(self.pol3, "promoter1")
+
+        for i in range(30):
+            self.polymer.execute()
+
+        # Once all of the polymerases have terminated, execute should throw
+        # a RuntimeError
+        with self.assertRaises(RuntimeError):
+            for i in range(30):
+                self.polymer.execute()
+
+
+
     def test_count_uncovered(self):
         # Check that cached count matches true count
         count = 0
