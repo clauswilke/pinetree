@@ -238,15 +238,12 @@ class Polymer:
         pol.move()
 
         # First resolve any collisions between polymerases
-        collision = self._resolve_collisions(pol)
-
+        pol_collision = self._resolve_collisions(pol)
+        mask_collision = self._resolve_mask_collisions(pol)
         # If no collisions occurred, it's safe to broadcast that polymerase
         # has moved
-        if not collision:
+        if not pol_collision and not mask_collision:
             pol.move_signal.fire()
-            # If this polymerase interacts with the mask, push the mask back and
-            # uncover more elements on the polymer
-            self._resolve_mask_collisions(pol)
 
         # Now recover elements and check for changes in covered elements
         for element in self.elements:
@@ -266,6 +263,9 @@ class Polymer:
         if self.elements_intersect(pol, self.mask):
             if self.mask.check_interaction(pol.name):
                 self.mask.recede()
+            else:
+                pol.move_back()
+                return True
         return False
 
     def _resolve_collisions(self, pol):

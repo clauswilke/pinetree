@@ -110,17 +110,16 @@ class TestPolymerMethods(unittest.TestCase):
         self.assertEqual(self.polymer.polymerases.index(self.pol3), 1)
 
         # Trying to insert the same pol object twice should throw an error
-        self.assertRaises(RuntimeError,
-                          self.polymer._insert_polymerase,
-                          self.pol2)
+        with self.assertRaises(RuntimeError):
+            self.polymer._insert_polymerase(self.pol2)
 
     def test_choose_polymerase(self):
         # Start with clean polymer
         self.setUp()
         # There are no polymerases on the transcript so trying to randomly
         # choose a polymerase should throw an error
-        self.assertRaises(RuntimeError,
-                          self.polymer._choose_polymerase)
+        with self.assertRaises(RuntimeError):
+            self.polymer._choose_polymerase()
         # Move mask back
         for i in range(100):
             self.polymer.shift_mask()
@@ -139,7 +138,40 @@ class TestPolymerMethods(unittest.TestCase):
         self.assertEqual(self.polymer._choose_polymerase(), self.pol1)
 
     def test_move_polymerase(self):
-        # Collision between polymerases
+        # Start with clean polymer
+        self.setUp()
+        # Shift mask back to expose promoter
+        for i in range(10):
+            self.polymer.shift_mask()
+        self.polymer.bind_polymerase(self.pol1, "promoter1")
+        self.assertEqual(self.polymer.uncovered["promoter1"], 0)
+        self.assertTrue(self.polymer.elements[0].is_covered())
+
+        # Move polymerase 10 spaces and re-expose promoter
+        for i in range(11):
+            self.polymer._move_polymerase(self.pol1)
+        self.assertEqual(self.polymer.uncovered["promoter1"], 1)
+        self.assertFalse(self.polymer.elements[0].is_covered())
+        # Make sure that the mask has also moved appropriately
+        self.assertEqual(self.polymer.mask.start, self.pol1.stop + 1)
+
+        # Check collisions between polymerases
+        self.polymer.bind_polymerase(self.pol2, "promoter1")
+        for i in range(15):
+            self.polymer._move_polymerase(self.pol2)
+        # One polymerase should not be able to pass another
+        self.assertEqual(self.pol2.stop + 1, self.pol1.start)
+        self.assertFalse(self.polymer.elements_intersect(self.pol1, self.pol2))
+
+        # Remove pol1
+        self.polymer.terminate(self.pol1)
+        # Make sure that pol2 is unable to shift mask back
+        old_mask_start = self.polymer.mask.start
+        for i in range(20):
+            self.polymer._move_polymerase(self.pol2)
+        self.assertEqual(old_mask_start, self.polymer.mask.start)
+        self.assertEqual(self.polymer.mask.start, self.pol2.stop + 1)
+
         # Coverings/uncoverings
         # Shifting of mask
         pass
