@@ -3,7 +3,7 @@ import unittest
 import sys
 import io
 
-import simulation
+import run_simulation as simulation
 
 class MainTest(unittest.TestCase):
 
