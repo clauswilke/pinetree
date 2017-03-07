@@ -5,6 +5,7 @@ import io
 
 import run_simulation as simulation
 
+
 class MainTest(unittest.TestCase):
 
     def test_three_genes(self):

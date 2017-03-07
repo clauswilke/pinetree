@@ -2,8 +2,6 @@
 
 import random
 import math
-import argparse
-import yaml
 
 from .feature import Polymerase, Terminator, Promoter, Mask
 from .polymer import Genome
@@ -198,6 +196,9 @@ class Simulation:
     """
     def __init__(self):
         self.time = 0 # simulation time
+        self.runtime = 0
+        self.time_step = 0
+        self.debug = False
         self.terminations = {} # track when polymerases terminate
         self.reactants = {} # species-level reactant counts
         self.promoter_polymer_map = {} # Map of which polymers contain a given
@@ -207,6 +208,21 @@ class Simulation:
         self.reactions = [] # all reactions
         self.iteration = 0 # iteration counter
         self.alpha_list = []
+
+    def run(self):
+        print(self)
+        old_time = 0
+        while self.time < self.runtime:
+            # Execute simulatio
+            self.execute()
+            if abs(self.time - old_time) > self.time_step:
+                # Output data every ~time_step
+                print(self)
+                old_time += self.time_step
+            elif self.debug is True:
+                print(self)
+                for pol in self.reactions:
+                    print(pol)
 
     def increment_reactant(self, name, copy_number):
         """
