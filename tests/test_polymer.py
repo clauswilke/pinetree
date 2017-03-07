@@ -340,3 +340,36 @@ class TestPolymerMethods(unittest.TestCase):
         self.polymer.elements[1].uncover()
         self.polymer._check_state(self.polymer.elements[1])
         self.assertFalse(self.polymer.elements[1].readthrough)
+
+    def test_elements_intersect(self):
+        element1 = feature.Promoter("promoter1",
+                                    5,
+                                    15,
+                                    ["ecolipol", "rnapol"]
+                                    )
+        element2 = feature.Promoter("promoter1",
+                                    5,
+                                    15,
+                                    ["ecolipol", "rnapol"]
+                                    )
+        self.assertTrue(self.polymer.elements_intersect(element1, element2))
+        self.assertTrue(self.polymer.elements_intersect(element2, element1))
+
+        element1.start = 15
+        element1.stop = 25
+        self.assertTrue(self.polymer.elements_intersect(element1, element2))
+        self.assertTrue(self.polymer.elements_intersect(element2, element1))
+
+        element1.start = 16
+        self.assertFalse(self.polymer.elements_intersect(element1, element2))
+        self.assertFalse(self.polymer.elements_intersect(element2, element1))
+
+        element1.start = 3
+        element1.stop = 17
+        self.assertTrue(self.polymer.elements_intersect(element1, element2))
+        self.assertTrue(self.polymer.elements_intersect(element2, element1))
+
+        element1.start = 7
+        element1.stop = 10
+        self.assertTrue(self.polymer.elements_intersect(element1, element2))
+        self.assertTrue(self.polymer.elements_intersect(element2, element1))
