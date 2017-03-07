@@ -8,7 +8,7 @@ from pysinthe.feature import Polymerase, Terminator, Promoter, Mask
 from pysinthe.polymer import Genome
 from pysinthe.eventsignal import Signal
 from pysinthe.simulation import *
-from voluptuous import Schema, Range, All, Optional, Length
+from voluptuous import Schema, Range, All, Any, Optional, Length
 
 
 def main(my_params_file=""):
@@ -40,8 +40,17 @@ def main(my_params_file=""):
         'genome': {'name': All(str, Length(min=1)),
                    'copy_number': All(int, Range(min=1)),
                    Optional('entered'): All(int, Range(min=1))},
-        'polymerases': All(list, Length(min=1)),
-        'elements': list
+        'polymerases': All([{'name': All(str, Length(min=1)),
+                             'copy_number': All(int, Range(min=0)),
+                             'speed': All(int, Range(min=0))}],
+                           Length(min=1)),
+        'elements': All([{'name': All(str, Length(min=1)),
+                          'length': All(int, Range(min=0)),
+                          'type': Any('promoter', 'terminator', 'transcript'),
+                          'interactions': dict,
+                          'rbs': int}],
+                        Length(min=1)),
+        Optional('reactions'): list
     }, required=True)
 
     schema(params)
