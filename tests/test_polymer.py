@@ -26,19 +26,19 @@ class TestPolymerMethods(unittest.TestCase):
                                        20,
                                        10,
                                        30,
-                                       ["ecolipol", "terminator", "rnapol"]
+                                       ["terminator"]
                                        )
         self.pol2 = feature.Polymerase("rnapol",
                                        60,
                                        10,
                                        30,
-                                       ["ecolipol", "terminator", "rnapol"]
+                                       ["terminator"]
                                        )
         self.pol3 = feature.Polymerase("rnapol",
                                        40,
                                        10,
                                        30,
-                                       ["rnapol", "ecolipol", "rnapol"]
+                                       []
                                        )
 
         self.polymer = polymer.Polymer("mygenome",
@@ -297,7 +297,26 @@ class TestPolymerMethods(unittest.TestCase):
         self.assertEqual(self.polymer.mask.start, old_mask_start)
 
     def test_resolve_collisions(self):
-        pass
+        self.setUp()
+        for i in range(10):
+            self.polymer.shift_mask()
+        self.polymer.bind_polymerase(self.pol1, "promoter1")
+        for i in range(20):
+            self.polymer._move_polymerase(self.pol1)
+        self.polymer.bind_polymerase(self.pol2, "promoter1")
+        for i in range(11):
+            self.pol2.move()
+        old_start = self.pol2.start
+        self.assertTrue(self.polymer._resolve_collisions(self.pol2))
+        self.assertEqual(old_start - 1, self.pol2.start)
+
+        for i in range(3):
+            self.pol2.move()
+        with self.assertRaises(RuntimeError):
+            self.polymer._resolve_collisions(self.pol2)
+
+
+
 
     def test_check_state(self):
         pass
