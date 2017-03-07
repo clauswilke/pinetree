@@ -8,6 +8,7 @@ from pysinthe.feature import Polymerase, Terminator, Promoter, Mask
 from pysinthe.polymer import Genome
 from pysinthe.eventsignal import Signal
 from pysinthe.simulation import *
+from voluptuous import Schema, Range, All, Optional, Length
 
 
 def main(my_params_file=""):
@@ -28,6 +29,22 @@ def main(my_params_file=""):
 
     with open(my_params_file, "r") as my_file:
         params = yaml.safe_load(my_file)
+
+    #Define schema
+    schema = Schema({
+        'simulation': {Optional('seed'): All(int, Range(min=0)),
+                       'runtime': All(int, Range(min=0)),
+                       'time_step': All(int, Range(min=0)),
+                       'ribosomes': All(int, Range(min=0)),
+                       Optional('debug', default=False): bool},
+        'genome': {'name': All(str, Length(min=1)),
+                   'copy_number': All(int, Range(min=1)),
+                   Optional('entered'): All(int, Range(min=1))},
+        'polymerases': All(list, Length(min=1)),
+        'elements': list
+    }, required=True)
+
+    schema(params)
 
     # Set seed
     random.seed(params["simulation"]["seed"])
