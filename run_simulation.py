@@ -7,7 +7,7 @@ from pysinthe.parser import Parser
 
 def main(my_params_file=""):
     """
-    TODO: REFACTOR AND VALIDATE INPUT PARAMETERS
+    Parse input file and run simulation.
     """
     if my_params_file == "":
         parser = argparse.ArgumentParser(description="Simulate transcription \

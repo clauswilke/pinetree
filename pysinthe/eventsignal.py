@@ -1,5 +1,6 @@
 #! /usr/bin/env python3
 
+
 class Signal:
     def __init__(self):
         self._handlers = []

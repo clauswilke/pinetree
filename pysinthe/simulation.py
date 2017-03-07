@@ -3,20 +3,20 @@
 import random
 import math
 
-from .feature import Polymerase, Terminator, Promoter, Mask
-from .polymer import Genome
+from .feature import Polymerase
 from .eventsignal import Signal
 
 AVAGADRO = float(6.0221409e+23)
 # CELL_VOLUME = float(8e-16)
 CELL_VOLUME = float(8e-16)
 
+
 class Reaction():
     """
     Generic class for a reaction. (Not currently used).
     """
     def __init__(self):
-        self.index = -1 # Index inside propensity list, sim.alpha_list
+        self.index = -1  # Index inside propensity list, sim.alpha_list
 
     def calculate_propensity(self):
         """
@@ -59,7 +59,6 @@ class SpeciesReaction(Reaction):
             else:
                 self.sim.reactant_bind_map[product].append(self)
 
-
     def calculate_propensity(self):
         """
         Calculate the propensity of this reaction
@@ -79,6 +78,7 @@ class SpeciesReaction(Reaction):
 
         for product in self.products:
             self.sim.increment_reactant(product, 1)
+
 
 class Bind(Reaction):
     """
@@ -145,6 +145,7 @@ class Bind(Reaction):
     def __str__(self):
         return self.promoter + "-" + self.polymerase
 
+
 class Bridge(Reaction):
     """
     Encapsulate polymer so it can participate in species-level reaction
@@ -156,8 +157,8 @@ class Bridge(Reaction):
         """
         super().__init__()
         self.polymer = polymer
-        self.propensity_signal = Signal() # Signal to fire when propensity needs
-                                          # to be updated
+        self.propensity_signal = Signal()  # Signal to fire when propensity
+        # needs to be updated
         polymer.propensity_signal.connect(self.update)
 
     def calculate_propensity(self):
@@ -196,18 +197,18 @@ class Simulation:
     Coordinate polymers and species-level reactions.
     """
     def __init__(self):
-        self.time = 0 # simulation time
+        self.time = 0  # simulation time
         self.runtime = 0
         self.time_step = 0
         self.debug = False
-        self.terminations = {} # track when polymerases terminate
-        self.reactants = {} # species-level reactant counts
-        self.promoter_polymer_map = {} # Map of which polymers contain a given
-                                       # promoter
-        self.reactant_bind_map = {} # Map of which binding reaction involves a
-                                    # given reactant
-        self.reactions = [] # all reactions
-        self.iteration = 0 # iteration counter
+        self.terminations = {}  # track when polymerases terminate
+        self.reactants = {}  # species-level reactant counts
+        self.promoter_polymer_map = {}  # Map of which polymers contain a given
+        # promoter
+        self.reactant_bind_map = {}  # Map of which binding reaction involves a
+        # given reactant
+        self.reactions = []  # all reactions
+        self.iteration = 0  # iteration counter
         self.alpha_list = []
 
     def run(self):
@@ -288,7 +289,9 @@ class Simulation:
         """
         Update a propensity of a reaction at a given index.
         """
-        self.alpha_list[index] = float(self.reactions[index].calculate_propensity())
+        self.alpha_list[index] = float(
+            self.reactions[index].calculate_propensity()
+            )
 
     def execute(self):
         """
@@ -376,9 +379,9 @@ class Simulation:
         """
         out_string = ""
         for name, count in self.terminations.items():
-            out_string += str(self.iteration) + ", " + str(float(self.time)) + ", " + \
-                name + ", " + str(count) + "\n"
+            out_string += str(self.iteration) + ", " + str(float(self.time)) + \
+                ", " + name + ", " + str(count) + "\n"
         for name, count in self.reactants.items():
-            out_string += str(self.iteration) + ", " + str(float(self.time)) + ", " + \
-                name + ", " + str(count) + "\n"
+            out_string += str(self.iteration) + ", " + str(float(self.time)) + \
+                ", " + name + ", " + str(count) + "\n"
         return out_string.strip()
