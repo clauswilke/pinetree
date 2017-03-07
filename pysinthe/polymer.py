@@ -136,6 +136,10 @@ class Polymer:
         """
         Shift start of mask by 1 base-pair and check for uncovered elements.
         """
+        # Check to see that mask still has some width
+        if self.mask.start == self.mask.stop:
+            return
+
         index = -1
         for i, element in enumerate(self.elements):
             if self.elements_intersect(self.mask, element):

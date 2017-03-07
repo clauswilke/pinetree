@@ -95,7 +95,41 @@ class TestPolymerMethods(unittest.TestCase):
             for i in range(30):
                 self.polymer.execute()
 
+    def test_shift_mask(self):
+        self.setUp()
+        old_mask_start = self.polymer.mask.start
+        self.polymer.shift_mask()
+        self.assertEqual(old_mask_start + 1, self.polymer.mask.start)
 
+        self.assertTrue(self.polymer.elements[0].is_covered())
+        self.assertTrue(self.polymer.elements[1].is_covered())
+
+        for i in range(10):
+            self.polymer.shift_mask()
+
+        self.assertFalse(self.polymer.elements[0].is_covered())
+        self.assertTrue(self.polymer.elements[1].is_covered())
+
+        for i in range(200):
+            self.polymer.shift_mask()
+        # Make sure mask can't get shifted beyond its end position
+        self.assertEqual(self.polymer.mask.start, self.polymer.mask.stop)
+        self.assertFalse(self.polymer.elements[1].is_covered())
+
+    def test_terminate(self):
+        self.setUp()
+        for i in range(10):
+            self.polymer.shift_mask()
+
+        self.polymer.bind_polymerase(self.pol1, "promoter1")
+
+        old_prop_sum = self.polymer.prop_sum
+        self.polymer.terminate(self.pol1)
+
+        self.assertNotEqual(self.polymer.prop_sum, old_prop_sum)
+        self.assertTrue(self.fire)
+        with self.assertRaises(ValueError):
+            self.polymer.polymerases.index(self.pol1)
 
     def test_count_uncovered(self):
         # Check that cached count matches true count
@@ -230,3 +264,12 @@ class TestPolymerMethods(unittest.TestCase):
             self.polymer._move_polymerase(self.pol1)
         self.assertFalse(self.polymer.elements[1].readthrough)
         self.assertFalse(self.pol1.attached)
+
+    def test_resolve_mask_collisions(self):
+        pass
+
+    def test_resolve_collisions(self):
+        pass
+
+    def test_check_state(self):
+        pass
