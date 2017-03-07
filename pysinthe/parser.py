@@ -158,20 +158,38 @@ class Parser:
 
         # Build genome
         if "entered" in genome_params:
-            genome_mask = Mask("mask", genome_params["entered"], position, ["rnapol", "ecolipol"])
+            genome_mask = Mask("mask",
+                               genome_params["entered"],
+                               position,
+                               ["rnapol", "ecolipol"])
         else:
             genome_mask = Mask("mask", position, position, [])
+
         genome = Genome(self.params["genome"]["name"],
-                        position, dna_elements, transcript_template, genome_mask)
+                        position,
+                        dna_elements,
+                        transcript_template,
+                        genome_mask)
 
         return genome
 
     def _parse_polymerases(self, pol_params):
+        """
+        Add polymerases to species-level reactant count.
+
+        :param pol_params: polymerase parameters
+        """
         for pol in pol_params:
             # add polymerase as a reactant
             self.simulation.increment_reactant(pol["name"], pol["copy_number"])
 
     def _parse_binding_reactions(self, element_params, pol_params):
+        """
+        Add binding reaction for each promoter-polymerase interaction pair
+
+        :param element_params: element parameters
+        :param pol_params: polymerase parameters
+        """
         # Add binding reaction for each promoter-polymerase interaction pair
         for element in element_params:
             if element["type"] == "promoter":
@@ -182,9 +200,9 @@ class Parser:
                         if pol["name"] == partner:
                             pol_args = [partner,
                                         element["start"],
-                                        10,                 # footprint
+                                        10,  # footprint
                                         pol["speed"]
-                                       ]
+                                        ]
                             reaction = Bind(self.simulation,
                                             float(binding_constant),
                                             element["name"],
