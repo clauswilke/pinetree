@@ -30,6 +30,7 @@ class Reaction():
         """
         pass
 
+
 class SpeciesReaction(Reaction):
     """
     Generic class for species-level reaction.
