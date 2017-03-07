@@ -210,8 +210,15 @@ class Parser:
                             self.simulation.register_reaction(reaction)
 
     def _register_genome(self, genome):
+        """
+        Add genome to simulation and connect appropriate signalling methods.
+
+        :param genome: genome object
+        """
         # Register genome
-        genome.termination_signal.connect(self.simulation.terminate_transcription)
+        genome.termination_signal.connect(
+            self.simulation.terminate_transcription
+        )
         genome.promoter_signal.connect(self.simulation.free_promoter)
         genome.block_signal.connect(self.simulation.block_promoter)
         genome.transcript_signal.connect(self.simulation.register_transcript)
