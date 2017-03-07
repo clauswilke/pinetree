@@ -299,9 +299,6 @@ class Polymer:
             return collision
         if self.elements_intersect(pol,
                                    self.polymerases[index + 1]):
-            # if not self.polymerases[index + 1].check_interaction(pol.name):
-            #     raise RuntimeError("{0} does not interact with {1} on polymer "
-            #                        "{2}.".format(pol.name, self.polymerases[index + 1].name, self.name))
             if pol.stop - self.polymerases[index + 1].start > 1:
                 raise RuntimeError("Polymerase '{0}' is overlapping "
                                    "polymerase '{1}' by more than one "

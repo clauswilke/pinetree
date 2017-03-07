@@ -20,14 +20,12 @@ class TestPolymeraseMethods(unittest.TestCase):
         self.pol = feature.Polymerase("mypol",
                                       20,
                                       40,
-                                      30,
-                                      ["mypol", "terminator", "mypol2"]
+                                      30
                                       )
         self.pol2 = feature.Polymerase("mypol2",
                                        20,
                                        40,
-                                       30,
-                                       ["mypol", "terminator"]
+                                       30
                                        )
 
     def test_init(self):
@@ -131,14 +129,12 @@ class TestTerminatorMethods(unittest.TestCase):
         self.pol = feature.Polymerase("rnapol",
                                       20,
                                       40,
-                                      30,
-                                      ["rnapol", "ecolipol", "myterm"]
+                                      30
                                       )
         self.pol2 = feature.Polymerase("ecolipol",
                                        20,
                                        40,
-                                       30,
-                                       ["ecolipol", "rnapol", "myterm"]
+                                       30
                                        )
         self.term.gene = "mygene"
 

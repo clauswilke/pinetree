@@ -444,12 +444,6 @@ def main(my_params_file=""):
     for pol in params["polymerases"]:
         # add polymerase as a reactant
         simulation.increment_reactant(pol["name"], pol["copy_number"])
-        # build interactions
-        pol["interactions"] = [pol["name"]] # all pols interact with themselves
-        for element in params["elements"]:
-            if "interactions" in element.keys():
-                if pol["name"] in element["interactions"].keys():
-                    pol["interactions"].append(element["name"])
 
     # Add binding reaction for each promoter-polymerase interaction pair
     for element in params["elements"]:
@@ -462,8 +456,7 @@ def main(my_params_file=""):
                         pol_args = [partner,
                                     element["start"],
                                     10,                 # footprint
-                                    pol["speed"],
-                                    pol["interactions"]
+                                    pol["speed"]
                                    ]
                         reaction = Bind(simulation,
                                         float(binding_constant),
@@ -486,8 +479,7 @@ def main(my_params_file=""):
 
     simulation.increment_reactant("rbs", 0)
     ribo_args = ["ribosome", 0, 10, #footprint
-                 30,
-                 ["ribosome", "tstop", "rbs"]]
+                 30]
     # Transcript-ribosome binding reaction
     reaction = Bind(simulation, float(1e7),
                     "rbs",

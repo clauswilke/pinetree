@@ -40,20 +40,20 @@ class Feature:
         return feature_name in self.interactions
 
 
-class Polymerase(Feature):
+class Polymerase:
     """
-    A molecule that binds to `Polymer` and moves. Extends `Feature`.
+    A molecule that binds to `Polymer` and moves.
     """
-    def __init__(self, name, start, footprint, speed, interactions):
+    def __init__(self, name, start, footprint, speed):
         """
         :param name: name of polymerase (unique?)
         :param start: current start position of polymerase
         :param footprint: polymerase footprint
         :param speed: speed of polymerase
-        :param interactions: list of other features that this polymerase
-            interacts with
         """
-        super().__init__(name, start, start + footprint, interactions)
+        self.name = name
+        self.start = start
+        self.stop = start + footprint
         self.speed = speed
         self.attached = True  # Is this polymerase attached to a polymer?
         self.bound = start  # Record where polymerase bound to genome

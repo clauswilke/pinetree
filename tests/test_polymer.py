@@ -25,20 +25,17 @@ class TestPolymerMethods(unittest.TestCase):
         self.pol1 = feature.Polymerase("ecolipol",
                                        20,
                                        10,
-                                       30,
-                                       ["terminator"]
+                                       30
                                        )
         self.pol2 = feature.Polymerase("rnapol",
                                        60,
                                        10,
-                                       30,
-                                       ["terminator"]
+                                       30
                                        )
         self.pol3 = feature.Polymerase("rnapol",
                                        40,
                                        10,
-                                       30,
-                                       []
+                                       30
                                        )
 
         self.polymer = polymer.Polymer("mygenome",
