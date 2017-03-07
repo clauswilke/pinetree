@@ -49,9 +49,19 @@ class TestPolymerMethods(unittest.TestCase):
         self.assertEqual(self.polymer.uncovered["myterm"], 0)
         self.fired = False
         self.polymer.propensity_signal.connect(self.fire)
+        self.promoter_fired = 0
+        self.block_fired = 0
+        self.polymer.promoter_signal.connect(self.fire_promoter)
+        self.polymer.block_signal.connect(self.fire_block)
 
     def fire(self):
         self.fired = True
+
+    def fire_promoter(self, name):
+        self.promoter_fired += 1
+
+    def fire_block(self, name):
+        self.block_fired += 1
 
     def test_bind_polymerase(self):
         random.seed(22)
@@ -209,6 +219,7 @@ class TestPolymerMethods(unittest.TestCase):
         self.assertFalse(self.polymer.elements[0].is_covered())
         # Make sure that the mask has also moved appropriately
         self.assertEqual(self.polymer.mask.start, self.pol1.stop + 1)
+        self.assertEqual(self.promoter_fired, 2)
 
         # Check collisions between polymerases
         self.polymer.bind_polymerase(self.pol2, "promoter1")
@@ -312,8 +323,20 @@ class TestPolymerMethods(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             self.polymer._resolve_collisions(self.pol2)
 
-
-
-
     def test_check_state(self):
-        pass
+        self.setUp()
+        self.polymer.elements[0].save_state()
+        self.polymer.elements[0].uncover()
+        self.polymer._check_state(self.polymer.elements[0])
+        self.assertEqual(self.polymer.uncovered["promoter1"], 1)
+        self.assertEqual(self.promoter_fired, 1)
+
+        self.polymer.elements[0].cover()
+        self.polymer._check_state(self.polymer.elements[0])
+        self.assertEqual(self.polymer.uncovered["promoter1"], 0)
+        self.assertEqual(self.block_fired, 1)
+
+        self.polymer.elements[1].save_state()
+        self.polymer.elements[1].uncover()
+        self.polymer._check_state(self.polymer.elements[1])
+        self.assertFalse(self.polymer.elements[1].readthrough)
