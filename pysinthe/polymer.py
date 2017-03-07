@@ -352,6 +352,7 @@ class Polymer:
             "\n"
         return out_string
 
+
 class Genome(Polymer):
     """
     Track polymerases on DNA, deal with collisions, promoters, terminators, and
@@ -371,7 +372,7 @@ class Genome(Polymer):
         """
         super().__init__(name, length, elements, mask)
         self.transcript_template = transcript_template
-        self.transcript_signal = Signal() # fires upon transcript construction
+        self.transcript_signal = Signal()  # fires upon transcript construction
 
     def bind_polymerase(self, pol, promoter):
         """
