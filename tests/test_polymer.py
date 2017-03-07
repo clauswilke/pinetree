@@ -266,7 +266,35 @@ class TestPolymerMethods(unittest.TestCase):
         self.assertFalse(self.pol1.attached)
 
     def test_resolve_mask_collisions(self):
-        pass
+        self.setUp()
+        for i in range(10):
+            self.polymer.shift_mask()
+        # This polymerase is capable of shifting mask backwards
+        self.polymer.bind_polymerase(self.pol1, "promoter1")
+        self.pol1.start += 5
+        self.pol1.stop += 5
+        old_mask_start = self.polymer.mask.start
+        self.assertFalse(self.polymer._resolve_mask_collisions(self.pol1))
+        self.assertEqual(self.polymer.mask.start, old_mask_start + 1)
+        # The polymerase and mask should never overlap by more than 1 position
+        self.pol1.start += 5
+        self.pol1.stop += 5
+        with self.assertRaises(RuntimeError):
+            self.polymer._resolve_mask_collisions(self.pol1)
+
+        self.setUp()
+        for i in range(10):
+            self.polymer.shift_mask()
+        self.polymer.bind_polymerase(self.pol2, "promoter1")
+        old_mask_start = self.polymer.mask.start
+        old_start = self.pol2.start
+        old_stop = self.pol2.stop
+        self.pol2.start += 5
+        self.pol2.stop += 5
+        self.assertTrue(self.polymer._resolve_mask_collisions(self.pol2))
+        self.assertEqual(self.pol2.start, old_start + 4)
+        self.assertEqual(self.pol2.stop, old_stop + 4)
+        self.assertEqual(self.polymer.mask.start, old_mask_start)
 
     def test_resolve_collisions(self):
         pass

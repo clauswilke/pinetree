@@ -273,6 +273,10 @@ class Polymer:
 
     def _resolve_mask_collisions(self, pol):
         if self.elements_intersect(pol, self.mask):
+            if pol.stop - self.mask.start > 1:
+                raise RuntimeError("Polymerase '{0}' is overlapping polymer "
+                                   "mask by more than one position on polymer"
+                                   " '{1}'.".format(pol.name, self.name))
             if self.mask.check_interaction(pol.name):
                 self.mask.recede()
                 # self.shift_mask()
@@ -298,9 +302,6 @@ class Polymer:
             if self.polymerases[index + 1].check_interaction(pol.name):
                 pol.move_back()
                 collision = True
-        if collision is False:
-            pass
-            # collision = self._resolve_mask_collisions(pol)
         return collision
 
     def _check_state(self, element):
