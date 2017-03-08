@@ -439,7 +439,7 @@ class Genome(Polymer):
         polymer = Transcript("rna",
                              self.length,
                              elements,
-                             Mask("mask", 0, self.length,
+                             Mask("mask", start, stop,
                                   []))
         return polymer
 

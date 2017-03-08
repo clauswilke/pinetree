@@ -503,6 +503,19 @@ class TestGenomeMethods(unittest.TestCase):
         transcript = self.polymer._build_transcript(200, 600)
         self.assertEqual(len(transcript.elements), 4)
 
+        self.assertEqual(transcript.mask.start, 200)
+        self.assertEqual(transcript.mask.stop, 600)
+
+        # Check positions of RBSs and translation stop sites
+        self.assertEqual(transcript.elements[0].start, 215)
+        self.assertEqual(transcript.elements[0].stop, 230)
+        self.assertEqual(transcript.elements[1].start, 269)
+        self.assertEqual(transcript.elements[1].stop, 270)
+        self.assertEqual(transcript.elements[2].start, 285)
+        self.assertEqual(transcript.elements[2].stop, 300)
+        self.assertEqual(transcript.elements[3].start, 599)
+        self.assertEqual(transcript.elements[3].stop, 600)
+
 class TestTranscriptMethods(unittest.TestCase):
 
     def setUp(self):
