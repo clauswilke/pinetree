@@ -485,7 +485,7 @@ class TestGenomeMethods(unittest.TestCase):
     def test_build_transcript(self):
         self.setUp()
 
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(AssertionError):
             self.polymer._build_transcript(0, 0)
 
         with self.assertRaises(RuntimeError):
@@ -506,7 +506,7 @@ class TestGenomeMethods(unittest.TestCase):
         self.assertEqual(transcript.mask.start, 200)
         self.assertEqual(transcript.mask.stop, 600)
 
-        # Check positions of RBSs and translation stop sites
+        # Check positions of RBSs and tranlation stop sites
         self.assertEqual(transcript.elements[0].start, 215)
         self.assertEqual(transcript.elements[0].stop, 230)
         self.assertEqual(transcript.elements[1].start, 269)
@@ -519,10 +519,75 @@ class TestGenomeMethods(unittest.TestCase):
 class TestTranscriptMethods(unittest.TestCase):
 
     def setUp(self):
-        pass
+        promoter = feature.Promoter("promoter1",
+                                    5,
+                                    15,
+                                    ["ecolipol", "rnapol"]
+                                    )
+        terminator = feature.Terminator("myterm",
+                                        50,
+                                        55,
+                                        {"rnapol": {"efficiency": 1.0},
+                                         "ecolipol": {"efficiency": 0.6}
+                                         })
+        mask = feature.Mask("mask",
+                            10,
+                            700,
+                            ["ecolipol"])
+
+        self.transcript_template = [{'type': 'transcript',
+                                     'name': 'rnapol',
+                                     'length': 200,
+                                     'start': 10,
+                                     'stop': 210,
+                                     'rbs': -15},
+                                    {'type': 'transcript',
+                                     'name': 'proteinX',
+                                     'length': 40,
+                                     'start': 230,
+                                     'stop': 270,
+                                     'rbs': -15},
+                                    {'type': 'transcript',
+                                     'name': 'proteinY',
+                                     'length': 300,
+                                     'start': 300,
+                                     'stop': 600,
+                                     'rbs': -15}]
+
+        self.polymer = polymer.Genome("mygenome",
+                                      700,
+                                      [promoter, terminator],
+                                      self.transcript_template,
+                                      mask)
+        self.fired = False
+        self.last_pol_name = ""
+
+        self.ribo = feature.Polymerase("ribosome",
+                                       20,
+                                       10,
+                                       30
+                                       )
+
+        self.transcript = self.polymer._build_transcript(0, 220)
+        self.transcript.termination_signal.connect(self.fire_termination)
+
+    def fire_termination(self, gene_name, pol_name):
+        self.gene_name = gene_name
+        self.pol_name = pol_name
 
     def test_terminate(self):
-        pass
+        for i in range(50):
+            self.transcript.shift_mask()
+
+        self.transcript.bind_polymerase(self.ribo, "rbs")
+        self.ribo.last_gene = "rnapol"
+        self.transcript.terminate(self.ribo)
+
+        self.assertEqual(self.gene_name, "rnapol")
+        self.assertEqual(self.pol_name, "ribosome")
 
     def test_release(self):
-        pass
+        old_mask_start = self.transcript.mask.start
+        self.transcript.release(220)
+        self.assertEqual(220, self.transcript.mask.start)
+        self.assertNotEqual(old_mask_start, self.transcript.mask.start)

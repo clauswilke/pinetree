@@ -417,6 +417,8 @@ class Genome(Polymer):
         :returns: polymer object, list of species that need to be added to
             species-level pool
         """
+        assert start >= 0
+        assert stop > 0
         elements = []
         for element in self.transcript_template:
             if element["start"] >= start and element["stop"] <= stop:
@@ -454,9 +456,22 @@ class Transcript(Polymer):
         super().__init__(name, length, elements, mask)
 
     def terminate(self, pol):
+        """
+        Remove ribosome from transcript and signal which protein was just
+        translated.
+
+        :param pol: ribosome to remove.
+        """
         super().terminate(pol)
         self.termination_signal.fire(pol.last_gene, pol.name)
 
     def release(self, stop):
+        """
+        Roll back mask to a given stop point.
+
+        FIX: Where do we check for newly-revealed elements?
+
+        :param stop: stop site in genomic coordinates
+        """
         jump = stop - self.mask.start
         self.mask.start += jump
