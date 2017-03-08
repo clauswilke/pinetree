@@ -1,4 +1,3 @@
-- remove start and stop positions from polymerase initialization
 - remove length attribute from transcripts/genomes/polymers ?
 - re-examine transcript.release() -- is this why refactoring move polymerase has been so difficult? There is no call to _check_state here
 - make sure that genomes are organized correctly so that portions do not end up
