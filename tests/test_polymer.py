@@ -23,21 +23,23 @@ class TestPolymerMethods(unittest.TestCase):
                             ["ecolipol"])
 
         self.pol1 = feature.Polymerase("ecolipol",
-                                       20,
                                        10,
                                        30
                                        )
+        self.pol1.start = 20
+        self.pol1.stop = 30
         self.pol2 = feature.Polymerase("rnapol",
-                                       60,
                                        10,
                                        30
                                        )
+        self.pol2.start = 60
+        self.pol2.stop = 70
         self.pol3 = feature.Polymerase("rnapol",
-                                       40,
                                        10,
                                        30
                                        )
-
+        self.pol3.start = 40
+        self.pol3.stop = 50
         self.polymer = polymer.Polymer("mygenome",
                                        100,
                                        [promoter, terminator],
@@ -395,20 +397,23 @@ class TestGenomeMethods(unittest.TestCase):
                             ["ecolipol"])
 
         self.pol1 = feature.Polymerase("ecolipol",
-                                       20,
                                        10,
                                        30
                                        )
+        self.pol1.start = 20
+        self.pol1.stop = 30
         self.pol2 = feature.Polymerase("rnapol",
-                                       60,
                                        10,
                                        30
                                        )
+        self.pol2.start = 60
+        self.pol2.stop = 70
         self.pol3 = feature.Polymerase("rnapol",
-                                       40,
                                        10,
                                        30
                                        )
+        self.pol3.start = 40
+        self.pol3.stop = 50
 
         self.transcript_template = [{'type': 'transcript',
                                      'name': 'rnapol',
@@ -516,6 +521,7 @@ class TestGenomeMethods(unittest.TestCase):
         self.assertEqual(transcript.elements[3].start, 599)
         self.assertEqual(transcript.elements[3].stop, 600)
 
+
 class TestTranscriptMethods(unittest.TestCase):
 
     def setUp(self):
@@ -563,7 +569,6 @@ class TestTranscriptMethods(unittest.TestCase):
         self.last_pol_name = ""
 
         self.ribo = feature.Polymerase("ribosome",
-                                       20,
                                        10,
                                        30
                                        )

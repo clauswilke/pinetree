@@ -44,19 +44,18 @@ class Polymerase:
     """
     A molecule that binds to `Polymer` and moves.
     """
-    def __init__(self, name, start, footprint, speed):
+    def __init__(self, name, footprint, speed):
         """
         :param name: name of polymerase (unique?)
-        :param start: current start position of polymerase
         :param footprint: polymerase footprint
         :param speed: speed of polymerase
         """
         self.name = name
-        self.start = start
-        self.stop = start + footprint
+        self.start = 0
+        self.stop = footprint
         self.speed = speed
         self.attached = True  # Is this polymerase attached to a polymer?
-        self.bound = start  # Record where polymerase bound to genome
+        self.bound = 0  # Record where polymerase bound to genome
         self.type = "polymerase"
         self.footprint = footprint
         self.move_signal = eventsignal.Signal()  # signal to fire when this

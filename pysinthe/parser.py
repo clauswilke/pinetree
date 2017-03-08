@@ -63,7 +63,7 @@ class Parser:
         self._register_genome(genome)
 
         self.simulation.increment_reactant("rbs", 0)
-        ribo_args = ["ribosome", 0, 10,  # footprint
+        ribo_args = ["ribosome", 10,  # footprint
                      30]
         # Transcript-ribosome binding reaction
         reaction = Bind(self.simulation, float(1e7),
@@ -199,7 +199,6 @@ class Parser:
                     for pol in pol_params:
                         if pol["name"] == partner:
                             pol_args = [partner,
-                                        element["start"],
                                         10,  # footprint
                                         pol["speed"]
                                         ]
