@@ -432,6 +432,9 @@ class Genome(Polymer):
                 stop_site.gene = element["name"]
                 elements.append(rbs)
                 elements.append(stop_site)
+        if len(elements) == 0:
+            raise RuntimeError("Attempting to create a transcript with no "
+                               "elements from genome '{0}'.".format(self.name))
         # build transcript
         polymer = Transcript("rna",
                              self.length,

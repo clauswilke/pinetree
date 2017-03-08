@@ -435,11 +435,16 @@ class TestGenomeMethods(unittest.TestCase):
                                       self.transcript_template,
                                       mask)
         self.polymer.transcript_signal.connect(self.fire)
+        self.polymer.termination_signal.connect(self.fire_termination)
         self.fired = False
+        self.last_pol_name = ""
 
     def fire(self, transcript):
         self.fired = True
         self.transcript = transcript
+
+    def fire_termination(self, pol_name):
+        self.last_pol_name = pol_name
 
     def test_bind_polymerase(self):
         with self.assertRaises(RuntimeError):
@@ -469,10 +474,34 @@ class TestGenomeMethods(unittest.TestCase):
         self.assertEqual(self.transcript.mask.start, old_mask_start + 10)
 
     def test_terminate(self):
-        pass
+        self.setUp()
+        for i in range(20):
+            self.polymer.shift_mask()
+
+        self.polymer.bind_polymerase(self.pol1, "promoter1")
+        self.polymer.terminate(self.pol1)
+        self.assertEqual(self.last_pol_name, "ecolipol")
 
     def test_build_transcript(self):
-        pass
+        self.setUp()
+
+        with self.assertRaises(RuntimeError):
+            self.polymer._build_transcript(0, 0)
+
+        with self.assertRaises(RuntimeError):
+            self.polymer._build_transcript(600, 600)
+
+        transcript = self.polymer._build_transcript(0, 230)
+        self.assertEqual(len(transcript.elements), 2)
+
+        transcript = self.polymer._build_transcript(0, 300)
+        self.assertEqual(len(transcript.elements), 4)
+
+        transcript = self.polymer._build_transcript(0, 600)
+        self.assertEqual(len(transcript.elements), 6)
+
+        transcript = self.polymer._build_transcript(200, 600)
+        self.assertEqual(len(transcript.elements), 4)
 
 class TestTranscriptMethods(unittest.TestCase):
 
