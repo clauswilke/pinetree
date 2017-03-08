@@ -373,3 +373,114 @@ class TestPolymerMethods(unittest.TestCase):
         element1.stop = 10
         self.assertTrue(self.polymer.elements_intersect(element1, element2))
         self.assertTrue(self.polymer.elements_intersect(element2, element1))
+
+
+class TestGenomeMethods(unittest.TestCase):
+
+    def setUp(self):
+        promoter = feature.Promoter("promoter1",
+                                    5,
+                                    15,
+                                    ["ecolipol", "rnapol"]
+                                    )
+        terminator = feature.Terminator("myterm",
+                                        50,
+                                        55,
+                                        {"rnapol": {"efficiency": 1.0},
+                                         "ecolipol": {"efficiency": 0.6}
+                                         })
+        mask = feature.Mask("mask",
+                            10,
+                            700,
+                            ["ecolipol"])
+
+        self.pol1 = feature.Polymerase("ecolipol",
+                                       20,
+                                       10,
+                                       30
+                                       )
+        self.pol2 = feature.Polymerase("rnapol",
+                                       60,
+                                       10,
+                                       30
+                                       )
+        self.pol3 = feature.Polymerase("rnapol",
+                                       40,
+                                       10,
+                                       30
+                                       )
+
+        self.transcript_template = [{'type': 'transcript',
+                                     'name': 'rnapol',
+                                     'length': 200,
+                                     'start': 10,
+                                     'stop': 210,
+                                     'rbs': -15},
+                                    {'type': 'transcript',
+                                     'name': 'proteinX',
+                                     'length': 40,
+                                     'start': 230,
+                                     'stop': 270,
+                                     'rbs': -15},
+                                    {'type': 'transcript',
+                                     'name': 'proteinY',
+                                     'length': 300,
+                                     'start': 300,
+                                     'stop': 600,
+                                     'rbs': -15}]
+
+        self.polymer = polymer.Genome("mygenome",
+                                      700,
+                                      [promoter, terminator],
+                                      self.transcript_template,
+                                      mask)
+        self.polymer.transcript_signal.connect(self.fire)
+        self.fired = False
+
+    def fire(self, transcript):
+        self.fired = True
+        self.transcript = transcript
+
+    def test_bind_polymerase(self):
+        with self.assertRaises(RuntimeError):
+            self.polymer.bind_polymerase(self.pol1, "promoter1")
+
+        for i in range(20):
+            self.polymer.shift_mask()
+
+        self.assertFalse(self.fired)
+        self.polymer.bind_polymerase(self.pol1, "promoter1")
+        self.assertTrue(self.fired)
+
+        self.assertEqual(self.transcript.length, self.polymer.length)
+        self.assertTrue(
+            self.transcript.shift_mask in self.pol1.move_signal._handlers
+        )
+        self.assertTrue(
+            self.transcript.release in self.pol1.termination_signal._handlers
+        )
+
+        # Test that mask in transcript gets uncovered appropriately as
+        # polymerase moves
+        old_mask_start = self.transcript.mask.start
+        for i in range(10):
+            self.polymer._move_polymerase(self.pol1)
+
+        self.assertEqual(self.transcript.mask.start, old_mask_start + 10)
+
+    def test_terminate(self):
+        pass
+
+    def test_build_transcript(self):
+        pass
+
+class TestTranscriptMethods(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def test_terminate(self):
+        pass
+
+    def test_release(self):
+        pass
