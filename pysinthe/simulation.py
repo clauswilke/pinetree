@@ -38,6 +38,9 @@ class SpeciesReaction(Reaction):
     def __init__(self, sim, rate_constant, reactants, products):
         super().__init__()
         self.sim = sim
+        if len(reactants) > 2:
+            raise RuntimeError("Simulation does not support reactions with "
+                               "more than two reactant species.")
         if len(reactants) == 2:
             self.rate_constant = float(rate_constant)/(AVAGADRO*CELL_VOLUME)
         else:
