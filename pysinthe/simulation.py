@@ -89,6 +89,9 @@ class Bind(Reaction):
     """
     def __init__(self, sim, rate_constant, promoter, pol_args):
         """
+
+        TODO: Refactor so Bind inherits from SpeciesReaction
+
         :param sim: reference to simulation object in which this reaction occurs
         :param rate_constant: rate constant of reaction
         :param promoter: name of promoter involved in this reaction
@@ -101,6 +104,9 @@ class Bind(Reaction):
         self.pol_args = pol_args
         self.rate_constant = float(rate_constant)/(AVAGADRO*CELL_VOLUME)
         self.promoter = promoter
+
+        self.sim.increment_reactant(self.promoter, 0)
+        self.sim.increment_reactant(self.polymerase, 0)
         if self.polymerase not in self.sim.reactant_bind_map:
             self.sim.reactant_bind_map[self.polymerase] = [self]
         else:
@@ -113,10 +119,6 @@ class Bind(Reaction):
     def calculate_propensity(self):
         """
         Calculate the propensity of this reaction.
-
-        TODO: Propensities could be cached to increase performance, because
-        there will be many reactions in the simulation that have the exact same
-        reactants.
 
         :returns: propensity of this reaction.
         """
@@ -142,8 +144,6 @@ class Bind(Reaction):
 
         self.sim.increment_reactant(self.promoter, -1)
         self.sim.increment_reactant(self.polymerase, -1)
-
-        # self.sim.update_propensity(self.index)
 
     def __str__(self):
         return self.promoter + "-" + self.polymerase

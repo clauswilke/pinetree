@@ -1,7 +1,11 @@
 #! /usr/bin/env python3
 
 import unittest
-from pysinthe.simulation import Simulation, Reaction, SpeciesReaction, Bridge
+from unittest.mock import patch, MagicMock, Mock
+
+import pysinthe
+from pysinthe.simulation import (Simulation, Reaction, SpeciesReaction, Bind,
+                                 Bridge)
 
 
 class TestReactionMethods(unittest.TestCase):
@@ -56,7 +60,40 @@ class TestSpeciesReaction(unittest.TestCase):
         self.assertEqual(self.sim.reactants["product2"], 1)
 
 
-class TestBridge(unittest.TestCase):
+class TestBind(unittest.TestCase):
 
     def setUp(self):
-        pass
+        self.sim = Simulation()
+        self.reaction = Bind(self.sim,
+                             1000,
+                             "promoter1",
+                             ["pol1", 10, 20])
+        self.sim.register_reaction(self.reaction)
+
+    def test_init(self):
+        self.assertTrue(
+            self.reaction in self.sim.reactant_bind_map["promoter1"]
+        )
+        self.assertTrue(
+            self.reaction in self.sim.reactant_bind_map["pol1"]
+        )
+
+    def test_calculate_propensity(self):
+        self.sim.increment_reactant("promoter1", 2)
+        self.sim.increment_reactant("pol1", 3)
+        prop = self.reaction.rate_constant * 2 * 3
+        self.assertEqual(prop, self.reaction.calculate_propensity())
+
+    @patch("pysinthe.polymer.Polymer")
+    @patch("pysinthe.simulation.Polymerase")
+    def test_execute(self, mock_polymerase, mock_polymer):
+        self.setUp()
+        self.sim.increment_reactant("promoter1", 2)
+        self.sim.increment_reactant("pol1", 3)
+        mock_polymer.count_uncovered = Mock(return_value=3)
+        self.sim.promoter_polymer_map["promoter1"] = [mock_polymer]
+        self.reaction.execute()
+        self.assertTrue(mock_polymerase.called)
+        self.assertTrue(mock_polymer.bind_polymerase.called)
+        self.assertEqual(self.sim.reactants["promoter1"], 1)
+        self.assertEqual(self.sim.reactants["pol1"], 2)
