@@ -42,6 +42,21 @@ class TestSpeciesTrackerMethods(unittest.TestCase):
             mock_reaction in tracker.species_reaction_map["reaction4"]
         )
 
+    def test_add_polymer(self):
+        tracker = SpeciesTracker()
+        mock_polymer = MagicMock()
+        tracker.add_polymer("promoter1", mock_polymer)
+        self.assertTrue(
+            mock_polymer in tracker.promoter_polymer_map["promoter1"]
+        )
+        tracker.add_polymer("promoter2", mock_polymer)
+        self.assertTrue(
+            mock_polymer in tracker.promoter_polymer_map["promoter2"]
+        )
+        self.assertTrue(
+            mock_polymer in tracker.promoter_polymer_map["promoter1"]
+        )
+
 
 class TestReactionMethods(unittest.TestCase):
 
