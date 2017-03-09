@@ -122,3 +122,36 @@ class TestBridge(unittest.TestCase):
     def test_update(self):
         self.reaction.update()
         self.assertTrue(self.has_fired)
+
+
+class TestSimulation(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def test_increment_reactant(self):
+        pass
+
+    def test_register_reaction(self):
+        pass
+
+    def test_initialize_propensity(self):
+        pass
+
+    def test_update_propensity(self):
+        pass
+
+    def test_execute(self):
+        pass
+
+    def test_register_transcript(self):
+        pass
+
+    def test_terminate_transcription(self):
+        pass
+
+    def test_terminate_translation(self):
+        pass
+
+    def test_count_termination(self):
+        pass
