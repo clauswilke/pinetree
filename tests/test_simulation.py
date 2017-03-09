@@ -97,3 +97,28 @@ class TestBind(unittest.TestCase):
         self.assertTrue(mock_polymer.bind_polymerase.called)
         self.assertEqual(self.sim.reactants["promoter1"], 1)
         self.assertEqual(self.sim.reactants["pol1"], 2)
+
+
+class TestBridge(unittest.TestCase):
+
+    @patch("pysinthe.polymer.Polymer")
+    def setUp(self, mock_polymer):
+        self.mock_polymer = mock_polymer
+        self.reaction = Bridge(self.mock_polymer)
+        self.reaction.propensity_signal.connect(self.fired)
+        self.has_fired = False
+
+    def fired(self, index):
+        self.has_fired = True
+
+    def test_calculate_propensity(self):
+        self.reaction.calculate_propensity()
+        self.assertTrue(self.mock_polymer.calculate_propensity.called)
+
+    def test_execute(self):
+        self.reaction.execute()
+        self.assertTrue(self.mock_polymer.execute.called)
+
+    def test_update(self):
+        self.reaction.update()
+        self.assertTrue(self.has_fired)
