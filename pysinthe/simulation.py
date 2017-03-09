@@ -11,6 +11,45 @@ AVAGADRO = float(6.0221409e+23)
 CELL_VOLUME = float(8e-16)
 
 
+class SpeciesTracker():
+
+    def __init__(self):
+        self.species = {}  # species-level reactant counts
+        self.promoter_polymer_map = {}  # Map of which polymers contain a given
+        # promoter
+        self.species_reaction_map = {}  # Map of which binding reaction
+        # involves a given reactant
+        self.propensity_signal = Signal()
+
+    def increment_species(self, species_name, copy_number):
+        if species_name in self.species:
+            self.species[species_name] += copy_number
+        else:
+            self.species[species_name] = copy_number
+
+        if species_name in self.species_reaction_map:
+            for reaction in self.species_reaction_map[species_name]:
+                self.propensity_signal.fire(reaction.index)
+
+    def add_reaction(self, species_name, reaction):
+        if species_name not in self.species_reaction_map:
+            self.species_reaction_map[species_name] = [reaction]
+        else:
+            self.species_reaction_map[species_name].append(reaction)
+
+    def add_polymer(self, promoter_name, polymer):
+        if promoter_name not in self.promoter_polymer_map:
+            self.promoter_polymer_map[promoter_name] = [polymer]
+        else:
+            self.promoter_polymer_map[promoter_name].append(polymer)
+
+    def polymers_with_promoter(self, promoter_name):
+        return self.promoter_polymer_map[promoter_name]
+
+    def reactions_with_species(self, species_name):
+        return self.species_reaction_map[species_name]
+
+
 class Reaction():
     """
     Generic class for a reaction. (Not currently used).
@@ -35,9 +74,9 @@ class SpeciesReaction(Reaction):
     """
     Generic class for species-level reaction.
     """
-    def __init__(self, sim, rate_constant, reactants, products):
+    def __init__(self, tracker, rate_constant, reactants, products):
         super().__init__()
-        self.sim = sim
+        self.tracker = tracker
         if len(reactants) > 2:
             raise RuntimeError("Simulation does not support reactions with "
                                "more than two reactant species.")
@@ -49,18 +88,10 @@ class SpeciesReaction(Reaction):
         self.products = products
 
         for reactant in self.reactants:
-            self.sim.increment_reactant(reactant, 0)
-            if reactant not in self.sim.reactant_bind_map:
-                self.sim.reactant_bind_map[reactant] = [self]
-            else:
-                self.sim.reactant_bind_map[reactant].append(self)
+            self.tracker.add_reaction(reactant, self)
 
         for product in self.products:
-            self.sim.increment_reactant(product, 0)
-            if product not in self.sim.reactant_bind_map:
-                self.sim.reactant_bind_map[product] = [self]
-            else:
-                self.sim.reactant_bind_map[product].append(self)
+            self.tracker.add_reaction(product, self)
 
     def calculate_propensity(self):
         """
@@ -68,7 +99,7 @@ class SpeciesReaction(Reaction):
         """
         propensity = self.rate_constant
         for reactant in self.reactants:
-            propensity *= self.sim.reactants[reactant]
+            propensity *= self.tracker.species[reactant]
 
         return propensity
 
@@ -77,44 +108,36 @@ class SpeciesReaction(Reaction):
         Execute the reaction.
         """
         for reactant in self.reactants:
-            self.sim.increment_reactant(reactant, -1)
+            self.tracker.increment_species(reactant, -1)
 
         for product in self.products:
-            self.sim.increment_reactant(product, 1)
+            self.tracker.increment_species(product, 1)
 
 
 class Bind(Reaction):
     """
     Bind a polymerase to a polymer.
     """
-    def __init__(self, sim, rate_constant, promoter, pol_args):
+    def __init__(self, tracker, rate_constant, promoter_name, pol_args):
         """
 
         TODO: Refactor so Bind inherits from SpeciesReaction
 
         :param sim: reference to simulation object in which this reaction occurs
         :param rate_constant: rate constant of reaction
-        :param promoter: name of promoter involved in this reaction
+        :param promoter_name: name of promoter involved in this reaction
         :param pol_args: list of arguments to pass to polymerase
             constructor upon execution of this reaction.
         """
         super().__init__()
-        self.sim = sim
+        self.tracker = tracker
         self.polymerase = pol_args[0]
         self.pol_args = pol_args
         self.rate_constant = float(rate_constant)/(AVAGADRO*CELL_VOLUME)
-        self.promoter = promoter
+        self.promoter_name = promoter_name
 
-        self.sim.increment_reactant(self.promoter, 0)
-        self.sim.increment_reactant(self.polymerase, 0)
-        if self.polymerase not in self.sim.reactant_bind_map:
-            self.sim.reactant_bind_map[self.polymerase] = [self]
-        else:
-            self.sim.reactant_bind_map[self.polymerase].append(self)
-        if self.promoter not in self.sim.reactant_bind_map:
-            self.sim.reactant_bind_map[self.promoter] = [self]
-        else:
-            self.sim.reactant_bind_map[self.promoter].append(self)
+        self.tracker.add_reaction(self.promoter_name, self)
+        self.tracker.add_reaction(self.polymerase, self)
 
     def calculate_propensity(self):
         """
@@ -123,8 +146,8 @@ class Bind(Reaction):
         :returns: propensity of this reaction.
         """
 
-        return self.rate_constant * self.sim.reactants[self.polymerase]\
-            * self.sim.reactants[self.promoter]
+        return self.rate_constant * self.tracker.species[self.polymerase]\
+            * self.tracker.species[self.promoter_name]
 
     def execute(self):
         """
@@ -133,20 +156,22 @@ class Bind(Reaction):
         """
         # Find which polymer we should bind to
         weights = []
-        for polymer in self.sim.promoter_polymer_map[self.promoter]:
+        for polymer in self.tracker.promoter_polymer_map[self.promoter_name]:
             # Weight by the number of unbound promoters in each polymer
-            weights.append(polymer.count_uncovered(self.promoter))
-        polymer = random.choices(self.sim.promoter_polymer_map[self.promoter],
-                                 weights=weights)[0]
+            weights.append(polymer.count_uncovered(self.promoter_name))
+        polymer = random.choices(
+            self.tracker.promoter_polymer_map[self.promoter_name],
+            weights=weights
+        )[0]
         # Construct new polymerase
         new_pol = Polymerase(*self.pol_args)
-        polymer.bind_polymerase(new_pol, self.promoter)
+        polymer.bind_polymerase(new_pol, self.promoter_name)
 
-        self.sim.increment_reactant(self.promoter, -1)
-        self.sim.increment_reactant(self.polymerase, -1)
+        self.tracker.increment_species(self.promoter_name, -1)
+        self.tracker.increment_species(self.polymerase, -1)
 
     def __str__(self):
-        return self.promoter + "-" + self.polymerase
+        return self.promoter_name + "-" + self.polymerase
 
 
 class Bridge(Reaction):
@@ -205,14 +230,12 @@ class Simulation:
         self.time_step = 0
         self.debug = False
         self.terminations = {}  # track when polymerases terminate
-        self.reactants = {}  # species-level reactant counts
-        self.promoter_polymer_map = {}  # Map of which polymers contain a given
-        # promoter
-        self.reactant_bind_map = {}  # Map of which binding reaction involves a
-        # given reactant
+        self.tracker = SpeciesTracker()
         self.reactions = []  # all reactions
         self.iteration = 0  # iteration counter
         self.alpha_list = []
+
+        self.tracker.propensity_signal.connect(self.update_propensity)
 
     def run(self):
         print(self)
@@ -228,25 +251,6 @@ class Simulation:
                 print(self)
                 for pol in self.reactions:
                     print(pol)
-
-    def increment_reactant(self, name, copy_number):
-        """
-        Increment (or decrement) the copy number of a species-level reactant by
-        copy_number.
-
-        TODO: replace with some counter class?
-
-        :param name: name of reactant
-        :param copy_number: change in copy number (can be negative)
-        """
-        if name in self.reactants.keys():
-            self.reactants[name] += copy_number
-        else:
-            self.reactants[name] = copy_number
-
-        if name in self.reactant_bind_map:
-            for reaction in self.reactant_bind_map[name]:
-                self.update_propensity(reaction.index)
 
     def register_reaction(self, reaction):
         """
@@ -271,10 +275,7 @@ class Simulation:
         # Add polymer to promoter-polymerase map
         for element in polymer.elements:
             if element.type == "promoter":
-                try:
-                    self.promoter_polymer_map[element.name].append(polymer)
-                except KeyError:
-                    self.promoter_polymer_map[element.name] = [polymer]
+                self.tracker.add_polymer(element.name, polymer)
 
         # Encapsulate polymer in Bridge reaction and add to reaction list
         bridge = Bridge(polymer)
@@ -321,13 +322,13 @@ class Simulation:
         """
         Increment promoter count at species level.
         """
-        self.increment_reactant(species, 1)
+        self.tracker.increment_species(species, 1)
 
     def block_promoter(self, species):
         """
         Decrement promoter count at species level.
         """
-        self.increment_reactant(species, -1)
+        self.tracker.increment_species(species, -1)
 
     def register_transcript(self, polymer):
         """
@@ -350,7 +351,7 @@ class Simulation:
         :param reactants: list of reactants to add to species-level pool
             (usually RBSs)
         """
-        self.increment_reactant(species, 1)
+        self.tracker.increment_species(species, 1)
         self.count_termination("transcript")
 
     def terminate_translation(self, protein, species):
@@ -361,8 +362,8 @@ class Simulation:
         :param species: name of species that just translated this protein
             (usually 'ribosome')
         """
-        self.increment_reactant(species, 1)
-        self.increment_reactant(protein, 1)
+        self.tracker.increment_species(species, 1)
+        self.tracker.increment_species(protein, 1)
         self.count_termination(protein)
 
     def count_termination(self, name):
@@ -384,7 +385,7 @@ class Simulation:
         for name, count in self.terminations.items():
             out_string += str(self.iteration) + ", " + str(float(self.time)) + \
                 ", " + name + ", " + str(count) + "\n"
-        for name, count in self.reactants.items():
+        for name, count in self.tracker.species.items():
             out_string += str(self.iteration) + ", " + str(float(self.time)) + \
                 ", " + name + ", " + str(count) + "\n"
         return out_string.strip()

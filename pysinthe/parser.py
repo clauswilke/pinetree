@@ -55,24 +55,24 @@ class Parser:
         # Add species level reactants for elements that are not masked
         for element in genome.elements:
             if element.type == "promoter" and element.stop < genome.mask.start:
-                self.simulation.increment_reactant(element.name, 1)
+                self.simulation.tracker.increment_species(element.name, 1)
             elif element.type == "promoter":
-                self.simulation.increment_reactant(element.name, 0)
+                self.simulation.tracker.increment_species(element.name, 0)
 
         # Register genome
         self._register_genome(genome)
 
-        self.simulation.increment_reactant("rbs", 0)
+        self.simulation.tracker.increment_species("rbs", 0)
         ribo_args = ["ribosome", 10,  # footprint
                      30]
         # Transcript-ribosome binding reaction
-        reaction = Bind(self.simulation, float(1e7),
+        reaction = Bind(self.simulation.tracker, float(1e7),
                         "rbs",
                         ribo_args)
         self.simulation.register_reaction(reaction)
 
         # Add species-level ribosomes
-        self.simulation.increment_reactant(
+        self.simulation.tracker.increment_species(
             "ribosome",
             self.params["simulation"]["ribosomes"]
         )
@@ -110,7 +110,7 @@ class Parser:
 
     def _parse_reactions(self, reaction_params):
         for reaction in reaction_params:
-            new_reaction = SpeciesReaction(self.simulation,
+            new_reaction = SpeciesReaction(self.simulation.tracker,
                                            reaction["propensity"],
                                            reaction["reactants"],
                                            reaction["products"])
@@ -181,7 +181,8 @@ class Parser:
         """
         for pol in pol_params:
             # add polymerase as a reactant
-            self.simulation.increment_reactant(pol["name"], pol["copy_number"])
+            self.simulation.tracker.increment_species(pol["name"],
+                                                      pol["copy_number"])
 
     def _parse_binding_reactions(self, element_params, pol_params):
         """
@@ -193,7 +194,7 @@ class Parser:
         # Add binding reaction for each promoter-polymerase interaction pair
         for element in element_params:
             if element["type"] == "promoter":
-                self.simulation.increment_reactant(element["name"], 0)
+                self.simulation.tracker.increment_species(element["name"], 0)
                 for partner, constant in element["interactions"].items():
                     binding_constant = constant["binding_constant"]
                     for pol in pol_params:
@@ -202,7 +203,7 @@ class Parser:
                                         10,  # footprint
                                         pol["speed"]
                                         ]
-                            reaction = Bind(self.simulation,
+                            reaction = Bind(self.simulation.tracker,
                                             float(binding_constant),
                                             element["name"],
                                             pol_args)
