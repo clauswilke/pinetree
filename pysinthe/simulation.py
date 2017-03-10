@@ -12,7 +12,14 @@ CELL_VOLUME = float(8e-16)
 
 
 class SpeciesTracker():
+    """
+    Tracks species' copy numbers and maintains promoter-to-polymer and
+    species-to-reaction maps to easily look up which polymers contain and given
+    promoter and which reactions involve a given species. These maps are
+    necessarry to cache propensities in the simulation.
 
+    TODO: Move propensity cache into this class?
+    """
     def __init__(self):
         self.species = {}  # species-level reactant counts
         self.promoter_polymer_map = {}  # Map of which polymers contain a given
@@ -22,31 +29,64 @@ class SpeciesTracker():
         self.propensity_signal = Signal()
 
     def increment_species(self, species_name, copy_number):
+        """
+        Change a species count by a given value (positive or negative).
+
+        :param species_name: name of species to change count
+        :param copy_number: increase current copy number by this number
+        """
         if species_name in self.species:
             self.species[species_name] += copy_number
         else:
             self.species[species_name] = copy_number
 
+        # Tell simulation to update propensity cache
         if species_name in self.species_reaction_map:
             for reaction in self.species_reaction_map[species_name]:
                 self.propensity_signal.fire(reaction.index)
 
     def add_reaction(self, species_name, reaction):
+        """
+        Add a species-reaction pair to species-reaction map.
+
+        :param species_name: name of species
+        :param reaction: reaction object taht involves species
+        """
         if species_name not in self.species_reaction_map:
             self.species_reaction_map[species_name] = [reaction]
         else:
             self.species_reaction_map[species_name].append(reaction)
 
     def add_polymer(self, promoter_name, polymer):
+        """
+        Add promoter-polymer pair to promoter-polymer map.
+
+        :param promoter_name: name of promoter
+        :param polymer: polymer that contains the named promoter
+        """
         if promoter_name not in self.promoter_polymer_map:
             self.promoter_polymer_map[promoter_name] = [polymer]
         else:
             self.promoter_polymer_map[promoter_name].append(polymer)
 
     def polymers_with_promoter(self, promoter_name):
+        """
+        Get polymers that contain a given promoter.
+
+        :param promoter_name: name of promoter
+
+        :returns: list of polymer objects
+        """
         return self.promoter_polymer_map[promoter_name]
 
     def reactions_with_species(self, species_name):
+        """
+        Get reactions that involve a given species.
+
+        :param species_name: name of species
+
+        :returns: list of reaction objects
+        """
         return self.species_reaction_map[species_name]
 
 
