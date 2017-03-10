@@ -6,8 +6,6 @@ import math
 from .feature import Polymerase
 from .eventsignal import Signal
 
-# AVAGADRO = float(6.0221409e+23)
-# CELL_VOLUME = float(8e-16)
 CELL_VOLUME = float(8e-16)
 
 
