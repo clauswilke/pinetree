@@ -6,7 +6,7 @@ import math
 from .feature import Polymerase
 from .eventsignal import Signal
 
-AVAGADRO = float(6.0221409e+23)
+# AVAGADRO = float(6.0221409e+23)
 # CELL_VOLUME = float(8e-16)
 CELL_VOLUME = float(8e-16)
 
@@ -94,6 +94,8 @@ class Reaction():
     """
     Generic class for a reaction. (Not currently used).
     """
+    _AVAGADRO = float(6.0221409e+23)
+
     def __init__(self):
         self.index = -1  # Index inside propensity list, sim.alpha_list
 
@@ -121,7 +123,7 @@ class SpeciesReaction(Reaction):
             raise RuntimeError("Simulation does not support reactions with "
                                "more than two reactant species.")
         if len(reactants) == 2:
-            self.rate_constant = float(rate_constant)/(AVAGADRO*CELL_VOLUME)
+            self.rate_constant = float(rate_constant)/(self._AVAGADRO*CELL_VOLUME)
         else:
             self.rate_constant = float(rate_constant)
         self.reactants = reactants
@@ -173,7 +175,7 @@ class Bind(Reaction):
         self.tracker = tracker
         self.polymerase = pol_args[0]
         self.pol_args = pol_args
-        self.rate_constant = float(rate_constant)/(AVAGADRO*CELL_VOLUME)
+        self.rate_constant = float(rate_constant)/(self._AVAGADRO*CELL_VOLUME)
         self.promoter_name = promoter_name
 
         self.tracker.add_reaction(self.promoter_name, self)
