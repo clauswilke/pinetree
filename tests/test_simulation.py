@@ -1,9 +1,8 @@
 #! /usr/bin/env python3
 
 import unittest
-from unittest.mock import patch, MagicMock, Mock
+from unittest.mock import patch, MagicMock
 
-import pysinthe
 from pysinthe.simulation import (Simulation, Reaction, SpeciesReaction, Bind,
                                  Bridge, SpeciesTracker)
 
@@ -178,9 +177,32 @@ class TestSimulation(unittest.TestCase):
     def setUp(self):
         self.sim = Simulation()
 
-
     def test_register_reaction(self):
-        pass
+        # Add one reaction
+        reaction1 = MagicMock()
+        reaction1.calculate_propensity.return_value = 0.5
+        self.sim.register_reaction(reaction1)
+        self.assertEqual(self.sim.alpha_list[0], 0.5)
+        self.assertEqual(self.sim.reactions.index(reaction1), 0)
+        # Add a second reaction
+        reaction2 = MagicMock()
+        reaction2.calculate_propensity.return_value = 0.8
+        self.sim.register_reaction(reaction2)
+        self.assertEqual(self.sim.alpha_list[1], 0.8)
+        self.assertEqual(self.sim.reactions.index(reaction2), 1)
+        # Make sure that alpha_list is really acting as a cache
+        reaction1.calculate_propensity.return_value = 0.1
+        self.assertNotEqual(self.sim.alpha_list[0], 0.1)
+
+    def test_initialize_propensity(self):
+        # add reactions to simulation as before
+        self.setUp()
+        self.test_register_reaction()
+        # Make sure that cache has not been updated
+        self.assertNotEqual(self.sim.alpha_list[0], 0.1)
+        # Update cache
+        self.sim.initialize_propensity()
+        self.assertEqual(self.sim.alpha_list[0], 0.1)
 
     def test_initialize_propensity(self):
         pass

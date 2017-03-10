@@ -1,5 +1,6 @@
 - add comments
 - add simulation unit tests
+- add avagadro's number and cell volume as parameters
 - reconsider signalling structure -- too complex for some things
 - parser needs refactoring
 - add test to make sure that cached covering counts don't go below 0
