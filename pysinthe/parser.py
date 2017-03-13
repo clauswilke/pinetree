@@ -32,6 +32,7 @@ class Parser:
 
         self.simulation.runtime = self.params["simulation"]["runtime"]
         self.simulation.time_step = self.params["simulation"]["time_step"]
+        self.simulation.debug = self.params["simulation"]["debug"]
 
         # Set seed
         if "seed" in self.params["simulation"]:
@@ -62,6 +63,9 @@ class Parser:
         # Register genome
         self._register_genome(genome)
 
+        if "species" in self.params:
+            self._parse_species(self.params["species"])
+
         self.simulation.tracker.increment_species("rbs", 0)
         ribo_args = ["ribosome", 10,  # footprint
                      30]
@@ -70,12 +74,6 @@ class Parser:
                         "rbs",
                         ribo_args)
         self.simulation.register_reaction(reaction)
-
-        # Add species-level ribosomes
-        self.simulation.tracker.increment_species(
-            "ribosome",
-            self.params["simulation"]["ribosomes"]
-        )
 
         self.simulation.initialize_propensity()
 
@@ -87,7 +85,6 @@ class Parser:
             'simulation': {Optional('seed'): All(int, Range(min=0)),
                            'runtime': All(int, Range(min=0)),
                            'time_step': All(int, Range(min=0)),
-                           'ribosomes': All(int, Range(min=0)),
                            Optional('debug', default=False): bool},
             'genome': {'name': All(str, Length(min=1)),
                        'copy_number': All(int, Range(min=1)),
@@ -104,9 +101,17 @@ class Parser:
                               'interactions': dict,
                               'rbs': int}],
                             Length(min=1)),
-            Optional('reactions'): list
+            Optional('reactions'): list,
+            Optional('species'): list
         }, required=True)
         schema(params)
+
+    def _parse_species(self, species_params):
+        for species in species_params:
+            self.simulation.tracker.increment_species(
+                species["name"],
+                int(species["copy_number"])
+            )
 
     def _parse_reactions(self, reaction_params):
         for reaction in reaction_params:

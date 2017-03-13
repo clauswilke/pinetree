@@ -38,6 +38,9 @@ class SpeciesTracker():
         else:
             self.species[species_name] = copy_number
 
+        if copy_number == 0:
+            return
+
         # Tell simulation to update propensity cache
         if species_name in self.species_reaction_map:
             for reaction in self.species_reaction_map[species_name]:
@@ -129,9 +132,11 @@ class SpeciesReaction(Reaction):
 
         for reactant in self.reactants:
             self.tracker.add_reaction(reactant, self)
+            self.tracker.increment_species(reactant, 0)
 
         for product in self.products:
             self.tracker.add_reaction(product, self)
+            self.tracker.increment_species(product, 0)
 
     def calculate_propensity(self):
         """
@@ -329,6 +334,13 @@ class Simulation:
         for index, reaction in enumerate(self.reactions):
             self.alpha_list[index] = reaction.calculate_propensity()
 
+        prop_sum = sum(self.alpha_list)
+
+        if prop_sum == 0:
+            raise ValueError("Initial global reaction propensity is 0. Make "
+                             "sure that at least one promoter is exposed in "
+                             "the genome.")
+
     def update_propensity(self, index):
         """
         Update a propensity of a reaction at a given index.
@@ -346,6 +358,12 @@ class Simulation:
 
         # Sum propensities
         alpha = sum(self.alpha_list)
+
+        if alpha == 0:
+            print(self.alpha_list)
+            print(self.reactions)
+            print(self)
+
         # Calculate tau, i.e. time until next reaction
         tau = (1/alpha)*math.log(1/random_num)
         self.time += tau
