@@ -1,3 +1,4 @@
+- convert all functions that rely on random number generation to numpy
 - add comments
 - and cell volume as parameters
 - reconsider signalling structure -- too complex for some things
