@@ -359,11 +359,6 @@ class Simulation:
         # Sum propensities
         alpha = sum(self.alpha_list)
 
-        if alpha == 0:
-            print(self.alpha_list)
-            print(self.reactions)
-            print(self)
-
         # Calculate tau, i.e. time until next reaction
         tau = (1/alpha)*math.log(1/random_num)
         self.time += tau

@@ -2,7 +2,6 @@ simulation:
     seed: 34
     runtime: 60
     time_step: 1
-    ribosomes: 100
     debug: False
 # Genome parameters
 genome:
@@ -18,6 +17,9 @@ polymerases:
   speed: 40
 # Define promoters, transcripts, and terminators, in the order that they
 # are encoded in the genome.
+species:
+- name: ribosome
+  copy_number: 100
 elements:
 - type: promoter
   name: phi1

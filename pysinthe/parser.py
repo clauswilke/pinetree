@@ -62,10 +62,7 @@ class Parser:
 
         # Register genome
         self._register_genome(genome)
-
-        if "species" in self.params:
-            self._parse_species(self.params["species"])
-
+        
         self.simulation.tracker.increment_species("rbs", 0)
         ribo_args = ["ribosome", 10,  # footprint
                      30]
@@ -74,6 +71,9 @@ class Parser:
                         "rbs",
                         ribo_args)
         self.simulation.register_reaction(reaction)
+
+        if "species" in self.params:
+            self._parse_species(self.params["species"])
 
         self.simulation.initialize_propensity()
 
