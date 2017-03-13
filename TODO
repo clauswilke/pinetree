@@ -1,4 +1,5 @@
 - convert all functions that rely on random number generation to numpy
+- fix: pysinthe crashes when several promoters are placed too close together
 - add comments
 - and cell volume as parameters
 - reconsider signalling structure -- too complex for some things
