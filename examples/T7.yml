@@ -92,35 +92,75 @@ reactions:
 # elements
 elements:
 - interactions:
+    rnapol-1:
+      binding_constant: 3.5*5.8
+    rnapol-3.5:
+      binding_constant: 0.875*1.45
+  length: 18
+  name: T7 promoter phiOL
+  type: promoter
+- interactions:
     ecolipol:
-      binding_constant: 1.5e7
+      binding_constant: 6*0.4
     ecolipol-p:
-      binding_constant: 1.5e7
-  length: 1
+      binding_constant: 6*0.4
+  length: 44
+  name: E. coli promoter A1
+  type: promoter
+- interactions:
+    ecolipol:
+      binding_constant: 6*0.4
+    ecolipol-p:
+      binding_constant: 6*0.4
+  length: 44
+  name: E. coli promoter A2
+  type: promoter
+- interactions:
+    ecolipol:
+      binding_constant: 6*0.4
+    ecolipol-p:
+      binding_constant: 6*0.4
+  length: 44
+  name: E. coli promoter A3
+  type: promoter
+- interactions:
+    ecolipol:
+      binding_constant: 0.19*6
+    ecolipol-p:
+      binding_constant: 0.19*6
+  length: 44
   name: E. coli B promoter
   type: promoter
 - length: 1080
   name: protein_kinase-0.7
   rbs: -15
   type: transcript
+- interactions:
+    ecolipol:
+      binding_constant: 0.19*6
+    ecolipol-p:
+      binding_constant: 0.19*6
+  length: 44
+  name: E. coli C promoter
+  type: promoter
 - length: 2652
   name: rnapol-1
   rbs: -15
   type: transcript
 - interactions:
     rnapol-1:
-      binding_constant: 6e7
+      binding_constant: 3.5*5.8
     rnapol-3.5:
-      binding_constant: 6e7
-  length: 1
+      binding_constant: 0.875*1.45
+  length: 23
   name: T7 promoter phi1.1A
   type: promoter
 - interactions:
     rnapol-1:
-      binding_constant: 1.82e8
+      binding_constant: 3.5*5.8
     rnapol-3.5:
-      binding_constant: 1.82e8
-  length: 1
+      binding_constant: 0.875*1.45
+  length: 23
   name: T7 promoter phi1.1B
   type: promoter
 - length: 258
@@ -129,9 +169,9 @@ elements:
   type: transcript
 - interactions:
     rnapol-1:
-      binding_constant: 6e7
+      binding_constant: 3.5*5.8
     rnapol-3.5:
-      binding_constant: 6e7
+      binding_constant: 0.875*1.45
   length: 1
   name: T7 promoter phi1.3
   type: promoter
@@ -157,18 +197,18 @@ elements:
   type: terminator
 - interactions:
     rnapol-1:
-      binding_constant: 1.82e8
+      binding_constant: 3.5*5.8
     rnapol-3.5:
-      binding_constant: 1.82e8
-  length: 1
+      binding_constant: 0.875*1.45
+  length: 23
   name: T7 promoter phi1.5
   type: promoter
 - interactions:
     rnapol-1:
-      binding_constant: 1.82e8
+      binding_constant: 3.5*5.8
     rnapol-3.5:
-      binding_constant: 1.82e8
-  length: 1
+      binding_constant: 0.875*1.45
+  length: 23
   name: T7 promoter phi1.6
   type: promoter
 - length: 195
@@ -177,10 +217,10 @@ elements:
   type: transcript
 - interactions:
     rnapol-1:
-      binding_constant: 1.82e8
+      binding_constant: 3.5*5.8
     rnapol-3.5:
-      binding_constant: 1.82e8
-  length: 1
+      binding_constant: 0.875*1.45
+  length: 23
   name: T7 promoter phi2.5
   type: promoter
 - length: 699
@@ -197,10 +237,10 @@ elements:
   type: transcript
 - interactions:
     rnapol-1:
-      binding_constant: 6e7
+      binding_constant: 3.5*5.8
     rnapol-3.5:
-      binding_constant: 6e7
-  length: 1
+      binding_constant: 0.875*1.45
+  length: 23
   name: T7 promoter phi3.8
   type: promoter
 - length: 366
@@ -217,26 +257,26 @@ elements:
   type: transcript
 - interactions:
     rnapol-1:
-      binding_constant: 6e7
+      binding_constant: 3.5*5.8
     rnapol-3.5:
-      binding_constant: 6e7
-  length: 1
+      binding_constant: 0.875*1.45
+  length: 23
   name: T7 promoter phi4c
   type: promoter
 - interactions:
     rnapol-1:
-      binding_constant: 1.82e8
+      binding_constant: 3.5*5.8
     rnapol-3.5:
-      binding_constant: 1.82e8
-  length: 1
+      binding_constant: 0.875*1.45
+  length: 23
   name: T7 promoter phi4.3
   type: promoter
 - interactions:
     rnapol-1:
-      binding_constant: 6e7
+      binding_constant: 3.5*5.8
     rnapol-3.5:
-      binding_constant: 6e7
-  length: 1
+      binding_constant: 0.875*1.45
+  length: 23
   name: T7 promoter phi4.7
   type: promoter
 - length: 2115
@@ -257,10 +297,10 @@ elements:
   type: transcript
 - interactions:
     rnapol-1:
-      binding_constant: 1.82e8
+      binding_constant: 3.5*5.8
     rnapol-3.5:
-      binding_constant: 1.82e8
-  length: 1
+      binding_constant: 0.875*1.45
+  length: 23
   name: T7 promoter phi6.5
   type: promoter
 - length: 300
@@ -273,10 +313,10 @@ elements:
   type: transcript
 - interactions:
     rnapol-1:
-      binding_constant: 1.82e8
+      binding_constant: 3.5*5.8
     rnapol-3.5:
-      binding_constant: 1.82e8
-  length: 1
+      binding_constant: 0.875*1.45
+  length: 23
   name: T7 promoter phi9
   type: promoter
 - length: 924
@@ -285,10 +325,10 @@ elements:
   type: transcript
 - interactions:
     rnapol-1:
-      binding_constant: 1.82e8
+      binding_constant: 3.5*5.8
     rnapol-3.5:
-      binding_constant: 1.82e8
-  length: 1
+      binding_constant: 0.875*1.45
+  length: 23
   name: T7 promoter phi10
   type: promoter
 - length: 1038
@@ -313,10 +353,10 @@ elements:
   type: transcript
 - interactions:
     rnapol-1:
-      binding_constant: 1.82e8
+      binding_constant: 3.5*5.8
     rnapol-3.5:
-      binding_constant: 1.82e8
-  length: 1
+      binding_constant: 0.875*1.45
+  length: 23
   name: T7 promoter phi13
   type: promoter
 - length: 417
@@ -337,10 +377,10 @@ elements:
   type: transcript
 - interactions:
     rnapol-1:
-      binding_constant: 1.82e8
+      binding_constant: 3.5*5.8
     rnapol-3.5:
-      binding_constant: 1.82e8
-  length: 1
+      binding_constant: 0.875*1.45
+  length: 23
   name: phi17
   type: promoter
 - length: 1662
