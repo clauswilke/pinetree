@@ -4,6 +4,7 @@ import random
 
 from .eventsignal import Signal
 from .feature import Promoter, Terminator, Mask
+from .choices import weighted_choice
 
 
 class Polymer:
@@ -86,7 +87,7 @@ class Polymer:
                                .format(pol.name, promoter, self.name))
 
         # Randomly select promoter
-        element = random.choices(element_choices)[0]
+        element = weighted_choice(element_choices)
 
         if not element.check_interaction(pol.name):
             raise RuntimeError("Polymerase '{0}' does not interact with "
@@ -219,7 +220,7 @@ class Polymer:
             raise RuntimeError("There are no active polymerases on"
                                "polymer '{0}'.".format(self.name))
         # Randomly select next polymerase to move, weighted by propensity
-        pol = random.choices(self.polymerases, weights=prop_list)[0]
+        pol = weighted_choice(self.polymerases, weights=prop_list)
         return pol
 
     def _move_polymerase(self, pol):

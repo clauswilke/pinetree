@@ -5,6 +5,7 @@ import math
 
 from .feature import Polymerase
 from .eventsignal import Signal
+from .choices import weighted_choice
 
 CELL_VOLUME = float(8e-16)
 
@@ -204,10 +205,10 @@ class Bind(Reaction):
         for polymer in self.tracker.promoter_polymer_map[self.promoter_name]:
             # Weight by the number of unbound promoters in each polymer
             weights.append(polymer.count_uncovered(self.promoter_name))
-        polymer = random.choices(
+        polymer = weighted_choice(
             self.tracker.promoter_polymer_map[self.promoter_name],
             weights=weights
-        )[0]
+        )
         # Construct new polymerase
         new_pol = Polymerase(*self.pol_args)
         polymer.bind_polymerase(new_pol, self.promoter_name)
@@ -365,8 +366,8 @@ class Simulation:
 
         # Randomly select next reaction to execute, weighted by propensities
         # print(self.reactions)
-        next_reaction = random.choices(self.reactions,
-                                       weights=self.alpha_list)[0]
+        next_reaction = weighted_choice(self.reactions,
+                                        weights=self.alpha_list)
         next_reaction.execute()
 
         self.iteration += 1
