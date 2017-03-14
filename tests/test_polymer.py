@@ -46,7 +46,11 @@ class TestPolymerMethods(unittest.TestCase):
                                        mask)
 
         self.assertTrue(terminator.is_covered())
+        self.assertFalse(terminator.was_covered())
+        self.assertFalse(terminator.was_uncovered())
         self.assertTrue(promoter.is_covered())
+        self.assertFalse(promoter.was_covered())
+        self.assertFalse(promoter.was_uncovered())
         self.assertEqual(self.polymer.uncovered["promoter1"], 0)
         self.assertEqual(self.polymer.uncovered["myterm"], 0)
         self.fired = False

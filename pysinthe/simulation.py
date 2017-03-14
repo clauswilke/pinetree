@@ -368,6 +368,8 @@ class Simulation:
         # print(self.reactions)
         next_reaction = weighted_choice(self.reactions,
                                         weights=self.alpha_list)
+        if self.debug is True:
+            print("executing...", next_reaction)
         next_reaction.execute()
 
         self.iteration += 1

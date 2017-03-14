@@ -53,6 +53,7 @@ class Polymer:
         for element in self.elements:
             if self.elements_intersect(element, self.mask):
                 element.cover()
+                element.save_state()
                 if element.name not in self.uncovered:
                     self.uncovered[element.name] = 0
             else:
@@ -112,6 +113,8 @@ class Polymer:
         element.cover()
         element.save_state()
         self.uncovered[element.name] -= 1
+        assert element._covered == element._old_covered
+        assert self.uncovered[element.name] > -1
         # Add polymerase to tracked-polymerases list
         # Polymerases are maintained in order, such that higher-index
         # polymerases have moved further along the DNA
@@ -238,13 +241,33 @@ class Polymer:
 
         # Find which elements this polymerase (or mask) is covering and
         # temporarily uncover them
-        for element in self.elements:
+        # for element in self.elements:
+            # if self.elements_intersect(pol, element):
+            #     element.save_state()
+            #     element.uncover()
+            # if self.elements_intersect(self.mask, element):
+            #     element.save_state()
+            #     element.uncover()
+
+
+        save_index = 0
+        found_index = False
+        for index, element in enumerate(self.elements):
+            save_index = index
             if self.elements_intersect(pol, element):
-                element.save_state()
-                element.uncover()
-            if self.elements_intersect(self.mask, element):
-                element.save_state()
-                element.uncover()
+                found_index = True
+                break
+            if element.start > pol.stop:
+                break
+
+
+        while self.elements_intersect(pol, self.elements[save_index]):
+            self.elements[save_index].save_state()
+            self.elements[save_index].uncover()
+            if save_index + 1 >= len(self.elements):
+                break
+            else:
+                save_index += 1
 
         # Move polymerase
         pol.move()
@@ -257,21 +280,29 @@ class Polymer:
         if not pol_collision and not mask_collision:
             pol.move_signal.fire()
 
+        # print(save_index)
         # Now recover elements and check for changes in covered elements
-        for element in self.elements:
-            if self.elements_intersect(self.mask, element):
-                element.cover()
-                self._check_state(element)
-            if self.elements_intersect(pol, element):
-                element.cover()
-                if element.check_interaction(pol.name) and \
-                        element.type == "terminator":
-                    # Resolve reactions between pol and element (e.g.,
-                    # terminators)
-                    element.resolve_termination(pol)
-                    if pol.attached is False:
-                        self.terminate(pol)
-            self._check_state(element)
+        # for element in self.elements:
+        #     if self.elements_intersect(pol, element):
+        #         print("loop", self.elements.index(element))
+        #         print("index", save_index)
+
+        if self.elements_intersect(pol, self.elements[save_index]):
+            # print("index", save_index)
+            self.elements[save_index].cover()
+            if self.elements[save_index].check_interaction(pol.name) and \
+                    self.elements[save_index].type == "terminator":
+                # Resolve reactions between pol and element (e.g.,
+                # terminators)
+                self.elements[save_index].resolve_termination(pol)
+                if pol.attached is False:
+                    self.terminate(pol)
+        self._check_state(self.elements[save_index])
+        if save_index > 0:
+            self._check_state(self.elements[save_index - 1])
+        if save_index + 1 < len(self.elements):
+            self._check_state(self.elements[save_index + 1])
+        # print()
 
     def _resolve_mask_collisions(self, pol):
         if self.elements_intersect(pol, self.mask):
@@ -316,8 +347,11 @@ class Polymer:
         return collision
 
     def _check_state(self, element):
+        # print(element.name, element._covered, element._old_covered, element.start, element.stop)
         if element.was_covered() and element.type != "terminator":
             # print("covered: ", self.elements.index(element), element.name)
+            # print(element.name, element.type)
+            assert self.uncovered[element.name] > 0
             self.uncovered[element.name] -= 1
             self.block_signal.fire(element.name)
             element.save_state()
@@ -445,6 +479,11 @@ class Genome(Polymer):
                              elements,
                              Mask("mask", start, stop,
                                   []))
+        # polymer = Transcript("rna",
+        #                      self.length,
+        #                      elements,
+        #                      Mask("mask", stop, stop,
+        #                           []))
         return polymer
 
 
