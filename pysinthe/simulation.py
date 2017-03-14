@@ -436,10 +436,10 @@ class Simulation:
         termination times of `Polymerase` objects.
         """
         out_string = ""
-        for name, count in self.terminations.items():
+        for name, count in sorted(self.terminations.items()):
             out_string += str(self.iteration) + ", " + str(float(self.time)) + \
                 ", " + name + ", " + str(count) + "\n"
-        for name, count in self.tracker.species.items():
+        for name, count in sorted(self.tracker.species.items()):
             out_string += str(self.iteration) + ", " + str(float(self.time)) + \
                 ", " + name + ", " + str(count) + "\n"
         return out_string.strip()
