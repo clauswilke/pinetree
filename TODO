@@ -1,3 +1,4 @@
+- refactor _move_polymerase
 - fix: pysinthe crashes when several promoters are placed too close together
 - add comments
 - and cell volume as parameters
@@ -8,4 +9,3 @@
 - re-examine transcript.release() -- is this why refactoring move polymerase has been so difficult? There is no call to _check_state here
 - make sure that genomes are organized correctly so that portions do not end up
   permanently masked
-- convert features/promoters/polymerases to numpy matrix represantation in polymer?

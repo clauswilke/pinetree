@@ -286,7 +286,6 @@ class Polymer:
                         self.terminate(pol)
             self._check_state(self.elements[new_index])
 
-
     def _resolve_mask_collisions(self, pol):
         if self.elements_intersect(pol, self.mask):
             if pol.stop - self.mask.start > 1:
