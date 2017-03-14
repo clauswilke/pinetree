@@ -232,6 +232,11 @@ class Polymer:
         Move polymerase and deal with collisions and covering/uncovering of
         elements.
 
+        This method looks crazy, but it's optimized to take advantage of the
+        fact that we only ever need to look at the elements that this polymerase
+        is covering, and then one element ahead on the polymer, and one element
+        behind after the polymerase has moved.
+
         :param pol: polymerase to move
         """
 
@@ -241,25 +246,13 @@ class Polymer:
 
         # Find which elements this polymerase (or mask) is covering and
         # temporarily uncover them
-        # for element in self.elements:
-            # if self.elements_intersect(pol, element):
-            #     element.save_state()
-            #     element.uncover()
-            # if self.elements_intersect(self.mask, element):
-            #     element.save_state()
-            #     element.uncover()
-
-
         save_index = 0
-        found_index = False
         for index, element in enumerate(self.elements):
             save_index = index
             if self.elements_intersect(pol, element):
-                found_index = True
                 break
             if element.start > pol.stop:
                 break
-
 
         while self.elements_intersect(pol, self.elements[save_index]):
             self.elements[save_index].save_state()
@@ -280,29 +273,19 @@ class Polymer:
         if not pol_collision and not mask_collision:
             pol.move_signal.fire()
 
-        # print(save_index)
-        # Now recover elements and check for changes in covered elements
-        # for element in self.elements:
-        #     if self.elements_intersect(pol, element):
-        #         print("loop", self.elements.index(element))
-        #         print("index", save_index)
+        for i in range(2):
+            new_index = save_index - i
+            if self.elements_intersect(pol, self.elements[save_index - i]):
+                self.elements[new_index].cover()
+                if self.elements[new_index].check_interaction(pol.name) and \
+                        self.elements[new_index].type == "terminator":
+                    # Resolve reactions between pol and element (e.g.,
+                    # terminators)
+                    self.elements[new_index].resolve_termination(pol)
+                    if pol.attached is False:
+                        self.terminate(pol)
+            self._check_state(self.elements[new_index])
 
-        if self.elements_intersect(pol, self.elements[save_index]):
-            # print("index", save_index)
-            self.elements[save_index].cover()
-            if self.elements[save_index].check_interaction(pol.name) and \
-                    self.elements[save_index].type == "terminator":
-                # Resolve reactions between pol and element (e.g.,
-                # terminators)
-                self.elements[save_index].resolve_termination(pol)
-                if pol.attached is False:
-                    self.terminate(pol)
-        self._check_state(self.elements[save_index])
-        if save_index > 0:
-            self._check_state(self.elements[save_index - 1])
-        if save_index + 1 < len(self.elements):
-            self._check_state(self.elements[save_index + 1])
-        # print()
 
     def _resolve_mask_collisions(self, pol):
         if self.elements_intersect(pol, self.mask):
