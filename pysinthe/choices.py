@@ -4,7 +4,10 @@ import random
 
 
 def weighted_choice(population, weights=None, *, cum_weights=None):
-    """Return a k sized list of population elements chosen with replacement.
+    """
+    Adapted from Python 3.6 source code.
+
+    Return a k sized list of population elements chosen with replacement.
     If the relative weights or cumulative weights are not specified,
     the selections are made with equal probability.
     """

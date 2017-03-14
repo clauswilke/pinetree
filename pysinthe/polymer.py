@@ -1,7 +1,5 @@
 #! /usr/bin/env python3
 
-import random
-
 from .eventsignal import Signal
 from .feature import Promoter, Terminator, Mask
 from .choices import weighted_choice
@@ -48,6 +46,7 @@ class Polymer:
         self.propensity_signal = Signal()  # Fires when propensity changes
         self.mask = mask
         self.prop_sum = 0
+        self.prop_list = []
         self.uncovered = {}  # Running count of free promoters
 
         # Cover masked elements
@@ -161,8 +160,11 @@ class Polymer:
 
     def terminate(self, pol):
         self.prop_sum -= pol.speed
+        index = self.polymerases.index(pol)
         self.propensity_signal.fire()
-        self.polymerases.remove(pol)
+        del self.polymerases[index]
+        del self.prop_list[index]
+        # self.polymerases.remove(pol)
 
     def count_uncovered(self, species):
         """
@@ -206,6 +208,7 @@ class Polymer:
             # Check to see if we're actually just adding to the end of the list
             insert_position += 1
         self.polymerases.insert(insert_position, pol)
+        self.prop_list.insert(insert_position, pol.speed)
 
     def _choose_polymerase(self):
         """
@@ -214,13 +217,11 @@ class Polymer:
 
         :returns: selected polymerase
         """
-        # Construct list of movement propensities
-        prop_list = [pol.speed for pol in self.polymerases]
-        if len(prop_list) == 0:
+        if len(self.prop_list) == 0:
             raise RuntimeError("There are no active polymerases on"
                                "polymer '{0}'.".format(self.name))
         # Randomly select next polymerase to move, weighted by propensity
-        pol = weighted_choice(self.polymerases, weights=prop_list)
+        pol = weighted_choice(self.polymerases, weights=self.prop_list)
         return pol
 
     def _move_polymerase(self, pol):
