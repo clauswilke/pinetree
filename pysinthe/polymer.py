@@ -43,8 +43,8 @@ class Polymer:
         self.polymerases = []
         self.elements = elements
         self.termination_signal = Signal()  # Fires on termination
-        self.promoter_signal = Signal()  # Fires when promoter is freed
-        self.block_signal = Signal()  # Fires when promoter is blocked
+        # self.promoter_signal = Signal()  # Fires when promoter is freed
+        # self.block_signal = Signal()  # Fires when promoter is blocked
         self.propensity_signal = Signal()  # Fires when propensity changes
         self.mask = mask
         self.prop_sum = 0
@@ -53,6 +53,8 @@ class Polymer:
 
         # Cover masked elements
         for element in self.elements:
+            element.cover_signal.connect(self.cover_element)
+            element.uncover_signal.connect(self.uncover_element)
             if self.elements_intersect(element, self.mask):
                 element.cover()
                 element.save_state()
@@ -161,7 +163,9 @@ class Polymer:
         if self.elements_intersect(self.mask, self.elements[index]):
             self.elements[index].cover()
         # Check for just-uncovered elements
-        self._check_state(self.elements[index])
+        # self._check_state(self.elements[index])
+        self.elements[index].check_state()
+        self.elements[index].save_state()
 
     def terminate(self, pol):
         self.prop_sum -= pol.speed
@@ -178,6 +182,12 @@ class Polymer:
         :param species: name of promoter to count
         """
         return self.uncovered[species]
+
+    def cover_element(self, species):
+        self.uncovered[species] -= 1
+
+    def uncover_element(self, species):
+        self.uncovered[species] += 1
 
     def calculate_propensity(self):
         """
@@ -276,7 +286,9 @@ class Polymer:
                 self.elements[new_index].cover()
                 # Resolve reactions between pol and element (e.g., terminators)
                 self._resolve_termination(pol, self.elements[new_index])
-            self._check_state(self.elements[new_index])
+            # self._check_state(self.elements[new_index])
+            self.elements[new_index].check_state()
+            self.elements[new_index].save_state()
 
     def _resolve_termination(self, pol, element):
         """

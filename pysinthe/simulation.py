@@ -321,6 +321,8 @@ class Simulation:
         # Add polymer to promoter-polymerase map
         for element in polymer.elements:
             if element.type == "promoter":
+                element.uncover_signal.connect(self.free_promoter)
+                element.cover_signal.connect(self.block_promoter)
                 self.tracker.add_polymer(element.name, polymer)
 
         # Encapsulate polymer in Bridge reaction and add to reaction list
@@ -395,7 +397,7 @@ class Simulation:
         """
         self.register_polymer(polymer)
         # Connect signals
-        polymer.promoter_signal.connect(self.free_promoter)
+        # polymer.promoter_signal.connect(self.free_promoter)
         polymer.termination_signal.connect(self.terminate_translation)
 
     def terminate_transcription(self, species):

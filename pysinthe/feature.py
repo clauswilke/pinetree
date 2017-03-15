@@ -102,6 +102,8 @@ class Element(Feature):
         self._covered = 0  # is this element covered? (i.e. inaccessible)
         self._old_covered = 0
         self.type = ""
+        self.cover_signal = eventsignal.Signal()
+        self.uncover_signal = eventsignal.Signal()
 
     def save_state(self):
         """
@@ -140,6 +142,12 @@ class Element(Feature):
         """
         return self._covered > 0
 
+    def check_state(self):
+        """
+        Check for a change in state and react appropriately.
+        """
+        return
+
 
 class Promoter(Element):
     """
@@ -148,6 +156,12 @@ class Promoter(Element):
     def __init__(self, name, start, stop, interactions):
         super().__init__(name, start, stop, interactions)
         self.type = "promoter"
+
+    def check_state(self):
+        if self.was_covered():
+            self.cover_signal.fire(self.name)
+        elif self.was_uncovered():
+            self.uncover_signal.fire(self.name)
 
 
 class Terminator(Element):
@@ -160,3 +174,10 @@ class Terminator(Element):
         self.gene = ""
         self.efficiency = interactions
         self.readthrough = False
+
+    def check_state(self):
+        if self.was_uncovered():
+            self.readthrough = False
+            self.uncover_signal.fire(self.name)
+        elif self.was_covered():
+            self.cover_signal.fire(self.name)

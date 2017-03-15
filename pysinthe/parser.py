@@ -62,7 +62,7 @@ class Parser:
 
         # Register genome
         self._register_genome(genome)
-        
+
         self.simulation.tracker.increment_species("rbs", 0)
         ribo_args = ["ribosome", 10,  # footprint
                      30]
@@ -146,6 +146,12 @@ class Parser:
                                        position,
                                        position + length,
                                        element["interactions"].keys())
+                new_element.uncover_signal.connect(
+                    self.simulation.free_promoter
+                )
+                new_element.cover_signal.connect(
+                    self.simulation.block_promoter
+                )
             elif element["type"] == "terminator":
                 new_element = Terminator(element["name"],
                                          position + element["length"] - 1,
@@ -224,7 +230,7 @@ class Parser:
         genome.termination_signal.connect(
             self.simulation.terminate_transcription
         )
-        genome.promoter_signal.connect(self.simulation.free_promoter)
-        genome.block_signal.connect(self.simulation.block_promoter)
+        # genome.promoter_signal.connect(self.simulation.free_promoter)
+        # genome.block_signal.connect(self.simulation.block_promoter)
         genome.transcript_signal.connect(self.simulation.register_transcript)
         self.simulation.register_polymer(genome)
