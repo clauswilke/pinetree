@@ -52,7 +52,7 @@ class Polymerase:
         self.start = 0
         self.stop = footprint
         self.speed = speed
-        self.attached = True  # Is this polymerase attached to a polymer?
+        self.left_most_element = -1
         self.bound = 0  # Record where polymerase bound to genome
         self.type = "polymerase"
         self.footprint = footprint

@@ -99,6 +99,7 @@ class Polymer:
         # Update polymerase coordinates
         pol.start = element.start
         pol.stop = element.start + pol.footprint
+        pol.left_most_element = self.elements.index(element)
 
         if element.stop < pol.stop:
             raise RuntimeError("Polymerase '{0}' footprint is larger than "
@@ -257,13 +258,13 @@ class Polymer:
 
         # Find which elements this polymerase (or mask) is covering and
         # temporarily uncover them
-        save_index = 0
-        for index, element in enumerate(self.elements):
-            save_index = index
-            if self.elements_intersect(pol, element):
+        save_index = pol.left_most_element
+        while self.elements[save_index].start <= pol.stop:
+            if self.elements_intersect(pol, self.elements[save_index]):
                 self.elements[save_index].save_state()
                 self.elements[save_index].uncover()
-            if element.start > pol.stop:
+            save_index += 1
+            if save_index >= len(self.elements):
                 break
 
         # Move polymerase
@@ -279,9 +280,18 @@ class Polymer:
 
         # Check for uncoverings or new interactions at the current index and
         # one element behind
+        # TODO: check elements from left-to-right starting from
+        # left_most_element
+        if save_index > len(self.elements) - 1:
+            save_index -= 1
         for i in range(2):
+            # print(save_index)
             new_index = save_index - i
-            if self.elements_intersect(pol, self.elements[save_index - i]):
+            # print(new_index)
+            if new_index < 0:
+                break
+            if self.elements_intersect(pol, self.elements[new_index]):
+                pol.left_most_element = new_index
                 self.elements[new_index].cover()
                 # Resolve reactions between pol and element (e.g., terminators)
                 self._resolve_termination(pol, self.elements[new_index])
