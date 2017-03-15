@@ -1,4 +1,6 @@
 import unittest
+
+from unittest.mock import MagicMock
 import random
 from pysinthe import feature, polymer
 
@@ -139,7 +141,7 @@ class TestPolymerMethods(unittest.TestCase):
         self.polymer.bind_polymerase(self.pol1, "promoter1")
 
         old_prop_sum = self.polymer.prop_sum
-        self.polymer.terminate(self.pol1)
+        self.polymer.terminate(self.pol1, MagicMock())
 
         self.assertNotEqual(self.polymer.prop_sum, old_prop_sum)
         self.assertTrue(self.fire)
@@ -238,7 +240,7 @@ class TestPolymerMethods(unittest.TestCase):
         self.assertFalse(self.polymer.elements_intersect(self.pol1, self.pol2))
 
         # Remove pol1
-        self.polymer.terminate(self.pol1)
+        self.polymer.terminate(self.pol1, MagicMock())
         # Make sure that pol2 is unable to shift mask back
         old_mask_start = self.polymer.mask.start
         for i in range(20):
@@ -270,7 +272,7 @@ class TestPolymerMethods(unittest.TestCase):
         # Move and remove polymerase
         for i in range(20):
             self.polymer._move_polymerase(self.pol1)
-        self.polymer.terminate(self.pol1)
+        self.polymer.terminate(self.pol1, MagicMock())
         # Run polymerase through terminator again, this time it should terminate
         self.polymer.bind_polymerase(self.pol1, "promoter1")
         for i in range(35):
@@ -304,7 +306,7 @@ class TestPolymerMethods(unittest.TestCase):
         term.gene = "mygene"
 
         # Create temp termination signal
-        pol.termination_signal.connect(lambda x: self.assertEqual(x, 60))
+        pol.release_signal.connect(lambda x: self.assertEqual(x, 60))
         term.readthrough = True
         self.assertIsNone(self.polymer._resolve_termination(pol, term))
         self.assertIsNone(self.polymer._resolve_termination(pol2, term))
@@ -315,7 +317,6 @@ class TestPolymerMethods(unittest.TestCase):
         # Terminator will end transcription/translation
         term.readthrough = False
         self.polymer._resolve_termination(pol, term)
-        self.assertEqual(pol.last_gene, "mygene")
         self.assertFalse(term.is_covered())
 
     def test_resolve_mask_collisions(self):
@@ -492,7 +493,7 @@ class TestGenomeMethods(unittest.TestCase):
             self.transcript.shift_mask in self.pol1.move_signal._handlers
         )
         self.assertTrue(
-            self.transcript.release in self.pol1.termination_signal._handlers
+            self.transcript.release in self.pol1.release_signal._handlers
         )
 
         # Test that mask in transcript gets uncovered appropriately as
@@ -509,7 +510,7 @@ class TestGenomeMethods(unittest.TestCase):
             self.polymer.shift_mask()
 
         self.polymer.bind_polymerase(self.pol1, "promoter1")
-        self.polymer.terminate(self.pol1)
+        self.polymer.terminate(self.pol1, MagicMock())
         self.assertEqual(self.last_pol_name, "ecolipol")
 
     def test_build_transcript(self):
@@ -611,9 +612,8 @@ class TestTranscriptMethods(unittest.TestCase):
 
         self.transcript.bind_polymerase(self.ribo, "rbs")
         self.ribo.last_gene = "rnapol"
-        self.transcript.terminate(self.ribo)
+        self.transcript.terminate(self.ribo, MagicMock())
 
-        self.assertEqual(self.gene_name, "rnapol")
         self.assertEqual(self.pol_name, "ribosome")
 
     def test_release(self):

@@ -58,7 +58,7 @@ class Polymerase:
         self.footprint = footprint
         self.move_signal = eventsignal.Signal()  # signal to fire when this
         # polymerase moves
-        self.termination_signal = eventsignal.Signal()
+        self.release_signal = eventsignal.Signal()
 
     def move(self):
         """

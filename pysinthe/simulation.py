@@ -330,6 +330,22 @@ class Simulation:
         bridge.propensity_signal.connect(self.update_propensity)
         self.register_reaction(bridge)
 
+    def register_genome(self, genome):
+        self.register_polymer(genome)
+        genome.termination_signal.connect(self.terminate_transcription)
+        genome.transcript_signal.connect(self.register_transcript)
+
+    def register_transcript(self, polymer):
+        """
+        Register a new transcript with the simulation.
+
+        :param polymer: transcript object to be added to simulation
+        :param reactants: proteins to be produced by this transcript
+        """
+        self.register_polymer(polymer)
+        # Connect signals
+        polymer.termination_signal.connect(self.terminate_translation)
+
     def initialize_propensity(self):
         """
         Initialize all propensities before the start of the simulation.
@@ -387,18 +403,6 @@ class Simulation:
         Decrement promoter count at species level.
         """
         self.tracker.increment_species(species, -1)
-
-    def register_transcript(self, polymer):
-        """
-        Register a new transcript with the simulation.
-
-        :param polymer: transcript object to be added to simulation
-        :param reactants: proteins to be produced by this transcript
-        """
-        self.register_polymer(polymer)
-        # Connect signals
-        # polymer.promoter_signal.connect(self.free_promoter)
-        polymer.termination_signal.connect(self.terminate_translation)
 
     def terminate_transcription(self, species):
         """

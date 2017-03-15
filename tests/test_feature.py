@@ -135,7 +135,7 @@ class TestTerminatorMethods(unittest.TestCase):
         self.term.gene = "mygene"
 
         # Create temp termination signal
-        self.pol.termination_signal.connect(lambda x: self.assertEqual(x, 60))
+        self.pol.release_signal.connect(lambda x: self.assertEqual(x, 60))
 
     def test_init(self):
         self.assertFalse(self.term.readthrough)

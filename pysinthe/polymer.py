@@ -43,8 +43,6 @@ class Polymer:
         self.polymerases = []
         self.elements = elements
         self.termination_signal = Signal()  # Fires on termination
-        # self.promoter_signal = Signal()  # Fires when promoter is freed
-        # self.block_signal = Signal()  # Fires when promoter is blocked
         self.propensity_signal = Signal()  # Fires when propensity changes
         self.mask = mask
         self.prop_sum = 0
@@ -167,7 +165,7 @@ class Polymer:
         self.elements[index].check_state()
         self.elements[index].save_state()
 
-    def terminate(self, pol):
+    def terminate(self, pol, element):
         self.prop_sum -= pol.speed
         index = self.polymerases.index(pol)
         self.propensity_signal.fire()
@@ -308,11 +306,11 @@ class Polymer:
         if random_num <= element.efficiency[pol.name]["efficiency"]:
             # tell polymerase the last gene that it transcribed so it can
             # construct the correct transcript
-            pol.last_gene = element.gene
+            # pol.last_gene = element.gene
             # Uncover terminator
-            pol.termination_signal.fire(element.stop)
+            # pol.termination_signal.fire(element.stop)
             element.uncover()
-            self.terminate(pol)
+            self.terminate(pol, element)
         else:
             element.readthrough = True
 
@@ -431,12 +429,13 @@ class Genome(Polymer):
         # Connect polymerase movement signal to transcript, so that the
         # transcript knows when to expose new elements
         pol.move_signal.connect(transcript.shift_mask)
-        pol.termination_signal.connect(transcript.release)
+        pol.release_signal.connect(transcript.release)
         # Fire new transcript signal
         self.transcript_signal.fire(transcript)
 
-    def terminate(self, pol):
-        super().terminate(pol)
+    def terminate(self, pol, element):
+        super().terminate(pol, element)
+        pol.release_signal.fire(element.stop)
         self.termination_signal.fire(pol.name)
 
     def _build_transcript(self, start, stop):
@@ -489,15 +488,16 @@ class Transcript(Polymer):
     def __init__(self, name, length, elements, mask):
         super().__init__(name, length, elements, mask)
 
-    def terminate(self, pol):
+    def terminate(self, pol, element):
         """
         Remove ribosome from transcript and signal which protein was just
         translated.
 
         :param pol: ribosome to remove.
         """
-        super().terminate(pol)
-        self.termination_signal.fire(pol.last_gene, pol.name)
+        super().terminate(pol, element)
+        # self.release(element.stop)
+        self.termination_signal.fire(element.gene, pol.name)
 
     def release(self, stop):
         """
