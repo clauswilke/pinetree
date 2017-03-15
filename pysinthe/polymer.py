@@ -279,6 +279,13 @@ class Polymer:
             self._check_state(self.elements[new_index])
 
     def _resolve_termination(self, pol, element):
+        """
+        Check to see if this polymerase should terminate when interacting with
+        this element.
+
+        :param pol: polymerase object
+        :param element: element object
+        """
         if element.type != "terminator":
             return
         if not element.check_interaction(pol.name):
@@ -298,6 +305,14 @@ class Polymer:
             element.readthrough = True
 
     def _resolve_mask_collisions(self, pol):
+        """
+        Check for collisions between a polymerase and this polymer's mask.
+
+        :param pol: polymerase object
+
+        :returns: True if the polymerase collides with the mask and shifts the
+            mask backwards
+        """
         if self.elements_intersect(pol, self.mask):
             if pol.stop - self.mask.start > 1:
                 raise RuntimeError("Polymerase '{0}' is overlapping polymer "
@@ -339,24 +354,21 @@ class Polymer:
         return collision
 
     def _check_state(self, element):
+        # Check for just-covered elements
         if element.was_covered() and element.type != "terminator":
-            # print("covered: ", self.elements.index(element), element.name)
-            # print(element.name, element.type)
             assert self.uncovered[element.name] > 0
             self.uncovered[element.name] -= 1
             self.block_signal.fire(element.name)
-            element.save_state()
         # Check for just-uncovered elements
         if element.was_uncovered():
-            # print("uncovered: ", self.elements.index(element), element.name)
-            # Save current state to avoid re-triggering an uncovering event.
-            element.save_state()
             if element.type == "terminator":
                 # Reset readthrough state of terminator
                 element.readthrough = False
             else:
                 self.uncovered[element.name] += 1
                 self.promoter_signal.fire(element.name)
+        # Save current state to avoid re-triggering an uncovering event.
+        element.save_state()
 
     def elements_intersect(self, element1, element2):
         """
@@ -470,11 +482,6 @@ class Genome(Polymer):
                              elements,
                              Mask("mask", start, stop,
                                   []))
-        # polymer = Transcript("rna",
-        #                      self.length,
-        #                      elements,
-        #                      Mask("mask", stop, stop,
-        #                           []))
         return polymer
 
 

@@ -5,8 +5,6 @@ Defines promoters, terminators, polymerases, and other objects that are either
 fixed components of a polymer or move on a polymer.
 """
 
-import random
-
 from . import eventsignal
 
 
