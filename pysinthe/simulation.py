@@ -404,7 +404,7 @@ class Simulation:
         """
         self.tracker.increment_species(species, -1)
 
-    def terminate_transcription(self, species):
+    def terminate_transcription(self, species, last_gene):
         """
         Terminate transcription.
 
@@ -416,7 +416,7 @@ class Simulation:
         self.tracker.increment_species(species, 1)
         self.count_termination("transcript")
 
-    def terminate_translation(self, protein, species):
+    def terminate_translation(self, species, protein):
         """
         Terminate translation.
 

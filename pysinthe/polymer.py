@@ -167,11 +167,12 @@ class Polymer:
 
     def terminate(self, pol, element):
         self.prop_sum -= pol.speed
+        pol.release_signal.fire(element.stop)
         index = self.polymerases.index(pol)
+        self.termination_signal.fire(pol.name, element.gene)
         self.propensity_signal.fire()
         del self.polymerases[index]
         del self.prop_list[index]
-        # self.polymerases.remove(pol)
 
     def count_uncovered(self, species):
         """
@@ -304,11 +305,6 @@ class Polymer:
             return
         random_num = random.random()
         if random_num <= element.efficiency[pol.name]["efficiency"]:
-            # tell polymerase the last gene that it transcribed so it can
-            # construct the correct transcript
-            # pol.last_gene = element.gene
-            # Uncover terminator
-            # pol.termination_signal.fire(element.stop)
             element.uncover()
             self.terminate(pol, element)
         else:
@@ -433,11 +429,6 @@ class Genome(Polymer):
         # Fire new transcript signal
         self.transcript_signal.fire(transcript)
 
-    def terminate(self, pol, element):
-        super().terminate(pol, element)
-        pol.release_signal.fire(element.stop)
-        self.termination_signal.fire(pol.name)
-
     def _build_transcript(self, start, stop):
         """
         Build a transcript object corresponding to start and stop positions
@@ -487,17 +478,6 @@ class Transcript(Polymer):
     """
     def __init__(self, name, length, elements, mask):
         super().__init__(name, length, elements, mask)
-
-    def terminate(self, pol, element):
-        """
-        Remove ribosome from transcript and signal which protein was just
-        translated.
-
-        :param pol: ribosome to remove.
-        """
-        super().terminate(pol, element)
-        # self.release(element.stop)
-        self.termination_signal.fire(element.gene, pol.name)
 
     def release(self, stop):
         """

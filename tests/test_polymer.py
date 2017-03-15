@@ -474,7 +474,7 @@ class TestGenomeMethods(unittest.TestCase):
         self.fired = True
         self.transcript = transcript
 
-    def fire_termination(self, pol_name):
+    def fire_termination(self, pol_name, last_gene):
         self.last_pol_name = pol_name
 
     def test_bind_polymerase(self):
@@ -602,7 +602,7 @@ class TestTranscriptMethods(unittest.TestCase):
         self.transcript = self.polymer._build_transcript(0, 220)
         self.transcript.termination_signal.connect(self.fire_termination)
 
-    def fire_termination(self, gene_name, pol_name):
+    def fire_termination(self, pol_name, gene_name):
         self.gene_name = gene_name
         self.pol_name = pol_name
 
