@@ -250,17 +250,10 @@ class Polymer:
         for index, element in enumerate(self.elements):
             save_index = index
             if self.elements_intersect(pol, element):
-                break
+                self.elements[save_index].save_state()
+                self.elements[save_index].uncover()
             if element.start > pol.stop:
                 break
-
-        while self.elements_intersect(pol, self.elements[save_index]):
-            self.elements[save_index].save_state()
-            self.elements[save_index].uncover()
-            if save_index + 1 >= len(self.elements):
-                break
-            else:
-                save_index += 1
 
         # Move polymerase
         pol.move()
@@ -273,6 +266,8 @@ class Polymer:
         if not pol_collision and not mask_collision:
             pol.move_signal.fire()
 
+        # Check for uncoverings or new interactions at the current index and
+        # one element behind
         for i in range(2):
             new_index = save_index - i
             if self.elements_intersect(pol, self.elements[save_index - i]):
@@ -282,9 +277,10 @@ class Polymer:
                     # Resolve reactions between pol and element (e.g.,
                     # terminators)
                     self.elements[new_index].resolve_termination(pol)
-                    if pol.attached is False:
-                        self.terminate(pol)
             self._check_state(self.elements[new_index])
+
+        if pol.attached is False:
+            self.terminate(pol)
 
     def _resolve_mask_collisions(self, pol):
         if self.elements_intersect(pol, self.mask):
@@ -294,7 +290,6 @@ class Polymer:
                                    " '{1}'.".format(pol.name, self.name))
             if self.mask.check_interaction(pol.name):
                 self.mask.recede()
-                # self.shift_mask()
             else:
                 pol.move_back()
                 return True
@@ -329,7 +324,6 @@ class Polymer:
         return collision
 
     def _check_state(self, element):
-        # print(element.name, element._covered, element._old_covered, element.start, element.stop)
         if element.was_covered() and element.type != "terminator":
             # print("covered: ", self.elements.index(element), element.name)
             # print(element.name, element.type)
