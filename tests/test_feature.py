@@ -140,22 +140,6 @@ class TestTerminatorMethods(unittest.TestCase):
     def test_init(self):
         self.assertFalse(self.term.readthrough)
 
-    def test_resolve_termination(self):
-        # Terminator is in readthrough state and should not return anything
-        self.term.readthrough = True
-        self.assertIsNone(self.term.resolve_termination(self.pol))
-        self.assertIsNone(self.term.resolve_termination(self.pol2))
-        # Terminator will enter readthrough
-        self.term.readthrough = False
-        self.term.resolve_termination(self.pol2)
-        self.assertTrue(self.term.readthrough)
-        # Terminator will end transcription/translation
-        self.term.readthrough = False
-        self.term.resolve_termination(self.pol)
-        self.assertFalse(self.pol.attached)
-        self.assertEqual(self.pol.last_gene, "mygene")
-        self.assertFalse(self.term.is_covered())
-
 
 if __name__ == '__main__':
     unittest.main()

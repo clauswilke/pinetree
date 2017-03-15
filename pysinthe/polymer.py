@@ -1,5 +1,7 @@
 #! /usr/bin/env python3
 
+import random
+
 from .eventsignal import Signal
 from .feature import Promoter, Terminator, Mask
 from .choices import weighted_choice
@@ -272,15 +274,28 @@ class Polymer:
             new_index = save_index - i
             if self.elements_intersect(pol, self.elements[save_index - i]):
                 self.elements[new_index].cover()
-                if self.elements[new_index].check_interaction(pol.name) and \
-                        self.elements[new_index].type == "terminator":
-                    # Resolve reactions between pol and element (e.g.,
-                    # terminators)
-                    self.elements[new_index].resolve_termination(pol)
+                # Resolve reactions between pol and element (e.g., terminators)
+                self._resolve_termination(pol, self.elements[new_index])
             self._check_state(self.elements[new_index])
 
-        if pol.attached is False:
+    def _resolve_termination(self, pol, element):
+        if element.type != "terminator":
+            return
+        if not element.check_interaction(pol.name):
+            return
+        if element.readthrough:
+            return
+        random_num = random.random()
+        if random_num <= element.efficiency[pol.name]["efficiency"]:
+            # tell polymerase the last gene that it transcribed so it can
+            # construct the correct transcript
+            pol.last_gene = element.gene
+            # Uncover terminator
+            pol.termination_signal.fire(element.stop)
+            element.uncover()
             self.terminate(pol)
+        else:
+            element.readthrough = True
 
     def _resolve_mask_collisions(self, pol):
         if self.elements_intersect(pol, self.mask):

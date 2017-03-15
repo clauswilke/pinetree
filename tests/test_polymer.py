@@ -256,12 +256,10 @@ class TestPolymerMethods(unittest.TestCase):
             self.polymer.elements_intersect(self.pol2,
                                             self.polymer.elements[1])
             )
-        self.assertFalse(self.pol2.attached)
         with self.assertRaises(ValueError):
             self.polymer.polymerases.index(self.pol2)
 
         # Now check for readthrough
-        self.pol1.attached = True
         self.polymer.bind_polymerase(self.pol1, "promoter1")
         random.seed(19)
         for i in range(42):
@@ -272,12 +270,51 @@ class TestPolymerMethods(unittest.TestCase):
             self.polymer._move_polymerase(self.pol1)
         self.polymer.terminate(self.pol1)
         # Run polymerase through terminator again, this time it should terminate
-        self.pol1.attached = True
         self.polymer.bind_polymerase(self.pol1, "promoter1")
         for i in range(35):
             self.polymer._move_polymerase(self.pol1)
         self.assertFalse(self.polymer.elements[1].readthrough)
-        self.assertFalse(self.pol1.attached)
+
+    def test_resolve_termination(self):
+        self.setUp()
+        # Terminator is in readthrough state and should not return anything
+        random.seed(22)
+
+        for i in range(100):
+            self.polymer.shift_mask()
+        # Arrange polymerases along polymer
+        self.polymer.bind_polymerase(self.pol1, "promoter1")
+        for i in range(35):
+            self.polymer._move_polymerase(self.pol1)
+        self.polymer.bind_polymerase(self.pol2, "promoter1")
+        for i in range(25):
+            self.polymer._move_polymerase(self.pol2)
+
+        term = feature.Terminator("myterm",
+                                  23,
+                                  60,
+                                  {"rnapol": {"efficiency": 1.0},
+                                   "ecolipol": {"efficiency": 0.6}
+                                   }
+                                  )
+        pol = self.pol2
+        pol2 = self.pol1
+        term.gene = "mygene"
+
+        # Create temp termination signal
+        pol.termination_signal.connect(lambda x: self.assertEqual(x, 60))
+        term.readthrough = True
+        self.assertIsNone(self.polymer._resolve_termination(pol, term))
+        self.assertIsNone(self.polymer._resolve_termination(pol2, term))
+        # Terminator will enter readthrough
+        term.readthrough = False
+        self.polymer._resolve_termination(pol2, term)
+        self.assertTrue(term.readthrough)
+        # Terminator will end transcription/translation
+        term.readthrough = False
+        self.polymer._resolve_termination(pol, term)
+        self.assertEqual(pol.last_gene, "mygene")
+        self.assertFalse(term.is_covered())
 
     def test_resolve_mask_collisions(self):
         self.setUp()

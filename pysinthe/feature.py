@@ -162,25 +162,3 @@ class Terminator(Element):
         self.gene = ""
         self.efficiency = interactions
         self.readthrough = False
-
-    def resolve_termination(self, pol):
-        """
-        Check for interaction with `pol` and detach `pol`.
-
-        TODO: add "attached" signal to event-firing system?
-
-        :param pol: `Polymerase`.
-        """
-        if self.readthrough:
-            return
-        random_num = random.random()
-        if random_num <= self.efficiency[pol.name]["efficiency"]:
-            pol.attached = False  # signal to polymer to destroy polymerase
-            # tell polymerase the last gene that it transcribed so it can
-            # construct the correct transcript
-            pol.last_gene = self.gene
-            # Uncover terminator, mostly for debugging purposes
-            pol.termination_signal.fire(self.stop)
-            self.uncover()
-        else:
-            self.readthrough = True
