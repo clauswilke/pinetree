@@ -365,23 +365,6 @@ class Polymer:
             collision = True
         return collision
 
-    def _check_state(self, element):
-        # Check for just-covered elements
-        if element.was_covered() and element.type != "terminator":
-            assert self.uncovered[element.name] > 0
-            self.uncovered[element.name] -= 1
-            self.block_signal.fire(element.name)
-        # Check for just-uncovered elements
-        if element.was_uncovered():
-            if element.type == "terminator":
-                # Reset readthrough state of terminator
-                element.readthrough = False
-            else:
-                self.uncovered[element.name] += 1
-                self.promoter_signal.fire(element.name)
-        # Save current state to avoid re-triggering an uncovering event.
-        element.save_state()
-
     def elements_intersect(self, element1, element2):
         """
         Do two line segments (e.g. `Polymerase` objects) overlap?

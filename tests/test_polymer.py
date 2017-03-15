@@ -368,25 +368,6 @@ class TestPolymerMethods(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             self.polymer._resolve_collisions(self.pol2)
 
-    @unittest.skip("skipping test_check_state")
-    def test_check_state(self):
-        self.setUp()
-        self.polymer.elements[0].save_state()
-        self.polymer.elements[0].uncover()
-        self.polymer._check_state(self.polymer.elements[0])
-        self.assertEqual(self.polymer.uncovered["promoter1"], 1)
-        self.assertEqual(self.promoter_fired, 1)
-
-        self.polymer.elements[0].cover()
-        self.polymer._check_state(self.polymer.elements[0])
-        self.assertEqual(self.polymer.uncovered["promoter1"], 0)
-        self.assertEqual(self.block_fired, 1)
-
-        self.polymer.elements[1].save_state()
-        self.polymer.elements[1].uncover()
-        self.polymer._check_state(self.polymer.elements[1])
-        self.assertFalse(self.polymer.elements[1].readthrough)
-
     def test_elements_intersect(self):
         element1 = feature.Promoter("promoter1",
                                     5,

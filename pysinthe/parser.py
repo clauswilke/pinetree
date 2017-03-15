@@ -146,12 +146,6 @@ class Parser:
                                        position,
                                        position + length,
                                        element["interactions"].keys())
-                new_element.uncover_signal.connect(
-                    self.simulation.free_promoter
-                )
-                new_element.cover_signal.connect(
-                    self.simulation.block_promoter
-                )
             elif element["type"] == "terminator":
                 new_element = Terminator(element["name"],
                                          position + element["length"] - 1,
