@@ -352,9 +352,10 @@ class Polymer:
         if self.elements_intersect(pol,
                                    self.polymerases[index + 1]):
             if pol.stop - self.polymerases[index + 1].start > 1:
-                raise RuntimeError("Polymerase '{}' (start: {}, stop: {}, index: {}) is overlapping"
-                                   " polymerase '{}' (start: {}, stop: {}, index: {}) by more than"
-                                   " one position on the polymer '{}'."
+                raise RuntimeError("Polymerase '{}' (start: {}, stop: {}, "
+                                   "index: {}) is overlapping polymerase '{}' "
+                                   "(start: {}, stop: {}, index: {}) by more "
+                                   "than one position on the polymer '{}'."
                                    .format(
                                         pol.name,
                                         pol.start,
