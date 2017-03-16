@@ -94,7 +94,8 @@ class Parser:
                                  'speed': All(int, Range(min=0))}],
                                Length(min=1)),
             'elements': All([{'name': All(str, Length(min=1)),
-                              'length': All(int, Range(min=0)),
+                              'start': All(int, Range(min=0)),
+                              'stop': All(int, Range(min=0)),
                               'type': Any('promoter',
                                           'terminator',
                                           'transcript'),
@@ -134,44 +135,37 @@ class Parser:
         # includes RBS's and stop sites
         dna_elements = []
         transcript_template = []
-        position = 0
+        last_position = 0
         for element in element_params:
             if element["type"] == "promoter":
-                length = element["length"]
-                if element["length"] < 10:
-                    # if promoter is smaller than RNApol footprint, expand out
-                    # promoter length to avoid polymerases getting stuck
-                    length = 10
+                # Add 1 because genome coordinates are inclusive
                 new_element = Promoter(element["name"],
-                                       position,
-                                       position + length - 1,
+                                       element["start"],
+                                       element["stop"],
                                        element["interactions"].keys())
             elif element["type"] == "terminator":
                 new_element = Terminator(element["name"],
-                                         position + element["length"] - 2,
-                                         position + element["length"] - 1,
+                                         element["start"],
+                                         element["stop"],
                                          element["interactions"])
             elif element["type"] == "transcript":
                 transcript_template.append(element)
-                position -= element["rbs"]
                 new_element = False
-            element["start"] = position
-            element["stop"] = position + element["length"] - 1
             if new_element is not False:
                 dna_elements.append(new_element)
-            position += element["length"]
+            last_position = element["stop"]
 
         # Build genome
         if "entered" in genome_params:
             genome_mask = Mask("mask",
                                genome_params["entered"],
-                               position,
+                               last_position,
                                ["rnapol", "ecolipol"])
         else:
-            genome_mask = Mask("mask", position + 1, position, [])
+            genome_mask = Mask("mask", last_position + 1, last_position, [])
 
         genome = Genome(self.params["genome"]["name"],
-                        position,
+                        last_position,
                         dna_elements,
                         transcript_template,
                         genome_mask)
