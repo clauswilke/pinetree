@@ -1,6 +1,5 @@
 - parser needs refactoring
 - and cell volume as parameters
-- rewrite parameter files and parser to use exact genomic coordinates
 - add test to make sure that cached covering counts don't go below 0
 
 - check for missing unit tests
