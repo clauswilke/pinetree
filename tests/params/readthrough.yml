@@ -20,31 +20,43 @@ species:
 elements:
 - type: promoter
   name: phi1
-  length: 10
+  start: 1
+  stop: 10
+  # length: 10
   interactions:
       rnapol:
           binding_constant: 2e8
 - type: transcript
   name: rnapol
-  length: 200
+  start: 26
+  stop: 225
+  # length: 200
   rbs: -15
 - type: transcript
   name: proteinX
-  length: 40
+  start: 241
+  stop: 280
+  # length: 40
   rbs: -15
 - type: terminator
   name: t2
-  length: 10
+  start: 289
+  stop: 290
+  # length: 10
   interactions:
       rnapol:
           efficiency: 0.6
 - type: transcript
   name: proteinY
-  length: 300
+  start: 306
+  stop: 605
+  # length: 300
   rbs: -15
 - type: terminator
   name: t1
-  length: 10
+  start: 614
+  stop: 615
+  # length: 10
   interactions:
     rnapol:
         efficiency: 1.0
