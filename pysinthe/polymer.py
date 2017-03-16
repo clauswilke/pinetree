@@ -98,7 +98,7 @@ class Polymer:
 
         # Update polymerase coordinates
         pol.start = element.start
-        pol.stop = element.start + pol.footprint
+        pol.stop = element.start + pol.footprint - 1
         pol.left_most_element = self.elements.index(element)
 
         if element.stop < pol.stop:
@@ -143,7 +143,7 @@ class Polymer:
         Shift start of mask by 1 base-pair and check for uncovered elements.
         """
         # Check to see that mask still has some width
-        if self.mask.start == self.mask.stop:
+        if self.mask.start >= self.mask.stop:
             return
 
         index = -1
@@ -289,7 +289,6 @@ class Polymer:
                 self.elements[old_index].cover()
                 # Resolve reactions between pol and element (e.g., terminators)
                 self._resolve_termination(pol, self.elements[old_index])
-            # self._check_state(self.elements[new_index])
             self.elements[old_index].check_state()
             self.elements[old_index].save_state()
             old_index += 1
@@ -353,12 +352,18 @@ class Polymer:
         if self.elements_intersect(pol,
                                    self.polymerases[index + 1]):
             if pol.stop - self.polymerases[index + 1].start > 1:
-                raise RuntimeError("Polymerase '{0}' is overlapping "
-                                   "polymerase '{1}' by more than one "
-                                   "position on the polymer '{2}'"
+                raise RuntimeError("Polymerase '{}' (start: {}, stop: {}, index: {}) is overlapping"
+                                   " polymerase '{}' (start: {}, stop: {}, index: {}) by more than"
+                                   " one position on the polymer '{}'."
                                    .format(
                                         pol.name,
+                                        pol.start,
+                                        pol.stop,
+                                        index,
                                         self.polymerases[index + 1].name,
+                                        self.polymerases[index + 1].start,
+                                        self.polymerases[index + 1].stop,
+                                        index + 1,
                                         self.name
                                         )
                                    )
@@ -382,15 +387,14 @@ class Polymer:
         Convert `Polymer` object to string representation showing features and
         polymerases.
         """
-        feature_locs = ["o"]*self.length
-        for i in range(self.mask.start - 1, self.mask.stop - 1):
+        feature_locs = ["o"]*(self.length + 1)
+        for i in range(self.mask.start, self.mask.stop + 1):
             feature_locs[i] = "x"
         for index, feature in enumerate(self.polymerases):
-            for i in range(feature.start - 1,
-                           min(self.length, feature.stop - 1)):
+            for i in range(feature.start, feature.stop + 1):
                 feature_locs[i] = "P" + str(index)
         for feature in self.elements:
-            for i in range(feature.start - 1, feature.stop - 1):
+            for i in range(feature.start, feature.stop + 1):
                 feature_locs[i] = feature._covered
         out_string = "\n"+self.name+": \n" + ''.join(map(str, feature_locs)) + \
             "\n"

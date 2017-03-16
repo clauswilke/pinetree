@@ -85,7 +85,7 @@ class TestPolymerMethods(unittest.TestCase):
         self.polymer.bind_polymerase(self.pol1, "promoter1")
         # Check changes in coverings and positions
         self.assertEqual(self.pol1.start, 5)
-        self.assertEqual(self.pol1.stop, 15)
+        self.assertEqual(self.pol1.stop, 14)
         self.assertEqual(self.polymer.uncovered["promoter1"], 0)
         self.assertEqual(self.polymer.prop_sum, 30)
         self.assertTrue(self.fired)
@@ -209,8 +209,8 @@ class TestPolymerMethods(unittest.TestCase):
         # Set seed and randomly select polymerases by propensity
         random.seed(13)
         self.assertEqual(self.polymer._choose_polymerase(), self.pol3)
-        self.assertEqual(self.polymer._choose_polymerase(), self.pol2)
-        self.assertEqual(self.polymer._choose_polymerase(), self.pol2)
+        self.assertEqual(self.polymer._choose_polymerase(), self.pol1)
+        self.assertEqual(self.polymer._choose_polymerase(), self.pol1)
 
     def test_move_polymerase(self):
         # Start with clean polymer
@@ -254,7 +254,7 @@ class TestPolymerMethods(unittest.TestCase):
         self.assertFalse(self.polymer.elements[1].is_covered())
         self.assertTrue(self.pol2 in self.polymer.polymerases)
         # Test termination, pol should detach as soon as it hits terminator
-        for i in range(24):
+        for i in range(25):
             self.polymer._move_polymerase(self.pol2)
         self.assertTrue(
             self.polymer.elements_intersect(self.pol2,
@@ -307,11 +307,9 @@ class TestPolymerMethods(unittest.TestCase):
 
         # Create temp termination signal
         pol.release_signal.connect(lambda x: self.assertEqual(x, 60))
-        term.readthrough = True
-        self.assertIsNone(self.polymer._resolve_termination(pol, term))
-        self.assertIsNone(self.polymer._resolve_termination(pol2, term))
         # Terminator will enter readthrough
         term.readthrough = False
+        self.polymer._resolve_termination(pol2, term)
         self.polymer._resolve_termination(pol2, term)
         self.assertTrue(term.readthrough)
         # Terminator will end transcription/translation
@@ -325,8 +323,8 @@ class TestPolymerMethods(unittest.TestCase):
             self.polymer.shift_mask()
         # This polymerase is capable of shifting mask backwards
         self.polymer.bind_polymerase(self.pol1, "promoter1")
-        self.pol1.start += 5
-        self.pol1.stop += 5
+        self.pol1.start += 6
+        self.pol1.stop += 6
         old_mask_start = self.polymer.mask.start
         self.assertFalse(self.polymer._resolve_mask_collisions(self.pol1))
         self.assertEqual(self.polymer.mask.start, old_mask_start + 1)
@@ -343,11 +341,11 @@ class TestPolymerMethods(unittest.TestCase):
         old_mask_start = self.polymer.mask.start
         old_start = self.pol2.start
         old_stop = self.pol2.stop
-        self.pol2.start += 5
-        self.pol2.stop += 5
+        self.pol2.start += 6
+        self.pol2.stop += 6
         self.assertTrue(self.polymer._resolve_mask_collisions(self.pol2))
-        self.assertEqual(self.pol2.start, old_start + 4)
-        self.assertEqual(self.pol2.stop, old_stop + 4)
+        self.assertEqual(self.pol2.start, old_start + 5)
+        self.assertEqual(self.pol2.stop, old_stop + 5)
         self.assertEqual(self.polymer.mask.start, old_mask_start)
 
     def test_resolve_collisions(self):

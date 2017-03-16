@@ -144,19 +144,19 @@ class Parser:
                     length = 10
                 new_element = Promoter(element["name"],
                                        position,
-                                       position + length,
+                                       position + length - 1,
                                        element["interactions"].keys())
             elif element["type"] == "terminator":
                 new_element = Terminator(element["name"],
+                                         position + element["length"] - 2,
                                          position + element["length"] - 1,
-                                         position + element["length"],
                                          element["interactions"])
             elif element["type"] == "transcript":
                 transcript_template.append(element)
                 position -= element["rbs"]
                 new_element = False
             element["start"] = position
-            element["stop"] = position + element["length"]
+            element["stop"] = position + element["length"] - 1
             if new_element is not False:
                 dna_elements.append(new_element)
             position += element["length"]
@@ -168,7 +168,7 @@ class Parser:
                                position,
                                ["rnapol", "ecolipol"])
         else:
-            genome_mask = Mask("mask", position, position, [])
+            genome_mask = Mask("mask", position + 1, position, [])
 
         genome = Genome(self.params["genome"]["name"],
                         position,

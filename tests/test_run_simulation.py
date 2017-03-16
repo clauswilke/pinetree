@@ -68,6 +68,18 @@ class MainTest(unittest.TestCase):
 
         self.assertEqual(results.getvalue(), text)
 
+    def test_consecutive_promoters(self):
+        stdout = sys.stdout  # keep a handle on the real standard output
+        results = io.StringIO()
+        sys.stdout = results  # Choose a file-like object to write to
+        simulation.main("tests/params/consecutive_promoters.yml")
+        sys.stdout = stdout
+
+        with open('tests/output/consecutive_promoters_out.csv') as f:
+            text = f.read()
+
+        self.assertEqual(results.getvalue(), text)
+
 
 if __name__ == '__main__':
     unittest.main()

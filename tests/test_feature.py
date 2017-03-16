@@ -27,7 +27,7 @@ class TestPolymeraseMethods(unittest.TestCase):
                                        )
 
     def test_init(self):
-        self.assertEqual(self.pol.footprint, self.pol.stop - self.pol.start)
+        self.assertEqual(self.pol.footprint, self.pol.stop - self.pol.start + 1)
         self.assertEqual(self.pol.type, "polymerase")
 
     def test_move(self):
