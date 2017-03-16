@@ -1,9 +1,11 @@
-- fix: pysinthe crashes when several promoters are placed too close together
-- add comments
-- and cell volume as parameters
 - parser needs refactoring
+- and cell volume as parameters
+- rewrite parameter files and parser to use exact genomic coordinates
 - add test to make sure that cached covering counts don't go below 0
-- remove length attribute from transcripts/genomes/polymers ?
-- re-examine transcript.release() -- is this why refactoring move polymerase has been so difficult? There is no call to _check_state here
+
+- check for missing unit tests
+
+- update processing of promoters to include -35, -5, and start sites.
+- allow polymerases to run off the end of a polymer without terminator
 - make sure that genomes are organized correctly so that portions do not end up
   permanently masked
