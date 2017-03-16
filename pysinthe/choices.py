@@ -7,9 +7,9 @@ def weighted_choice(population, weights=None, *, cum_weights=None):
     """
     Adapted from Python 3.6 source code.
 
-    Return a k sized list of population elements chosen with replacement.
-    If the relative weights or cumulative weights are not specified,
-    the selections are made with equal probability.
+    Return a randomly selected element from a population. If the relative
+    weights or cumulative weights are not specified, the selections are made
+    with equal probability.
     """
     if cum_weights is None:
         if weights is None:
