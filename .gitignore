@@ -4,6 +4,9 @@
 # output from runs
 runs
 
+# tabasco params
+tabasco_params.pdf
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
