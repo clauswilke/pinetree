@@ -244,10 +244,10 @@ class Polymer:
         Move polymerase and deal with collisions and covering/uncovering of
         elements.
 
-        This method looks crazy, but it's optimized to take advantage of the
-        fact that we only ever need to look at the elements that this polymerase
-        is covering, and then one element ahead on the polymer, and one element
-        behind after the polymerase has moved.
+        This method is optimized to take advantage of the fact that we only ever
+        need to look at the elements that this polymerase is covering, and then
+        one element ahead on the polymer, and one element behind after the
+        polymerase has moved.
 
         :param pol: polymerase to move
         """
@@ -256,7 +256,7 @@ class Polymer:
             raise RuntimeError("Attempting to move unbound polymerase '{0}' "
                                "on polymer '{1}'".format(pol.name, self.name))
 
-        # Find which elements this polymerase (or mask) is covering and
+        # Find which elements this polymerase is covering and
         # temporarily uncover them
         save_index = pol.left_most_element
         while self.elements[save_index].start <= pol.stop:
@@ -278,26 +278,23 @@ class Polymer:
         if not pol_collision and not mask_collision:
             pol.move_signal.fire()
 
-        # Check for uncoverings or new interactions at the current index and
-        # one element behind
-        # TODO: check elements from left-to-right starting from
-        # left_most_element
-        if save_index > len(self.elements) - 1:
-            save_index -= 1
-        for i in range(2):
-            # print(save_index)
-            new_index = save_index - i
-            # print(new_index)
-            if new_index < 0:
-                break
-            if self.elements_intersect(pol, self.elements[new_index]):
-                pol.left_most_element = new_index
-                self.elements[new_index].cover()
+        # Check for uncoverings
+        old_index = pol.left_most_element
+        reset_index = True
+        while self.elements[old_index].start <= pol.stop:
+            if self.elements_intersect(pol, self.elements[old_index]):
+                if reset_index is True:
+                    pol.left_most_element = old_index
+                    reset_index = False
+                self.elements[old_index].cover()
                 # Resolve reactions between pol and element (e.g., terminators)
-                self._resolve_termination(pol, self.elements[new_index])
+                self._resolve_termination(pol, self.elements[old_index])
             # self._check_state(self.elements[new_index])
-            self.elements[new_index].check_state()
-            self.elements[new_index].save_state()
+            self.elements[old_index].check_state()
+            self.elements[old_index].save_state()
+            old_index += 1
+            if old_index >= len(self.elements):
+                break
 
     def _resolve_termination(self, pol, element):
         """

@@ -1,8 +1,6 @@
-- refactor _move_polymerase
 - fix: pysinthe crashes when several promoters are placed too close together
 - add comments
 - and cell volume as parameters
-- reconsider signalling structure -- too complex for some things
 - parser needs refactoring
 - add test to make sure that cached covering counts don't go below 0
 - remove length attribute from transcripts/genomes/polymers ?
