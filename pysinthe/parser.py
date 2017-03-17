@@ -3,11 +3,11 @@
 import random
 
 import yaml
-from voluptuous import Schema, Optional, Any, All, Range, Length
+from voluptuous import Schema, Optional, Any, All, Range, Length, Coerce
 
 from .feature import Promoter, Terminator
 from .polymer import Genome, Mask
-from .simulation import Simulation, SpeciesReaction, Bind
+from .simulation import Reaction, Simulation, SpeciesReaction, Bind
 
 
 class Parser:
@@ -33,6 +33,7 @@ class Parser:
         self.simulation.runtime = self.params["simulation"]["runtime"]
         self.simulation.time_step = self.params["simulation"]["time_step"]
         self.simulation.debug = self.params["simulation"]["debug"]
+        Reaction._CELL_VOLUME = float(self.params["simulation"]["cell_volume"])
 
         # Set seed
         if "seed" in self.params["simulation"]:
@@ -85,6 +86,7 @@ class Parser:
             'simulation': {Optional('seed'): All(int, Range(min=0)),
                            'runtime': All(int, Range(min=0)),
                            'time_step': All(int, Range(min=0)),
+                           'cell_volume': All(Coerce(float), Range(min=0)),
                            Optional('debug', default=False): bool},
             'genome': {'name': All(str, Length(min=1)),
                        'copy_number': All(int, Range(min=1)),

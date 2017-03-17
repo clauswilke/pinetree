@@ -2,6 +2,7 @@ simulation:
     seed: 34
     runtime: 60
     time_step: 1
+    cell_volume: 8e-16
     debug: False
 # Genome parameters
 genome:
