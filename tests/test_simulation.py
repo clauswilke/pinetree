@@ -117,6 +117,7 @@ class TestBindMethods(unittest.TestCase):
 
     def setUp(self):
         self.tracker = SpeciesTracker()
+        Reaction._CELL_VOLUME = float(8e-15)
         self.reaction = Bind(self.tracker,
                              1000,
                              "promoter1",

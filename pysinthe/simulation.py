@@ -284,6 +284,7 @@ class Simulation:
         self.reactions = []  # all reactions
         self.iteration = 0  # iteration counter
         self.alpha_list = []
+        self.alpha_sum = 0  # running sum of all propensities
 
         self.tracker.propensity_signal.connect(self.update_propensity)
 
@@ -311,7 +312,9 @@ class Simulation:
         if reaction not in self.reactions:
             reaction.index = len(self.reactions)
             try:
-                self.alpha_list.append(reaction.calculate_propensity())
+                new_prop = reaction.calculate_propensity()
+                self.alpha_list.append(new_prop)
+                self.alpha_sum += new_prop
             except KeyError:
                 self.alpha_list.append(0.0)
             self.reactions.append(reaction)
@@ -355,7 +358,7 @@ class Simulation:
         Initialize all propensities before the start of the simulation.
         """
         for index, reaction in enumerate(self.reactions):
-            self.alpha_list[index] = reaction.calculate_propensity()
+            self.update_propensity(index)
 
         prop_sum = sum(self.alpha_list)
 
@@ -368,9 +371,10 @@ class Simulation:
         """
         Update a propensity of a reaction at a given index.
         """
-        self.alpha_list[index] = float(
-            self.reactions[index].calculate_propensity()
-            )
+        new_prop = self.reactions[index].calculate_propensity()
+        diff = new_prop - self.alpha_list[index]
+        self.alpha_sum += diff
+        self.alpha_list[index] = new_prop
 
     def execute(self):
         """
@@ -379,14 +383,11 @@ class Simulation:
         # Generate random number
         random_num = random.random()
 
-        # Sum propensities
-        alpha = sum(self.alpha_list)
-
-        if alpha == 0:
-            raise RuntimeError("No more reactions can occur.")
+        # if self.alpha_sum == 0:
+        #     raise RuntimeError("No more reactions can occur.")
 
         # Calculate tau, i.e. time until next reaction
-        tau = (1/alpha)*math.log(1/random_num)
+        tau = (1/self.alpha_sum)*math.log(1/random_num)
         self.time += tau
 
         # Randomly select next reaction to execute, weighted by propensities
