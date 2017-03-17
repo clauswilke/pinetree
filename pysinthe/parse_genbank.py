@@ -4,6 +4,11 @@ from yaml import dump
 
 Entrez.email = "benjamin.r.jack@gmail.com"
 
+# NOTE: Read genbank record notes carefully to interpret genomic coordinates
+#
+# "Promoters" are really transcription start sites!!
+# Likewise, "terminators" are really the final position in a transcript
+
 # Download T7 wild-type and E. coli K12 genbank records
 handle = Entrez.efetch(db="nuccore", id=["NC_001604"], rettype="gb", retmode="text")
 
@@ -17,45 +22,32 @@ for record in records:
 
     for feature in record.features:
         # Grab coding sequences
+        print(feature)
+        start = feature.location.start.position
+        stop = feature.location.end.position
         if feature.type == "regulatory":
-            print(feature)
             length = feature.location.end.position - feature.location.start.position
             if "promoter" in feature.qualifiers["regulatory_class"]:
                 output["elements"].append({"type": "promoter",
                                            "name": feature.qualifiers["note"][0],
-                                           "length": length,
+                                           "start": start,
+                                           "stop": stop,
                                            "interactions": {"name": {"binding_constant": " "}}})
             if "terminator" in feature.qualifiers["regulatory_class"]:
                 output["elements"].append({"type": "terminator",
                                            "name": feature.qualifiers["note"][0],
-                                           "length": length,
+                                            "start": start,
+                                            "stop": stop,
                                            "interactions": {"name": {"efficiency": " "}}})
-            length_sum += length
-        if feature.type == "CDS":
+        if feature.type == "gene":
             # Record some informationa about the sequence for the FASTA header
-            if "gene" in feature.qualifiers:
-                gene_name = feature.qualifiers["gene"][0]
-            elif "product" in feature.qualifiers:
-                gene_name = feature.qualifiers["product"][0]
-            if gene_name == "hypothetical protein":
-                continue
+            gene_name = feature.qualifiers["note"][0]
 
-            # Everything should have a locus tag
-            if "locus_tag" in feature.qualifiers:
-                id = feature.qualifiers["locus_tag"][0]
-
-            # Grab protein ID if applicable
-            prot_id = "NA"
-            if "protein_id" in feature.qualifiers:
-                prot_id = feature.qualifiers["protein_id"][0]
-
-            length = feature.location.end.position - feature.location.start.position
 
             # Construct a string in FASTA format
             output["elements"].append({"type": "transcript",
                                        "name": gene_name,
-                                       "length": length,
+                                        "start": start,
+                                        "stop": stop,
                                        "rbs": -15})
-            length_sum += length
-print(length_sum)
 print(dump(output, default_flow_style=False))

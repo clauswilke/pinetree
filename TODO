@@ -1,3 +1,6 @@
+- literature search on T7 params
+- rewrite parse_genbank
+
 - parser needs refactoring
 - add test to make sure that cached covering counts don't go below 0
 
