@@ -127,7 +127,8 @@ class SpeciesReaction(Reaction):
             raise RuntimeError("Simulation does not support reactions with "
                                "more than two reactant species.")
         if len(reactants) == 2:
-            self.rate_constant = float(rate_constant)/(self._AVAGADRO*self._CELL_VOLUME)
+            self.rate_constant = float(rate_constant) / \
+                (self._AVAGADRO * self._CELL_VOLUME)
         else:
             self.rate_constant = float(rate_constant)
         self.reactants = reactants
@@ -181,7 +182,8 @@ class Bind(Reaction):
         self.tracker = tracker
         self.polymerase = pol_args[0]
         self.pol_args = pol_args
-        self.rate_constant = float(rate_constant)/(self._AVAGADRO*self._CELL_VOLUME)
+        self.rate_constant = float(rate_constant) / \
+            (self._AVAGADRO * self._CELL_VOLUME)
         self.promoter_name = promoter_name
 
         self.tracker.add_reaction(self.promoter_name, self)
