@@ -1,0 +1,56 @@
+simulation:
+    seed: 34
+    runtime: 20
+    time_step: 1
+    cell_volume: 1.6605390285703877e-24
+    debug: False
+genome:
+    name: T7
+    copy_number: 1
+# Define polymerases
+polymerases:
+- name: rnapol
+  copy_number: 0
+  speed: 40
+species:
+- name: ribosome
+  copy_number: 0
+- name: speciesX
+  copy_number: 100000
+- name: speciesY1
+  copy_number: 1000
+- name: speciesY2
+  copy_number: 1000
+- name: speciesZ
+  copy_number: 0
+reactions:
+- name: reaction1
+  propensity: 0.0001
+  reactants:
+      - speciesX
+      - speciesY1
+  products:
+      - speciesY1
+      - speciesY1
+- name: reaction2
+  propensity: 0.01
+  reactants:
+      - speciesY1
+      - speciesY2
+  products:
+      - speciesY2
+      - speciesY2
+- name: reaction3
+  propensity: 10
+  reactants:
+      - speciesY2
+  products:
+      - speciesZ
+elements:
+- name: t1
+  type: terminator
+  interactions:
+      rnapol:
+          efficiency: 1
+  start: 1
+  stop: 1

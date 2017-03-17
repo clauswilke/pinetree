@@ -57,7 +57,8 @@ class SpeciesTracker():
         if species_name not in self.species_reaction_map:
             self.species_reaction_map[species_name] = [reaction]
         else:
-            self.species_reaction_map[species_name].append(reaction)
+            if reaction not in self.species_reaction_map[species_name]:
+                self.species_reaction_map[species_name].append(reaction)
 
     def add_polymer(self, promoter_name, polymer):
         """
@@ -378,6 +379,9 @@ class Simulation:
 
         # Sum propensities
         alpha = sum(self.alpha_list)
+
+        if alpha == 0:
+            raise RuntimeError("No more reactions can occur.")
 
         # Calculate tau, i.e. time until next reaction
         tau = (1/alpha)*math.log(1/random_num)
