@@ -3,7 +3,6 @@
 
 - check for missing unit tests
 
-- cache propensities for species level reactions
 - update processing of promoters to include -35, -5, and start sites.
 - allow polymerases to run off the end of a polymer without terminator
 - make sure that genomes are organized correctly so that portions do not end up
