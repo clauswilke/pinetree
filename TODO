@@ -1,6 +1,3 @@
-- literature search on T7 params
-- rewrite parse_genbank
-
 - parser needs refactoring
 - add test to make sure that cached covering counts don't go below 0
 
@@ -8,5 +5,3 @@
 
 - update processing of promoters to include -35, -5, and start sites.
 - allow polymerases to run off the end of a polymer without terminator
-- make sure that genomes are organized correctly so that portions do not end up
-  permanently masked
