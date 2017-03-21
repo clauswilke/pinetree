@@ -9,6 +9,9 @@ genome:
     name: T7
     copy_number: 1
     entered: 15
+    mask_interactions:
+        - rnapol
+        - ecolipol
 # Define polymerases
 polymerases:
 - name: rnapol

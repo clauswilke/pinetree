@@ -33,7 +33,9 @@ class Parser:
         self.simulation.runtime = self.params["simulation"]["runtime"]
         self.simulation.time_step = self.params["simulation"]["time_step"]
         self.simulation.debug = self.params["simulation"]["debug"]
-        Reaction._CELL_VOLUME = float(self.params["simulation"]["cell_volume"])
+        Reaction._CELL_VOLUME = float(
+            self.params["simulation"]["cell_volume"]
+        )
 
         # Set seed
         if "seed" in self.params["simulation"]:
@@ -90,7 +92,8 @@ class Parser:
                            Optional('debug', default=False): bool},
             'genome': {'name': All(str, Length(min=1)),
                        'copy_number': All(int, Range(min=1)),
-                       Optional('entered'): All(int, Range(min=1))},
+                       Optional('entered'): All(int, Range(min=1)),
+                       Optional('mask_interactions'): list},
             'polymerases': All([{'name': All(str, Length(min=1)),
                                  'copy_number': All(int, Range(min=0)),
                                  'speed': All(int, Range(min=0))}],
@@ -159,10 +162,15 @@ class Parser:
 
         # Build genome
         if "entered" in genome_params:
+            if "mask_interactions" not in genome_params:
+                raise ValueError(
+                    "'mask_interactions' required if only a portion of the "
+                    "genome has entered the cell."
+                )
             genome_mask = Mask("mask",
                                genome_params["entered"],
                                last_position,
-                               ["rnapol", "ecolipol"])
+                               genome_params["mask_interactions"])
         else:
             genome_mask = Mask("mask", last_position + 1, last_position, [])
 
