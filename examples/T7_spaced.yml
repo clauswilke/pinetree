@@ -1,0 +1,560 @@
+simulation:
+    seed: 34
+    runtime: 1200
+    time_step: 5
+    cell_volume: 1.1e-15
+    debug: False
+# Genome parameters
+genome:
+    name: T7
+    copy_number: 1
+    entered: 500
+    mask_interactions:
+        - rnapol-1
+        - rnapol-3.5
+        - ecolipol
+        - ecolipol-p
+        - ecolipol-2
+        - ecolipol-2-p
+
+polymerases:
+- name: rnapol-1
+  copy_number: 0
+  speed: 230
+- name: rnapol-3.5
+  copy_number: 0
+  speed: 230
+- name: ecolipol
+  copy_number: 200
+  speed: 45
+- name: ecolipol-p
+  copy_number: 0
+  speed: 45
+- name: ecolipol-2
+  copy_number: 0
+  speed: 45
+- name: ecolipol-2-p
+  copy_number: 0
+  speed: 45
+
+species:
+- name: 'ribosome'
+  copy_number: 500
+- name: 'bound_ribosome'
+  copy_number: 9500
+- name: 'bound_ecolipol'
+  copy_number: 1600
+- name: 'ecoli_promoter'
+  copy_number: 1000
+
+reactions:
+- name: reaction0
+  propensity: 0.015
+  reactants:
+      - bound_ribosome
+  products:
+      - ribosome
+- name: ecoli_promoters
+  propensity: 1e7
+  reactants:
+      - ecolipol
+      - ecoli_promoter
+  products:
+      - bound_ecolipol
+- name: ecoli_promoters_reverse
+  propensity: 40
+  reactants:
+      - bound_ecolipol
+  products:
+      - ecolipol
+      - ecoli_promoter
+- name: reaction1
+  propensity: 3.8e7
+  reactants:
+      - protein_kinase-0.7
+      - ecolipol
+  products:
+      - ecolipol-p
+      - protein_kinase-0.7
+- name: reaction2
+  propensity: 3.8e7
+  reactants:
+      - protein_kinase-0.7
+      - ecolipol-2
+  products:
+      - ecolipol-2-p
+      - protein_kinase-0.7
+- name: reaction3
+  propensity: 3.8e7
+  reactants:
+      - gp-2
+      - ecolipol
+  products:
+      - ecolipol-2
+- name: reaction4
+  propensity: 3.8e7
+  reactants:
+      - gp-2
+      - ecolipol-p
+  products:
+      - ecolipol-2-p
+- name: reaction5
+  propensity: 1.1
+  reactants:
+      - ecolipol-2
+  products:
+      - gp-2
+      - ecolipol
+- name: reaction6
+  propensity: 1.1
+  reactants:
+      - ecolipol-2-p
+  products:
+      - gp-2
+      - ecolipol-p
+- name: reaction7
+  propensity: 3.8e7
+  reactants:
+      - lysozyme-3.5
+      - rnapol-1
+  products:
+      - rnapol-3.5
+- name: reaction8
+  propensity: 3.5
+  reactants:
+      - rnapol-3.5
+  products:
+      - rnapol-1
+      - lysozyme-3.5
+
+elements:
+- interactions:
+    ecolipol:
+      binding_constant: 10e7
+    ecolipol-p:
+      binding_constant: 3e7
+  name: E. coli promoter A1
+  start: 487
+  stop: 498
+  type: promoter
+- interactions:
+    ecolipol:
+      binding_constant: 10e7
+    ecolipol-p:
+      binding_constant: 3e7
+  name: E. coli promoter A2
+  start: 615
+  stop: 626
+  type: promoter
+- interactions:
+    ecolipol:
+      binding_constant: 10e7
+    ecolipol-p:
+      binding_constant: 3e7
+  name: E. coli promoter A3
+  start: 739
+  stop: 750
+  type: promoter
+- name: gene 0.3
+  rbs: -15
+  start: 906
+  stop: 1468
+  type: transcript
+- name: protein_kinase-0.7
+  rbs: -15
+  start: 1484
+  stop: 3138
+  type: transcript
+- interactions:
+    ecolipol:
+      binding_constant: 1e7
+    ecolipol-p:
+      binding_constant: 0.3e7
+  name: E. coli B promoter
+  start: 1503
+  stop: 1514
+  type: promoter
+- interactions:
+    ecolipol:
+      binding_constant: 1e7
+    ecolipol-p:
+      binding_constant: 0.3e7
+  name: E. coli C promoter
+  start: 3102
+  stop: 3113
+  type: promoter
+- name: rnapol-1
+  rbs: -15
+  start: 3154
+  stop: 5887
+  type: transcript
+- interactions:
+    rnapol-1:
+      binding_constant: 3.3e7
+    rnapol-3.5:
+      binding_constant: 1.6e7
+  name: T7 promoter phi1.1A
+  start: 5837
+  stop: 5848
+  type: promoter
+- name: gene 1.2
+  rbs: -15
+  start: 5905
+  stop: 6448
+  type: transcript
+- interactions:
+    rnapol-1:
+      binding_constant: 3.3e7
+    rnapol-3.5:
+      binding_constant: 1.6e7
+  name: T7 promoter phi1.1B
+  start: 5912
+  stop: 5923
+  type: promoter
+- interactions:
+    rnapol-1:
+      binding_constant: 3.3e7
+    rnapol-3.5:
+      binding_constant: 1.6e7
+  name: T7 promoter phi1.3
+  start: 6398
+  stop: 6409
+  type: promoter
+- name: gene 1.3
+  rbs: -15
+  start: 6464
+  stop: 7588
+  type: transcript
+- interactions:
+    ecolipol:
+      efficiency: 1
+    ecolipol-p:
+      efficiency: 1
+  name: E. coli transcription terminator TE
+  start: 7587
+  stop: 7588
+  type: terminator
+- name: gene 1.4
+  rbs: -15
+  start: 7623
+  stop: 7763
+  type: transcript
+- interactions:
+    rnapol-1:
+      binding_constant: 3.3e7
+    rnapol-3.5:
+      binding_constant: 1.6e7
+  name: T7 promoter phi1.5
+  start: 7767
+  stop: 7778
+  type: promoter
+- name: gene 1.5
+  rbs: -15
+  start: 7806
+  stop: 7880
+  type: transcript
+- interactions:
+    rnapol-1:
+      binding_constant: 3.3e7
+    rnapol-3.5:
+      binding_constant: 1.6e7
+  name: T7 promoter phi1.6
+  start: 7884
+  stop: 7895
+  type: promoter
+- name: gene 1.6
+  rbs: -15
+  start: 7921
+  stop: 8166
+  type: transcript
+- name: gene 2
+  rbs: -15
+  start: 8913
+  stop: 9092
+  type: transcript
+- interactions:
+    rnapol-1:
+      binding_constant: 1.8e8
+    rnapol-3.5:
+      binding_constant: 0.9e8
+  name: T7 promoter phi2.5
+  start: 9096
+  stop: 9107
+  type: promoter
+- name: gene 2.5
+  rbs: -15
+  start: 9173
+  stop: 9856
+  type: transcript
+- name: gene 2.8
+  rbs: -15
+  start: 9872
+  stop: 10276
+  type: transcript
+- name: gene 3
+  rbs: -15
+  start: 10300
+  stop: 10706
+  type: transcript
+- name: lysozyme-3.5
+  rbs: -15
+  start: 10722
+  stop: 11161
+  type: transcript
+- interactions:
+    rnapol-1:
+      binding_constant: 1.8e8
+    rnapol-3.5:
+      binding_constant: 0.9e8
+  name: T7 promoter phi3.8
+  start: 11169
+  stop: 11180
+  type: promoter
+- name: gene 3.8
+  rbs: -15
+  start: 11240
+  stop: 11590
+  type: transcript
+- name: gene 4A
+  rbs: -15
+  start: 11610
+  stop: 13265
+  type: transcript
+- interactions:
+    rnapol-1:
+      binding_constant: 1.8e8
+    rnapol-3.5:
+      binding_constant: 0.9e8
+  name: T7 promoter phi4c
+  start: 12660
+  stop: 12671
+  type: promoter
+- interactions:
+    rnapol-1:
+      binding_constant: 1.8e8
+    rnapol-3.5:
+      binding_constant: 0.9e8
+  name: T7 promoter phi4.3
+  start: 13330
+  stop: 13341
+  type: promoter
+- name: gene 4.3
+  rbs: -15
+  start: 13367
+  stop: 13564
+  type: transcript
+- name: gene 4.5
+  rbs: -15
+  start: 13599
+  stop: 13853
+  type: transcript
+- interactions:
+    rnapol-1:
+      binding_constant: 1.8e8
+    rnapol-3.5:
+      binding_constant: 0.9e8
+  name: T7 promoter phi4.7
+  start: 13904
+  stop: 13915
+  type: promoter
+- name: gene 4.7
+  rbs: -15
+  start: 13942
+  stop: 14334
+  type: transcript
+- name: gene 5
+  rbs: -15
+  start: 14368
+  stop: 16467
+  type: transcript
+- name: gene 5.3
+  rbs: -15
+  start: 16498
+  stop: 16839
+  type: transcript
+- name: possible gene 5.5-5.7
+  rbs: -15
+  start: 16866
+  stop: 17359
+  type: transcript
+- name: gene 5.9
+  rbs: -15
+  start: 17375
+  stop: 17517
+  type: transcript
+- name: gene 6
+  rbs: -15
+  start: 17530
+  stop: 18406
+  type: transcript
+- name: gene 6.3
+  rbs: -15
+  start: 18422
+  stop: 18507
+  type: transcript
+- interactions:
+    rnapol-1:
+      binding_constant: 1.8e8
+    rnapol-3.5:
+      binding_constant: 0.9e8
+  name: T7 promoter phi6.5
+  start: 18534
+  stop: 18545
+  type: promoter
+- name: gene 6.5
+  rbs: -15
+  start: 18620
+  stop: 18859
+  type: transcript
+- name: gene 6.7
+  rbs: -15
+  start: 18879
+  stop: 19130
+  type: transcript
+- name: gene 7
+  rbs: -15
+  start: 19146
+  stop: 19531
+  type: transcript
+- name: gene 7.3
+  rbs: -15
+  start: 19550
+  stop: 19834
+  type: transcript
+- name: gene 7.7
+  rbs: -15
+  start: 19863
+  stop: 20240
+  type: transcript
+- name: gene 8
+  rbs: -15
+  start: 20256
+  stop: 21850
+  type: transcript
+- interactions:
+    rnapol-1:
+      binding_constant: 1.8e8
+    rnapol-3.5:
+      binding_constant: 0.9e8
+  name: T7 promoter phi9
+  start: 21854
+  stop: 21865
+  type: promoter
+- name: gene 9
+  rbs: -15
+  start: 21965
+  stop: 22873
+  type: transcript
+- interactions:
+    rnapol-1:
+      binding_constant: 1.8e8
+    rnapol-3.5:
+      binding_constant: 0.9e8
+  name: T7 promoter phi10
+  start: 22893
+  stop: 22904
+  type: promoter
+- name: gene 10A
+  rbs: -15
+  start: 22982
+  stop: 24004
+  type: transcript
+- interactions:
+    rnapol-1:
+      efficiency: 0.8
+    rnapol-3.5:
+      efficiency: 0.8
+  name: T7 transcription terminator Tphi
+  start: 24209
+  stop: 24210
+  type: terminator
+- name: gene 11
+  rbs: -15
+  start: 24243
+  stop: 24818
+  type: transcript
+- name: gene 12
+  rbs: -15
+  start: 24857
+  stop: 27226
+  type: transcript
+- interactions:
+    name:
+      binding_constant: ' '
+  name: T7 promoter phi13
+  start: 27263
+  stop: 27274
+  type: promoter
+- name: gene 13
+  rbs: -15
+  start: 27322
+  stop: 27723
+  type: transcript
+- name: gene 14
+  rbs: -15
+  start: 27743
+  stop: 28318
+  type: transcript
+- name: gene 15
+  rbs: -15
+  start: 28340
+  stop: 30568
+  type: transcript
+- name: gene 16
+  rbs: -15
+  start: 30610
+  stop: 34551
+  type: transcript
+- interactions:
+    rnapol-1:
+      binding_constant: 1.8e8
+    rnapol-3.5:
+      binding_constant: 0.9e8
+  name: T7 promoter phi17
+  start: 34555
+  stop: 34566
+  type: promoter
+- name: gene 17
+  rbs: -15
+  start: 34639
+  stop: 36285
+  type: transcript
+- name: gene 17.5
+  rbs: -15
+  start: 36359
+  stop: 36547
+  type: transcript
+- name: gene 18
+  rbs: -15
+  start: 36568
+  stop: 36822
+  type: transcript
+- name: gene 18.5
+  rbs: -15
+  start: 36932
+  stop: 37348
+  type: transcript
+- name: gene 19
+  rbs: -15
+  start: 37385
+  stop: 39130
+  type: transcript
+- name: gene 19.3
+  rbs: -15
+  start: 38568
+  stop: 38726
+  type: transcript
+- name: gene 19.5
+  rbs: -15
+  start: 39404
+  stop: 39538
+  type: transcript
+- interactions:
+    rnapol-1:
+      efficiency: 1
+    rnapol-3.5:
+      efficiency: 1
+  start: 39549
+  stop: 39550
+  name: T-final
+  type: terminator

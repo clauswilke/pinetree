@@ -18,6 +18,10 @@ handle = Entrez.efetch(db="nuccore",
 records = SeqIO.parse(handle, "genbank")
 
 output = {"elements": []}
+old_start = 0
+old_stop = 0
+start = 0
+stop = 0
 
 for record in records:
 
@@ -29,6 +33,8 @@ for record in records:
         if feature.type == "regulatory":
             # Construct promoter params
             if "promoter" in feature.qualifiers["regulatory_class"]:
+                if stop - start < 10:
+                    start -= 10
                 output["elements"].append({
                      "type": "promoter",
                      "name": feature.qualifiers["note"][0],
@@ -50,10 +56,15 @@ for record in records:
             # Grab the gene name
             gene_name = feature.qualifiers["note"][0]
             # Construct CDS parameters for this gene
-            output["elements"].append({"type": "transcript",
-                                       "name": gene_name,
-                                       "start": start,
-                                       "stop": stop,
-                                       "rbs": -15})
+            transcript = {"type": "transcript",
+                          "name": gene_name,
+                          "start": start + 16,
+                          "stop": stop,
+                          "rbs": -15}
+            if start <= old_stop:
+                transcript["overlap"] = True
+            output["elements"].append(transcript)
+            old_start = start
+            old_stop = stop
 
 print(dump(output, default_flow_style=False))
