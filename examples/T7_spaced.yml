@@ -230,9 +230,13 @@ elements:
       efficiency: 1
     ecolipol-p:
       efficiency: 1
+    rnapol-1:
+      efficiency: 0
+    rnapol-3.5:
+      efficiency: 0
   name: E. coli transcription terminator TE
-  start: 7587
-  stop: 7588
+  start: 7590
+  stop: 7600
   type: terminator
 - name: gene 1.4
   rbs: -15
