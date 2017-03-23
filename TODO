@@ -1,4 +1,5 @@
 - add tests for overlapping elements
+- add proper writing-to-output-file (so simulation can be checked while running)
 - make sure that RBSes are handled correctly tightly-packed genomes
 - parser needs refactoring
 - add test to make sure that cached covering counts don't go below 0
