@@ -1,6 +1,6 @@
 simulation:
     seed: 34
-    runtime: 1200
+    runtime: 600
     time_step: 5
     cell_volume: 1.1e-16
     debug: False
@@ -25,7 +25,7 @@ polymerases:
   copy_number: 0
   speed: 230
 - name: ecolipol
-  copy_number: 200
+  copy_number: 20
   speed: 45
 - name: ecolipol-p
   copy_number: 0

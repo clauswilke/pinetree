@@ -107,7 +107,7 @@ class Polymer:
                                "could cause unexpected behavior."
                                .format(pol.name, promoter))
         if pol.stop > self.mask.start:
-            raise RuntimeError("Polymerase '{1}' will overlap with mask "
+            raise RuntimeError("Polymerase '{0}' will overlap with mask "
                                "upon promoter binding. This may "
                                "cause the polymerase to stall and "
                                "produce unexpected behavior."
@@ -287,7 +287,6 @@ class Polymer:
                     pol.left_most_element = old_index
                     reset_index = False
                 self.elements[old_index].cover()
-                # Resolve reactions between pol and element (e.g., terminators)
                 self._resolve_termination(pol, self.elements[old_index])
             self.elements[old_index].check_state()
             self.elements[old_index].save_state()
@@ -331,7 +330,7 @@ class Polymer:
                                    "mask by more than one position on polymer"
                                    " '{1}'.".format(pol.name, self.name))
             if self.mask.check_interaction(pol.name):
-                self.mask.recede()
+                self.shift_mask()
             else:
                 pol.move_back()
                 return True
@@ -388,6 +387,7 @@ class Polymer:
         Convert `Polymer` object to string representation showing features and
         polymerases.
         """
+        out_string = "\n" + self.name + ":\n"
         feature_locs = ["o"]*(self.length + 1)
         for i in range(self.mask.start, self.mask.stop + 1):
             feature_locs[i] = "x"
@@ -397,8 +397,11 @@ class Polymer:
         for feature in self.elements:
             for i in range(feature.start, feature.stop + 1):
                 feature_locs[i] = feature._covered
-        out_string = "\n"+self.name+": \n" + ''.join(map(str, feature_locs)) + \
-            "\n"
+        for pol in self.polymerases:
+            out_string += pol.name + " " + str(pol.start) + "," + str(pol.stop) + " " + \
+                str(pol.left_most_element) + "\n"
+        out_string += "mask " + str(self.mask.start) + "," + str(self.mask.stop) + "\n"
+        out_string += "\n" + ''.join(map(str, feature_locs)) + "\n"
         return out_string
 
 
