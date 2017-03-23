@@ -227,13 +227,13 @@ elements:
   type: transcript
 - interactions:
     ecolipol:
-      efficiency: 1
+      efficiency: 1.0
     ecolipol-p:
-      efficiency: 1
+      efficiency: 1.0
     rnapol-1:
-      efficiency: 0
+      efficiency: 0.0
     rnapol-3.5:
-      efficiency: 0
+      efficiency: 0.0
   name: E. coli transcription terminator TE
   start: 7590
   stop: 7600
