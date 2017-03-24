@@ -289,19 +289,20 @@ class Simulation:
         self.tracker.propensity_signal.connect(self.update_propensity)
 
     def run(self):
-        print(self)
+        yield self.__str__()
         old_time = 0
         while self.time < self.runtime:
             # Execute simulatio
             self.execute()
             if abs(self.time - old_time) > self.time_step:
                 # Output data every ~time_step
-                print(self)
+                yield self.__str__()
                 old_time += self.time_step
             elif self.debug is True:
-                print(self)
+                out_string = self.__str__()
                 for pol in self.reactions:
-                    print(pol)
+                    out_string += pol.__str__()
+                yield out_string
 
     def register_reaction(self, reaction):
         """

@@ -14,16 +14,33 @@ def main(my_params_file=""):
             and translation.")
 
         # Add parameter file argument
-        parser.add_argument("params", metavar="p", type=str, nargs=1,
+        parser.add_argument("params", metavar="params", type=str,
                             help="parameter file")
+        # Add optional output file
+        parser.add_argument("-o", "--outfile", metavar="outfile", type=str,
+                            help="output file")
 
         args = parser.parse_args()
-        my_params_file = args.params[0]
+        my_params_file = args.params
+        outfile = args.outfile
+    else:
+        outfile = False
 
     with open(my_params_file, "r") as my_file:
         params_parser = Parser(my_file)
 
-    params_parser.simulation.run()
+    if outfile:
+        handle = open(args.outfile, "w")
+
+    for output in params_parser.simulation.run():
+        if outfile:
+            handle.write(output)
+            handle.write("\n")
+        else:
+            print(output)
+
+    if outfile:
+        handle.close()
 
 
 if __name__ == "__main__":
