@@ -36,6 +36,7 @@ def main(my_params_file=""):
         if outfile:
             handle.write(output)
             handle.write("\n")
+            handle.flush()
         else:
             print(output)
 
