@@ -67,10 +67,16 @@ class Parser:
         self.simulation.register_genome(genome)
 
         self.simulation.tracker.increment_species("rbs", 0)
-        ribo_args = ["ribosome", 10,  # footprint
-                     30]
+        self.simulation.tracker.increment_species(
+            self.params["ribosomes"][0]["name"],
+            int(self.params["ribosomes"][0]["copy_number"])
+        )
+        ribo_args = [self.params["ribosomes"][0]["name"],
+                     self.params["ribosomes"][0]["footprint"], # (10) footprint
+                     self.params["ribosomes"][0]["speed"]] # (30) speed
         # Transcript-ribosome binding reaction
-        reaction = Bind(self.simulation.tracker, float(1e7),
+        reaction = Bind(self.simulation.tracker,
+                        self.params["ribosomes"][0]["binding_constant"],
                         "rbs",
                         ribo_args)
         self.simulation.register_reaction(reaction)
@@ -100,6 +106,14 @@ class Parser:
                                  'speed': All(int, Range(min=0)),
                                  'footprint': All(int, Range(min=1))}],
                                Length(min=1)),
+            'ribosomes': All([{'name': All(str, Length(min=1)),
+                               'copy_number': All(int, Range(min=0)),
+                               'speed': All(int, Range(min=0)),
+                               'footprint': All(int, Range(min=1)),
+                               'binding_constant': All(Coerce(float),
+                                                       Range(min=0))
+                               }],
+                             Length(min=1)),
             'elements': All([{'name': All(str, Length(min=1)),
                               'start': All(int, Range(min=0)),
                               'stop': All(int, Range(min=0)),

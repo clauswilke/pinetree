@@ -13,9 +13,14 @@ polymerases:
   copy_number: 0
   speed: 40
   footprint: 10
-species:
+# Ribosomes
+ribosomes:
 - name: ribosome
   copy_number: 0
+  speed: 30
+  footprint: 10
+  binding_constant: 1e7
+species:
 - name: speciesX
   copy_number: 100000
 - name: speciesY1
