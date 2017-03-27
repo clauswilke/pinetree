@@ -4,6 +4,3 @@
 - add test to make sure that cached covering counts don't go below 0
 
 - check for missing unit tests
-
-- update processing of promoters to include -35, -5, and start sites.
-- allow polymerases to run off the end of a polymer without terminator
