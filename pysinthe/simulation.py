@@ -413,7 +413,7 @@ class Simulation:
         """
         self.tracker.increment_species(species, -1)
 
-    def terminate_transcription(self, species, last_gene):
+    def terminate_transcription(self, species):
         """
         Terminate transcription.
 

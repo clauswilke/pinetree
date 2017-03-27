@@ -45,6 +45,7 @@ class TestPolymerMethods(unittest.TestCase):
         self.pol3.start = 40
         self.pol3.stop = 50
         self.polymer = polymer.Polymer("mygenome",
+                                       1,
                                        100,
                                        [promoter, terminator],
                                        mask)
@@ -472,7 +473,7 @@ class TestGenomeMethods(unittest.TestCase):
         self.fired = True
         self.transcript = transcript
 
-    def fire_termination(self, pol_name, last_gene):
+    def fire_termination(self, pol_name):
         self.last_pol_name = pol_name
 
     def test_bind_polymerase(self):
@@ -486,7 +487,7 @@ class TestGenomeMethods(unittest.TestCase):
         self.polymer.bind_polymerase(self.pol1, "promoter1")
         self.assertTrue(self.fired)
 
-        self.assertEqual(self.transcript.length, self.polymer.length)
+        self.assertEqual(self.transcript.stop, self.polymer.stop)
         self.assertTrue(
             self.transcript.shift_mask in self.pol1.move_signal._handlers
         )
@@ -508,7 +509,7 @@ class TestGenomeMethods(unittest.TestCase):
             self.polymer.shift_mask()
 
         self.polymer.bind_polymerase(self.pol1, "promoter1")
-        self.polymer.terminate(self.pol1, MagicMock())
+        self.polymer.terminate(self.pol1, 10, "ecolipol")
         self.assertEqual(self.last_pol_name, "ecolipol")
 
     def test_build_transcript(self):

@@ -27,7 +27,7 @@ class Polymer:
         polymerization
 
     """
-    def __init__(self, name, length, elements, mask):
+    def __init__(self, name, start, stop, elements, mask):
         """
         :param name: name of this polymer (should it be unique?)
         :param length: length of polymer (used purely for debugging, may not be
@@ -39,7 +39,8 @@ class Polymer:
         """
         self.index = 0
         self.name = name
-        self.length = length
+        self.start = start
+        self.stop = stop
         self.polymerases = []
         self.elements = elements
         self.termination_signal = Signal()  # Fires on termination
@@ -166,11 +167,10 @@ class Polymer:
         self.elements[index].check_state()
         self.elements[index].save_state()
 
-    def terminate(self, pol, element):
+    def terminate(self, pol, element_stop, element_gene=""):
         self.prop_sum -= pol.speed
-        pol.release_signal.fire(element.stop)
+        pol.release_signal.fire(element_stop)
         index = self.polymerases.index(pol)
-        self.termination_signal.fire(pol.name, element.gene)
         self.propensity_signal.fire()
         del self.polymerases[index]
         del self.prop_list[index]
@@ -293,6 +293,9 @@ class Polymer:
             old_index += 1
             if old_index >= len(self.elements):
                 break
+        # Check to see if the polymerase has run off the end of the transcript
+        if pol.start > self.stop:
+            self.terminate(pol, self.stop)
 
     def _resolve_termination(self, pol, element):
         """
@@ -311,7 +314,7 @@ class Polymer:
         random_num = random.random()
         if random_num <= element.efficiency[pol.name]["efficiency"]:
             element.uncover()
-            self.terminate(pol, element)
+            self.terminate(pol, element.stop, element.gene)
         else:
             element.readthrough = True
 
@@ -422,7 +425,7 @@ class Genome(Polymer):
         :param mask: polymer mask (i.e. portion of genome that has not yet
             entered the cell and remains inaccessible)
         """
-        super().__init__(name, length, elements, mask)
+        super().__init__(name, 1, length, elements, mask)
         self.transcript_template = transcript_template
         self.transcript_signal = Signal()  # fires upon transcript construction
 
@@ -436,13 +439,22 @@ class Genome(Polymer):
         # Bind polymerase just like in parent Polymer
         super().bind_polymerase(pol, promoter)
         # Construct transcript
-        transcript = self._build_transcript(pol.start, self.length)
+        transcript = self._build_transcript(pol.start, self.stop)
         # Connect polymerase movement signal to transcript, so that the
         # transcript knows when to expose new elements
         pol.move_signal.connect(transcript.shift_mask)
         pol.release_signal.connect(transcript.release)
         # Fire new transcript signal
         self.transcript_signal.fire(transcript)
+
+    def terminate(self, pol, element_stop, element_gene=""):
+        self.prop_sum -= pol.speed
+        pol.release_signal.fire(element_stop)
+        index = self.polymerases.index(pol)
+        self.termination_signal.fire(pol.name)
+        self.propensity_signal.fire()
+        del self.polymerases[index]
+        del self.prop_list[index]
 
     def _build_transcript(self, start, stop):
         """
@@ -478,7 +490,8 @@ class Genome(Polymer):
                                "elements from genome '{0}'.".format(self.name))
         # build transcript
         polymer = Transcript("rna",
-                             self.length,
+                             self.start,
+                             self.stop,
                              elements,
                              Mask("mask", start, stop,
                                   []))
@@ -491,8 +504,17 @@ class Transcript(Polymer):
     from Polymer in capability to receive signals from a moving polymerase and
     uncover the appropriate, "newly-synthesized" elements.
     """
-    def __init__(self, name, length, elements, mask):
-        super().__init__(name, length, elements, mask)
+    def __init__(self, name, start, stop, elements, mask):
+        super().__init__(name, start, stop, elements, mask)
+
+    def terminate(self, pol, element_stop, element_gene=""):
+        self.prop_sum -= pol.speed
+        pol.release_signal.fire(element_stop)
+        index = self.polymerases.index(pol)
+        self.termination_signal.fire(pol.name, element_gene)
+        self.propensity_signal.fire()
+        del self.polymerases[index]
+        del self.prop_list[index]
 
     def release(self, stop):
         """
