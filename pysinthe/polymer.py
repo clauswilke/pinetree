@@ -294,7 +294,7 @@ class Polymer:
             if old_index >= len(self.elements):
                 break
         # Check to see if the polymerase has run off the end of the polymer
-        if pol.start >= self.stop:
+        if pol.stop > self.stop:
             self.terminate(pol, self.stop)
 
     def _resolve_termination(self, pol, element):

@@ -1,5 +1,5 @@
 simulation:
-    seed: 30
+    seed: 34
     runtime: 60
     time_step: 1
     cell_volume: 8e-16
@@ -7,6 +7,7 @@ simulation:
 # Genome parameters
 genome:
     name: T7
+    length: 605
     copy_number: 1
 # Define polymerases
 polymerases:

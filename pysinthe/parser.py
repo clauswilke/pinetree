@@ -92,6 +92,7 @@ class Parser:
                            Optional('debug', default=False): bool},
             'genome': {'name': All(str, Length(min=1)),
                        'copy_number': All(int, Range(min=1)),
+                       Optional('length'): All(int, Range(min=1)),
                        Optional('entered'): All(int, Range(min=1)),
                        Optional('mask_interactions'): list},
             'polymerases': All([{'name': All(str, Length(min=1)),
@@ -160,6 +161,11 @@ class Parser:
                 dna_elements.append(new_element)
             last_position = element["stop"]
 
+        if "length" in genome_params:
+            genome_length = genome_params["length"]
+        else:
+            genome_length = last_position
+
         # Build genome
         if "entered" in genome_params:
             if "mask_interactions" not in genome_params:
@@ -169,13 +175,13 @@ class Parser:
                 )
             genome_mask = Mask("mask",
                                genome_params["entered"],
-                               last_position,
+                               genome_length,
                                genome_params["mask_interactions"])
         else:
-            genome_mask = Mask("mask", last_position + 1, last_position, [])
+            genome_mask = Mask("mask", genome_length + 1, genome_length, [])
 
         genome = Genome(self.params["genome"]["name"],
-                        last_position,
+                        genome_length,
                         dna_elements,
                         transcript_template,
                         genome_mask)
