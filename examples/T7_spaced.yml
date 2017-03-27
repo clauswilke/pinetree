@@ -271,7 +271,7 @@ elements:
   start: 7921
   stop: 8166
   type: transcript
-- name: gene 2
+- name: gp-2
   rbs: -15
   start: 8913
   stop: 9092
