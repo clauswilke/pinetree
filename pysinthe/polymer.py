@@ -293,10 +293,9 @@ class Polymer:
             old_index += 1
             if old_index >= len(self.elements):
                 break
-        # Check to see if the polymerase has run off the end of the transcript
-        # if pol.stop >= self.stop:
-        #     print("terminating")
-        #     self.terminate(pol, self.stop)
+        # Check to see if the polymerase has run off the end of the polymer
+        if pol.start >= self.stop:
+            self.terminate(pol, self.stop)
 
     def _resolve_termination(self, pol, element):
         """
@@ -312,9 +311,6 @@ class Polymer:
             return
         if element.readthrough:
             return
-        # if element.efficiency[pol.name]["efficiency"] == 0:
-        #     element.readthrough = True
-        #     return
         random_num = random.random()
         if random_num <= element.efficiency[pol.name]["efficiency"]:
             element.uncover()
@@ -331,6 +327,9 @@ class Polymer:
         :returns: True if the polymerase collides with the mask and shifts the
             mask backwards
         """
+        if self.mask.start > self.stop:
+            # Is there still a mask?
+            return False
         if self.elements_intersect(pol, self.mask):
             if pol.stop - self.mask.start > 1:
                 raise RuntimeError("Polymerase '{0}' is overlapping polymer "
