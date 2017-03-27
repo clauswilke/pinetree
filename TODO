@@ -1,5 +1,4 @@
 - add tests for overlapping elements
-- add support for reading frames/overlapping elements
 - parser needs refactoring
 - add test to make sure that cached covering counts don't go below 0
 
