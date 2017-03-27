@@ -26,7 +26,7 @@ stop = 0
 for record in records:
 
     for feature in record.features:
-        # print(feature)
+        print(feature)
         start = feature.location.start.position
         stop = feature.location.end.position
         # Grab promoters and terminators

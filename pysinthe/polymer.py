@@ -281,19 +281,26 @@ class Polymer:
         # Check for uncoverings
         old_index = pol.left_most_element
         reset_index = True
+        terminating = False
         while self.elements[old_index].start <= pol.stop:
             if self.elements_intersect(pol, self.elements[old_index]):
                 if reset_index is True:
                     pol.left_most_element = old_index
                     reset_index = False
-                self.elements[old_index].cover()
-                self._resolve_termination(pol, self.elements[old_index])
+                if terminating:
+                    self.elements[old_index].uncover()
+                else:
+                    self.elements[old_index].cover()
+                if not terminating:
+                    if self._resolve_termination(pol, self.elements[old_index]):
+                        old_index = pol.left_most_element - 1
+                        terminating = True
             self.elements[old_index].check_state()
             self.elements[old_index].save_state()
             old_index += 1
             if old_index >= len(self.elements):
                 break
-        # Check to see if the polymerase has run off the end of the polymer
+
         if pol.stop > self.stop:
             self.terminate(pol, self.stop)
 
@@ -306,17 +313,18 @@ class Polymer:
         :param element: element object
         """
         if element.type != "terminator":
-            return
-        if not element.check_interaction(pol.name):
-            return
+            return False
+        if not element.check_interaction(pol.name, pol.reading_frame):
+            return False
         if element.readthrough:
-            return
+            return False
         random_num = random.random()
         if random_num <= element.efficiency[pol.name]["efficiency"]:
-            element.uncover()
             self.terminate(pol, element.stop, element.gene)
+            return True
         else:
             element.readthrough = True
+            return False
 
     def _resolve_mask_collisions(self, pol):
         """
@@ -394,15 +402,15 @@ class Polymer:
         polymerases.
         """
         out_string = "\n" + self.name + ":\n"
-        feature_locs = ["o"]*(self.length + 1)
-        for i in range(self.mask.start, self.mask.stop + 1):
-            feature_locs[i] = "x"
+        feature_locs = ["o_"]*(self.stop - self.start + 2)
+        for i in range(self.mask.start, self.mask.stop):
+            feature_locs[i] = "x_"
         for index, feature in enumerate(self.polymerases):
             for i in range(feature.start, feature.stop + 1):
                 feature_locs[i] = "P" + str(index)
         for feature in self.elements:
-            for i in range(feature.start, feature.stop + 1):
-                feature_locs[i] = feature._covered
+            for i in range(feature.start, feature.stop):
+                feature_locs[i] = str(feature._covered) + "_"
         for pol in self.polymerases:
             out_string += pol.name + " " + str(pol.start) + "," + str(pol.stop) + " " + \
                 str(pol.left_most_element) + "\n"
@@ -485,12 +493,17 @@ class Genome(Polymer):
                                        element["stop"]-1,
                                        element["stop"],
                                        {"ribosome": {"efficiency": 1.0}})
+                stop_site.reading_frame = element["start"] % 3
                 stop_site.gene = element["name"]
-                elements.append(rbs)
+                if len(elements) > 0 and elements[-1].start > rbs.start:
+                    elements.insert(-1, rbs)
+                else:
+                    elements.append(rbs)
                 elements.append(stop_site)
         if len(elements) == 0:
             raise RuntimeError("Attempting to create a transcript with no "
                                "elements from genome '{0}'.".format(self.name))
+
         # build transcript
         polymer = Transcript("rna",
                              self.start,
@@ -509,6 +522,17 @@ class Transcript(Polymer):
     """
     def __init__(self, name, start, stop, elements, mask):
         super().__init__(name, start, stop, elements, mask)
+
+    def bind_polymerase(self, pol, promoter):
+        """
+        Bind a ribosome to transcript.
+
+        :param pol: polymerase to bind
+        :param promoter: name of promoter to which this polymerase binds
+        """
+        # Bind polymerase just like in parent Polymer
+        super().bind_polymerase(pol, promoter)
+        pol.reading_frame = pol.start % 3
 
     def terminate(self, pol, element_stop, element_gene=""):
         self.prop_sum -= pol.speed

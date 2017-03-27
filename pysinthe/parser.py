@@ -170,6 +170,7 @@ class Parser:
                                          element["stop"],
                                          element["interactions"])
             elif element["type"] == "transcript":
+                element["reading_frame"] = element["start"] % 3
                 transcript_template.append(element)
                 new_element = False
             if new_element is not False:

@@ -56,6 +56,7 @@ class Polymerase:
         self.bound = 0  # Record where polymerase bound to genome
         self.type = "polymerase"
         self.footprint = footprint
+        self.reading_frame = 0
         self.move_signal = eventsignal.Signal()  # signal to fire when this
         # polymerase moves
         self.release_signal = eventsignal.Signal()
@@ -174,6 +175,7 @@ class Terminator(Element):
         self.gene = ""
         self.efficiency = interactions
         self.readthrough = False
+        self.reading_frame = 0
 
     def check_state(self):
         if self.was_uncovered():
@@ -181,3 +183,12 @@ class Terminator(Element):
             self.uncover_signal.fire(self.name)
         elif self.was_covered():
             self.cover_signal.fire(self.name)
+
+    def check_interaction(self, feature_name, reading_frame):
+        """
+        Check to see if some other feature interacts with this feature.
+
+        :param feature: a feature object
+        """
+        return reading_frame is self.reading_frame and \
+            feature_name in self.interactions
