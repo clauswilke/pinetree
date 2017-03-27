@@ -97,7 +97,8 @@ class Parser:
                        Optional('mask_interactions'): list},
             'polymerases': All([{'name': All(str, Length(min=1)),
                                  'copy_number': All(int, Range(min=0)),
-                                 'speed': All(int, Range(min=0))}],
+                                 'speed': All(int, Range(min=0)),
+                                 'footprint': All(int, Range(min=1))}],
                                Length(min=1)),
             'elements': All([{'name': All(str, Length(min=1)),
                               'start': All(int, Range(min=0)),
@@ -215,7 +216,7 @@ class Parser:
                     for pol in pol_params:
                         if pol["name"] == partner:
                             pol_args = [partner,
-                                        10,  # footprint
+                                        pol["footprint"],  # (10) footprint
                                         pol["speed"]
                                         ]
                             reaction = Bind(self.simulation.tracker,

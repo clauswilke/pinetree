@@ -12,6 +12,7 @@ polymerases:
 - name: rnapol
   copy_number: 0
   speed: 40
+  footprint: 10
 species:
 - name: ribosome
   copy_number: 0

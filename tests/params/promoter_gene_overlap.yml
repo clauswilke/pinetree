@@ -17,9 +17,11 @@ polymerases:
 - name: rnapol
   copy_number: 0
   speed: 40
+  footprint: 10
 - name: ecoli
   copy_number: 10
   speed: 40
+  footprint: 10
 # Define promoters, transcripts, and terminators, in the order that they
 # are encoded in the genome.
 species:
