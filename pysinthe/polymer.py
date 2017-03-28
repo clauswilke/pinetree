@@ -311,7 +311,6 @@ class Polymer:
             if old_index >= len(self.elements):
                 break
 
-
     def _resolve_termination(self, pol, element):
         """
         Check to see if this polymerase should terminate when interacting with
