@@ -10,7 +10,7 @@ col_types = c(
   X4 = col_integer()
 )
 
-data <- read_delim("runs/full_T7_test.csv", ",", col_names = FALSE, col_types = col_types)
+data <- read_delim("runs/run_032517.out.txt", ",", col_names = FALSE, col_types = col_types)
 colnames(data) <- c("iteration", "time", "species", "count")
 
 data$time <- as.numeric(data$time)
@@ -19,7 +19,7 @@ data$species <- trimws(data$species)
 
 classes <- read_csv("runs/classes.csv")
 
-data <- filter(data, !str_detect(species, "_total$"), species != " rbs", !str_detect(species, "phi")) %>% filter(species != "rbs", species != "ribosome", !str_detect(species, "promoter"), !str_detect(species, "ecolipol"))
+data <- filter(data, !str_detect(species, "_total$"), species != " rbs", !str_detect(species, "phi")) %>% filter(species != "rbs", !str_detect(species, "promoter"))
 
 data <- left_join(data, classes)
 
@@ -38,4 +38,4 @@ plot <- ggplot(data, aes(x = time, y = count, group = species, color = factor(cl
   coord_cartesian(xlim = c(0, max(data$time) + 300)) +
   theme(legend.position = "none")
 
-save_plot("runs/T7_mini_kinase.pdf", plot, base_aspect_ratio = 1.4)
+save_plot("runs/T7_032517.pdf", plot, base_height = 12, base_width = 14)

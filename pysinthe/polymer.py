@@ -258,14 +258,7 @@ class Polymer:
 
         # Find which elements this polymerase is covering and
         # temporarily uncover them
-        save_index = pol.left_most_element
-        while self.elements[save_index].start <= pol.stop:
-            if self.elements_intersect(pol, self.elements[save_index]):
-                self.elements[save_index].save_state()
-                self.elements[save_index].uncover()
-            save_index += 1
-            if save_index >= len(self.elements):
-                break
+        self._uncover_elements(pol)
 
         # Move polymerase
         pol.move()
@@ -279,6 +272,24 @@ class Polymer:
             pol.move_signal.fire()
 
         # Check for uncoverings
+        self._recover_elements(pol)
+
+        # Terminate polymerase if it's run off the end of the polymer
+        if pol.stop > self.stop:
+            self.terminate(pol, self.stop)
+
+    def _uncover_elements(self, pol):
+        save_index = pol.left_most_element
+        while self.elements[save_index].start <= pol.stop:
+            if self.elements_intersect(pol, self.elements[save_index]):
+                self.elements[save_index].save_state()
+                self.elements[save_index].uncover()
+            save_index += 1
+            if save_index >= len(self.elements):
+                break
+
+    def _recover_elements(self, pol):
+        # Check for uncoverings
         old_index = pol.left_most_element
         reset_index = True
         terminating = False
@@ -287,11 +298,10 @@ class Polymer:
                 if reset_index is True:
                     pol.left_most_element = old_index
                     reset_index = False
-                if terminating:
+                if terminating is True:
                     self.elements[old_index].uncover()
                 else:
                     self.elements[old_index].cover()
-                if not terminating:
                     if self._resolve_termination(pol, self.elements[old_index]):
                         old_index = pol.left_most_element - 1
                         terminating = True
@@ -301,8 +311,6 @@ class Polymer:
             if old_index >= len(self.elements):
                 break
 
-        if pol.stop > self.stop:
-            self.terminate(pol, self.stop)
 
     def _resolve_termination(self, pol, element):
         """
