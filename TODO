@@ -1,5 +1,2 @@
-- add tests for overlapping elements
+- add tests for overlapping elements (elements that are encoded completely inside other elements)
 - parser needs refactoring
-- add test to make sure that cached covering counts don't go below 0
-
-- check for missing unit tests
