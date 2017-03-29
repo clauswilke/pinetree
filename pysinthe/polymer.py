@@ -46,11 +46,12 @@ class Polymer:
         self.termination_signal = Signal()  # Fires on termination
         self.propensity_signal = Signal()  # Fires when propensity changes
         self.mask = mask
-        self.prop_sum = 0
-        self.prop_list = []
+        self.prop_sum = 0  # Total propensity for all pols moving on polymer
+        self.prop_list = []  # Individual polymerase propensities (i.e. speeds)
         self.uncovered = {}  # Running count of free promoters
 
-        # Cover masked elements
+        # Cover masked elements and set up signals for covered/uncovered
+        # elements
         for element in self.elements:
             element.cover_signal.connect(self.cover_element)
             element.uncover_signal.connect(self.uncover_element)
@@ -65,21 +66,21 @@ class Polymer:
                 else:
                     self.uncovered[element.name] += 1
 
-    def bind_polymerase(self, pol, promoter):
+    def bind_polymerase(self, pol, promoter_name):
         """
         Bind a polymerase object to the polymer. Randomly select an open
         promoter with which to bind and update the polymerases position to the
         position of that promoter.
 
         :param pol: polymerase object.
-        :param promoter: the name of a promoter that pol will bind
+        :param promoter_name: the name of a promoter that pol will bind
 
         """
         found = False
         element_choices = []
         # Make list of free promoters that pol can bind
         for element in self.elements:
-            if element.name == promoter and not element.is_covered():
+            if element.name == promoter_name and not element.is_covered():
                 element_choices.append(element)
                 found = True
 
@@ -87,7 +88,7 @@ class Polymer:
             raise RuntimeError("Polymerase '{0}' could not find free "
                                "promoter '{1}' to bind to in polymer"
                                " '{2}'."
-                               .format(pol.name, promoter, self.name))
+                               .format(pol.name, promoter_name, self.name))
 
         # Randomly select promoter
         element = weighted_choice(element_choices)
@@ -95,7 +96,7 @@ class Polymer:
         if not element.check_interaction(pol.name):
             raise RuntimeError("Polymerase '{0}' does not interact with "
                                "promoter '{1}'."
-                               .format(pol.name, promoter))
+                               .format(pol.name, promoter_name))
 
         # Update polymerase coordinates
         pol.start = element.start
@@ -106,7 +107,7 @@ class Polymer:
             raise RuntimeError("Polymerase '{0}' footprint is larger than "
                                "that of promoter '{1}' it is binding to. This "
                                "could cause unexpected behavior."
-                               .format(pol.name, promoter))
+                               .format(pol.name, promoter_name))
         if pol.stop > self.mask.start:
             raise RuntimeError("Polymerase '{0}' will overlap with mask "
                                "upon promoter binding. This may "
@@ -120,9 +121,6 @@ class Polymer:
         assert element._covered == element._old_covered
         assert self.uncovered[element.name] > -1
         # Add polymerase to tracked-polymerases list
-        # Polymerases are maintained in order, such that higher-index
-        # polymerases have moved further along the DNA
-        # This make collision detection very efficient
         self._insert_polymerase(pol)
         # Update total move propensity for this polymer
         self.prop_sum += pol.speed
@@ -147,6 +145,8 @@ class Polymer:
         if self.mask.start >= self.mask.stop:
             return
 
+        # We only need to check elements that interact with the mask at the mask
+        # start, because it is the start position that shifts
         index = -1
         for i, element in enumerate(self.elements):
             if self.elements_intersect(self.mask, element):
@@ -154,23 +154,30 @@ class Polymer:
                 element.uncover()
                 index = i
                 break
-
+        # Move mask
         self.mask.recede()
-
+        # There were no elements that could be exposed by shifting the mask
         if index == -1:
             return
         # Re-cover masked elements
         if self.elements_intersect(self.mask, self.elements[index]):
             self.elements[index].cover()
         # Check for just-uncovered elements
-        # self._check_state(self.elements[index])
         self.elements[index].check_state()
         self.elements[index].save_state()
 
-    def terminate(self, pol, element_stop, element_gene=""):
+    def terminate(self, pol, element_gene):
+        """
+        Terminate polymerization reaction, fire the appropriate signals,
+        reduce the total propensity of this polymer, and then delete the
+        polymerase object itself.
+
+        :param pol: polymerase object to be deleted
+        :param element_stop:
+        """
         self.prop_sum -= pol.speed
-        pol.release_signal.fire(element_stop)
         index = self.polymerases.index(pol)
+        self.termination_signal.fire(pol.name, element_gene)
         self.propensity_signal.fire()
         del self.polymerases[index]
         del self.prop_list[index]
@@ -184,14 +191,27 @@ class Polymer:
         return self.uncovered[species]
 
     def cover_element(self, species):
+        """
+        Update the cached count of uncovered promoters/elements.
+
+        :param species: name of element to cover
+        """
         self.uncovered[species] -= 1
+        if self.uncovered[species] < 0:
+            raise RuntimeError("Cached count of uncovered element '{0}' cannot"
+                               "be a negative value.".format(species))
 
     def uncover_element(self, species):
+        """
+        Update the cached count of uncovered promoters/elements.
+
+        :param species: name of element to uncover
+        """
         self.uncovered[species] += 1
 
     def calculate_propensity(self):
         """
-        Calculate the total propensity of all polymerase movement in this
+        Return the (cached) total propensity of all polymerase movement in this
         polymer.
 
         :returns: total propensity
@@ -211,6 +231,9 @@ class Polymer:
             raise RuntimeError("Polymerase '{0}' is already present on polymer"
                                " '{1}'.".format(pol.name, self.name)
                                )
+        # Polymerases are maintained in order, such that higher-index
+        # polymerases have moved further along the DNA
+        # This make collision detection very efficient
         found_position = False
         insert_position = 0
         for index, old_pol in enumerate(self.polymerases):
@@ -327,7 +350,7 @@ class Polymer:
             return False
         random_num = random.random()
         if random_num <= element.efficiency[pol.name]["efficiency"]:
-            self.terminate(pol, element.stop, element.gene)
+            self.terminate(pol, element.gene)
             return True
         else:
             element.readthrough = True
@@ -461,18 +484,8 @@ class Genome(Polymer):
         # Connect polymerase movement signal to transcript, so that the
         # transcript knows when to expose new elements
         pol.move_signal.connect(transcript.shift_mask)
-        pol.release_signal.connect(transcript.release)
         # Fire new transcript signal
         self.transcript_signal.fire(transcript)
-
-    def terminate(self, pol, element_stop, element_gene=""):
-        self.prop_sum -= pol.speed
-        pol.release_signal.fire(element_stop)
-        index = self.polymerases.index(pol)
-        self.termination_signal.fire(pol.name)
-        self.propensity_signal.fire()
-        del self.polymerases[index]
-        del self.prop_list[index]
 
     def _build_transcript(self, start, stop):
         """
@@ -539,24 +552,5 @@ class Transcript(Polymer):
         """
         # Bind polymerase just like in parent Polymer
         super().bind_polymerase(pol, promoter)
+        # Set the reading frame of the polymerase
         pol.reading_frame = pol.start % 3
-
-    def terminate(self, pol, element_stop, element_gene=""):
-        self.prop_sum -= pol.speed
-        pol.release_signal.fire(element_stop)
-        index = self.polymerases.index(pol)
-        self.termination_signal.fire(pol.name, element_gene)
-        self.propensity_signal.fire()
-        del self.polymerases[index]
-        del self.prop_list[index]
-
-    def release(self, stop):
-        """
-        Roll back mask to a given stop point.
-
-        FIX: Where do we check for newly-revealed elements?
-
-        :param stop: stop site in genomic coordinates
-        """
-        jump = stop - self.mask.start
-        self.mask.start += jump

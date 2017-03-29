@@ -58,15 +58,18 @@ class TestPolymerMethods(unittest.TestCase):
         self.assertFalse(promoter.was_uncovered())
         self.assertEqual(self.polymer.uncovered["promoter1"], 0)
         self.assertEqual(self.polymer.uncovered["myterm"], 0)
-        self.fired = False
-        self.polymer.propensity_signal.connect(self.fire)
+        self.fired_termination = False
+        self.polymer.termination_signal.connect(self.fire_termination)
+        self.fired_propensity = 0
+        self.polymer.propensity_signal.connect(self.fire_propensity)
         self.promoter_fired = 0
         self.block_fired = 0
-        # self.polymer.promoter_signal.connect(self.fire_promoter)
-        # self.polymer.block_signal.connect(self.fire_block)
 
-    def fire(self):
-        self.fired = True
+    def fire_termination(self, pol_name, gene_name):
+        self.fired_termination = True
+
+    def fire_propensity(self):
+        self.fired_propensity += 1
 
     def fire_promoter(self, name):
         self.promoter_fired += 1
@@ -89,7 +92,7 @@ class TestPolymerMethods(unittest.TestCase):
         self.assertEqual(self.pol1.stop, 14)
         self.assertEqual(self.polymer.uncovered["promoter1"], 0)
         self.assertEqual(self.polymer.prop_sum, 30)
-        self.assertTrue(self.fired)
+        self.assertEqual, (self.fired_propensity, 1)
 
     def test_execute(self):
         self.setUp()
@@ -128,7 +131,7 @@ class TestPolymerMethods(unittest.TestCase):
         self.assertFalse(self.polymer.elements[0].is_covered())
         self.assertTrue(self.polymer.elements[1].is_covered())
 
-        for i in range(200):
+        for i in range(1000):
             self.polymer.shift_mask()
         # Make sure mask can't get shifted beyond its end position
         self.assertEqual(self.polymer.mask.start, self.polymer.mask.stop)
@@ -142,10 +145,10 @@ class TestPolymerMethods(unittest.TestCase):
         self.polymer.bind_polymerase(self.pol1, "promoter1")
 
         old_prop_sum = self.polymer.prop_sum
-        self.polymer.terminate(self.pol1, MagicMock())
+        self.polymer.terminate(self.pol1, "my_gene")
 
         self.assertNotEqual(self.polymer.prop_sum, old_prop_sum)
-        self.assertTrue(self.fire)
+        self.assertTrue(self.fired_termination)
         with self.assertRaises(ValueError):
             self.polymer.polymerases.index(self.pol1)
 
@@ -230,7 +233,7 @@ class TestPolymerMethods(unittest.TestCase):
         self.assertFalse(self.polymer.elements[0].is_covered())
         # Make sure that the mask has also moved appropriately
         self.assertEqual(self.polymer.mask.start, self.pol1.stop + 1)
-        self.assertEqual(self.promoter_fired, 2)
+        self.assertEqual(self.fired_propensity, 1)
 
         # Check collisions between polymerases
         self.polymer.bind_polymerase(self.pol2, "promoter1")
@@ -402,7 +405,7 @@ class TestPolymerMethods(unittest.TestCase):
         self.assertTrue(self.polymer.elements_intersect(element2, element1))
 
 
-class TestGenomeMethods(unittest.TestCase):
+class TestGenomeMethods(TestPolymerMethods):
 
     def setUp(self):
         promoter = feature.Promoter("promoter1",
@@ -464,17 +467,15 @@ class TestGenomeMethods(unittest.TestCase):
                                       [promoter, terminator],
                                       self.transcript_template,
                                       mask)
-        self.polymer.transcript_signal.connect(self.fire)
+        self.fired_propensity = 0
+        self.polymer.propensity_signal.connect(self.fire_propensity)
+        self.polymer.transcript_signal.connect(self.fire_transcript)
         self.polymer.termination_signal.connect(self.fire_termination)
-        self.fired = False
-        self.last_pol_name = ""
+        self.fired_transcript = False
 
-    def fire(self, transcript):
-        self.fired = True
+    def fire_transcript(self, transcript):
+        self.fired_transcript = True
         self.transcript = transcript
-
-    def fire_termination(self, pol_name):
-        self.last_pol_name = pol_name
 
     def test_bind_polymerase(self):
         with self.assertRaises(RuntimeError):
@@ -483,16 +484,13 @@ class TestGenomeMethods(unittest.TestCase):
         for i in range(20):
             self.polymer.shift_mask()
 
-        self.assertFalse(self.fired)
+        self.assertFalse(self.fired_transcript)
         self.polymer.bind_polymerase(self.pol1, "promoter1")
-        self.assertTrue(self.fired)
+        self.assertTrue(self.fired_transcript)
 
         self.assertEqual(self.transcript.stop, self.polymer.stop)
         self.assertTrue(
             self.transcript.shift_mask in self.pol1.move_signal._handlers
-        )
-        self.assertTrue(
-            self.transcript.release in self.pol1.release_signal._handlers
         )
 
         # Test that mask in transcript gets uncovered appropriately as
@@ -502,15 +500,6 @@ class TestGenomeMethods(unittest.TestCase):
             self.polymer._move_polymerase(self.pol1)
 
         self.assertEqual(self.transcript.mask.start, old_mask_start + 10)
-
-    def test_terminate(self):
-        self.setUp()
-        for i in range(20):
-            self.polymer.shift_mask()
-
-        self.polymer.bind_polymerase(self.pol1, "promoter1")
-        self.polymer.terminate(self.pol1, 10, "ecolipol")
-        self.assertEqual(self.last_pol_name, "ecolipol")
 
     def test_build_transcript(self):
         self.setUp()
@@ -548,75 +537,7 @@ class TestGenomeMethods(unittest.TestCase):
 
 
 class TestTranscriptMethods(unittest.TestCase):
-
-    def setUp(self):
-        promoter = feature.Promoter("promoter1",
-                                    5,
-                                    15,
-                                    ["ecolipol", "rnapol"]
-                                    )
-        terminator = feature.Terminator("myterm",
-                                        50,
-                                        55,
-                                        {"rnapol": {"efficiency": 1.0},
-                                         "ecolipol": {"efficiency": 0.6}
-                                         })
-        mask = feature.Mask("mask",
-                            10,
-                            700,
-                            ["ecolipol"])
-
-        self.transcript_template = [{'type': 'transcript',
-                                     'name': 'rnapol',
-                                     'length': 200,
-                                     'start': 10,
-                                     'stop': 210,
-                                     'rbs': -15},
-                                    {'type': 'transcript',
-                                     'name': 'proteinX',
-                                     'length': 40,
-                                     'start': 230,
-                                     'stop': 270,
-                                     'rbs': -15},
-                                    {'type': 'transcript',
-                                     'name': 'proteinY',
-                                     'length': 300,
-                                     'start': 300,
-                                     'stop': 600,
-                                     'rbs': -15}]
-
-        self.polymer = polymer.Genome("mygenome",
-                                      700,
-                                      [promoter, terminator],
-                                      self.transcript_template,
-                                      mask)
-        self.fired = False
-        self.last_pol_name = ""
-
-        self.ribo = feature.Polymerase("ribosome",
-                                       10,
-                                       30
-                                       )
-
-        self.transcript = self.polymer._build_transcript(0, 220)
-        self.transcript.termination_signal.connect(self.fire_termination)
-
-    def fire_termination(self, pol_name, gene_name):
-        self.gene_name = gene_name
-        self.pol_name = pol_name
-
-    def test_terminate(self):
-        for i in range(50):
-            self.transcript.shift_mask()
-
-        self.transcript.bind_polymerase(self.ribo, "rbs")
-        self.ribo.last_gene = "rnapol"
-        self.transcript.terminate(self.ribo, MagicMock())
-
-        self.assertEqual(self.pol_name, "ribosome")
-
-    def test_release(self):
-        old_mask_start = self.transcript.mask.start
-        self.transcript.release(220)
-        self.assertEqual(220, self.transcript.mask.start)
-        self.assertNotEqual(old_mask_start, self.transcript.mask.start)
+    """
+    No transcript methods to test right now...
+    """
+    pass

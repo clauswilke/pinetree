@@ -413,14 +413,15 @@ class Simulation:
         """
         self.tracker.increment_species(species, -1)
 
-    def terminate_transcription(self, species):
+    def terminate_transcription(self, species, gene):
         """
         Terminate transcription.
 
         :param polymer: the newly constructed transcript
         :param species: name of the polymerase completing transcription
-        :param reactants: list of reactants to add to species-level pool
-            (usually RBSs)
+        :param gene: the last gene that the polymerase encountered (not
+            currently used, but may eventually be convered to a list of genes
+            on the transcript)
         """
         self.tracker.increment_species(species, 1)
         self.count_termination("transcript")
@@ -432,6 +433,7 @@ class Simulation:
         :param name: name of the protein being produced
         :param species: name of species that just translated this protein
             (usually 'ribosome')
+        :param protein: name of newly-synthesized protein
         """
         self.tracker.increment_species(species, 1)
         self.tracker.increment_species(protein, 1)
@@ -439,7 +441,11 @@ class Simulation:
 
     def count_termination(self, name):
         """
-        Record when a polymerase reaches a terminator.
+        Record when a polymerase reaches a terminator. This allows us to easily
+        track the total quantity of a given species synthesized over the course
+        of the simulation, rather than just the free species-level counts.
+
+        :param name: name of transcript/protein to record
         """
         name = name + "_total"
         if name not in self.terminations.keys():
