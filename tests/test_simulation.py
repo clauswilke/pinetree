@@ -168,11 +168,6 @@ class TestBridgeMethods(unittest.TestCase):
         self.reaction.execute()
         self.assertTrue(self.mock_polymer.execute.called)
 
-    def test_update(self):
-        self.reaction.update()
-        # index will not yet have been set
-        self.mock_signal.return_value.fire.assert_called_with(-1)
-
 
 class TestSimulationMethods(unittest.TestCase):
 

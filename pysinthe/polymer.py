@@ -44,7 +44,6 @@ class Polymer:
         self.polymerases = []
         self.elements = elements
         self.termination_signal = Signal()  # Fires on termination
-        self.propensity_signal = Signal()  # Fires when propensity changes
         self.mask = mask
         self.prop_sum = 0  # Total propensity for all pols moving on polymer
         self.prop_list = []  # Individual polymerase propensities (i.e. speeds)
@@ -117,14 +116,12 @@ class Polymer:
         # Cover promoter
         element.cover()
         element.save_state()
-        self.uncovered[element.name] -= 1
-        assert element._covered == element._old_covered
-        assert self.uncovered[element.name] > -1
+        # Cover promoter in cache
+        self.cover_element(element.name)
         # Add polymerase to tracked-polymerases list
         self._insert_polymerase(pol)
         # Update total move propensity for this polymer
         self.prop_sum += pol.speed
-        self.propensity_signal.fire()
 
     def execute(self):
         """
@@ -173,12 +170,11 @@ class Polymer:
         polymerase object itself.
 
         :param pol: polymerase object to be deleted
-        :param element_stop:
+        :param element_gene: last gene polymerase passed over before terminating
         """
         self.prop_sum -= pol.speed
         index = self.polymerases.index(pol)
-        self.termination_signal.fire(pol.name, element_gene)
-        self.propensity_signal.fire()
+        self.termination_signal.fire(self.index, pol.name, element_gene)
         del self.polymerases[index]
         del self.prop_list[index]
 

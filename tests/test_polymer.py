@@ -60,16 +60,11 @@ class TestPolymerMethods(unittest.TestCase):
         self.assertEqual(self.polymer.uncovered["myterm"], 0)
         self.fired_termination = False
         self.polymer.termination_signal.connect(self.fire_termination)
-        self.fired_propensity = 0
-        self.polymer.propensity_signal.connect(self.fire_propensity)
         self.promoter_fired = 0
         self.block_fired = 0
 
-    def fire_termination(self, pol_name, gene_name):
+    def fire_termination(self, index, pol_name, gene_name):
         self.fired_termination = True
-
-    def fire_propensity(self):
-        self.fired_propensity += 1
 
     def fire_promoter(self, name):
         self.promoter_fired += 1
@@ -92,7 +87,6 @@ class TestPolymerMethods(unittest.TestCase):
         self.assertEqual(self.pol1.stop, 14)
         self.assertEqual(self.polymer.uncovered["promoter1"], 0)
         self.assertEqual(self.polymer.prop_sum, 30)
-        self.assertEqual, (self.fired_propensity, 1)
 
     def test_execute(self):
         self.setUp()
@@ -233,7 +227,6 @@ class TestPolymerMethods(unittest.TestCase):
         self.assertFalse(self.polymer.elements[0].is_covered())
         # Make sure that the mask has also moved appropriately
         self.assertEqual(self.polymer.mask.start, self.pol1.stop + 1)
-        self.assertEqual(self.fired_propensity, 1)
 
         # Check collisions between polymerases
         self.polymer.bind_polymerase(self.pol2, "promoter1")
@@ -467,8 +460,7 @@ class TestGenomeMethods(TestPolymerMethods):
                                       [promoter, terminator],
                                       self.transcript_template,
                                       mask)
-        self.fired_propensity = 0
-        self.polymer.propensity_signal.connect(self.fire_propensity)
+
         self.polymer.transcript_signal.connect(self.fire_transcript)
         self.polymer.termination_signal.connect(self.fire_termination)
         self.fired_transcript = False

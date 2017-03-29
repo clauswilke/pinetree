@@ -216,6 +216,8 @@ class Bind(Reaction):
         # Construct new polymerase
         new_pol = Polymerase(*self.pol_args)
         polymer.bind_polymerase(new_pol, self.promoter_name)
+        # Update propensity of bridge reaction
+        self.tracker.propensity_signal.fire(polymer.index)
 
         self.tracker.increment_species(self.promoter_name, -1)
         self.tracker.increment_species(self.polymerase, -1)
@@ -235,9 +237,6 @@ class Bridge(Reaction):
         """
         super().__init__()
         self.polymer = polymer
-        self.propensity_signal = Signal()  # Signal to fire when propensity
-        # needs to be updated
-        polymer.propensity_signal.connect(self.update)
 
     def calculate_propensity(self):
         """
@@ -253,13 +252,6 @@ class Bridge(Reaction):
         Execute reaction within polymer (e.g. typically moving a polymerase).
         """
         self.polymer.execute()
-
-    def update(self):
-        """
-        Fires when polymer removes a polymerase from polymer and propensity
-        needs to be updated.
-        """
-        self.propensity_signal.fire(self.index)
 
     def __str__(self):
         """
@@ -335,8 +327,8 @@ class Simulation:
 
         # Encapsulate polymer in Bridge reaction and add to reaction list
         bridge = Bridge(polymer)
-        bridge.propensity_signal.connect(self.update_propensity)
         self.register_reaction(bridge)
+        polymer.index = bridge.index
 
     def register_genome(self, genome):
         self.register_polymer(genome)
@@ -413,7 +405,7 @@ class Simulation:
         """
         self.tracker.increment_species(species, -1)
 
-    def terminate_transcription(self, species, gene):
+    def terminate_transcription(self, polymer_index, species, gene):
         """
         Terminate transcription.
 
@@ -424,9 +416,10 @@ class Simulation:
             on the transcript)
         """
         self.tracker.increment_species(species, 1)
+        self.update_propensity(polymer_index)
         self.count_termination("transcript")
 
-    def terminate_translation(self, species, protein):
+    def terminate_translation(self, polymer_index, species, protein):
         """
         Terminate translation.
 
@@ -437,6 +430,7 @@ class Simulation:
         """
         self.tracker.increment_species(species, 1)
         self.tracker.increment_species(protein, 1)
+        self.update_propensity(polymer_index)
         self.count_termination(protein)
 
     def count_termination(self, name):
