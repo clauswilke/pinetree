@@ -1,7 +1,7 @@
 simulation:
     seed: 34
     runtime: 1200
-    time_step: 1
+    time_step: 5
     cell_volume: 1.1e-15
     debug: False
 # Genome parameters
@@ -27,7 +27,7 @@ polymerases:
   speed: 230
   footprint: 35
 - name: ecolipol
-  copy_number: 50
+  copy_number: 0
   speed: 45
   footprint: 35
 - name: ecolipol-p
@@ -45,31 +45,33 @@ polymerases:
 
 ribosomes:
 - name: ribosome
-  copy_number: 500
+  copy_number: 0
   speed: 30
   footprint: 30
   binding_constant: 1e7
 
 species:
 - name: bound_ribosome
-  copy_number: 9500
+  copy_number: 10000 # Assume 10000 total ribosomes bound
 - name: bound_ecolipol
-  copy_number: 1750
+  copy_number: 1800
+- name: bound_ecolipol_p
+  copy_number: 0
 - name: ecoli_genome
-  copy_number: 1000
+  copy_number: 0
 - name: ecoli_transcript
-  copy_number: 5000
+  copy_number: 0
 
 reactions:
-- name: ecoli_transcripts
+- name: ecoli_transcripts # Assumes that each ribosome binds to one RBS
   propensity: 1e7
   reactants:
       - ecoli_transcript
       - ribosome
   products:
       - bound_ribosome
-- name: ecoli_transcripts_reverse
-  propensity: 0.015
+- name: ecoli_transcripts_reverse # Assumes that ~1000nt transcript and 30bp/s
+  propensity: 0.04
   reactants:
       - bound_ribosome
   products:
@@ -82,19 +84,35 @@ reactions:
   products:
       - degraded_transcript
 - name: ecoli_promoters
-  propensity: 1e7
+  propensity: 1e7 # Corresponds to weak E. coli promoter
   reactants:
       - ecolipol
       - ecoli_genome
   products:
       - bound_ecolipol
-- name: ecoli_promoters_reverse
-  propensity: 0.015
+- name: ecoli_promoters_p
+  propensity: 0.3e7 # Corresponds to weak E. coli promoter
+  reactants:
+      - ecolipol-p
+      - ecoli_genome
+  products:
+      - bound_ecolipol_p
+- name: ecoli_promoters_reverse # Assumes 1 new RBS per 1000nt gene
+  propensity: 0.04
   reactants:
       - bound_ecolipol
   products:
       - ecolipol
       - ecoli_genome
+      - ecoli_transcript
+- name: ecoli_promoters_p_reverse # Assumes 1 new RBS per 1000nt gene
+  propensity: 0.04
+  reactants:
+      - bound_ecolipol_p
+  products:
+      - ecolipol-p
+      - ecoli_genome
+      - ecoli_transcript
 - name: reaction1
   propensity: 3.8e7
   reactants:
