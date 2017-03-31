@@ -10,6 +10,7 @@ def get_promoter_interactions(name):
                   "E. coli C promoter"]
     phage_weak = ["T7 promoter phi1.1A",
                   "T7 promoter phi1.1B",
+                  "T7 promoter phi1.3",
                   "T7 promoter phi1.5",
                   "T7 promoter phi1.6"]
     phage_strong = ["T7 promoter phi2.5",
@@ -60,7 +61,10 @@ ignore_genes = ["gene 10B",
                 "gene 0.6B",
                 "possible gene 0.6B",
                 "gene 0.5",
-                "gene 0.4"]
+                "gene 0.4",
+                "gene 19.2",
+                "gene 18.7",
+                "gene 19.3"]
 ignore_regulatory = ["E. coli promoter E[6]",
                      "T7 promoter phiOR",
                      "T7 promoter phiOL",

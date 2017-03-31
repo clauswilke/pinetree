@@ -259,8 +259,10 @@ elements:
   stop: 5923
   type: promoter
 - interactions:
-    name:
-      binding_constant: 0.0
+    rnapol-1:
+      binding_constant: 33000000.0
+    rnapol-3.5:
+      binding_constant: 16000000.0
   name: T7 promoter phi1.3
   start: 6373
   stop: 6409
