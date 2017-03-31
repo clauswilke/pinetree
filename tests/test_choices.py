@@ -1,9 +1,9 @@
 import unittest
 import random
-from pysinthe.choices import weighted_choice
-# import cppimport
-# module = cppimport.imp("pysinthe.c_choices")
-# weighted_choice = module.c_choices.weighted_choice
+# from pysinthe.choices import weighted_choice
+import cppimport
+module = cppimport.imp("pysinthe.c_choices")
+weighted_choice = module.c_choices.weighted_choice
 
 
 class TestFeatureMethods(unittest.TestCase):
@@ -22,5 +22,12 @@ class TestFeatureMethods(unittest.TestCase):
         output = 0
         for i in range(100):
             output += weighted_choice(population, weights)
-
         self.assertEqual(output, 3228)
+
+        # Shuffle weights
+        random.shuffle(weights)
+        output = 0
+        for i in range(100):
+            output += weighted_choice(population, weights)
+
+        self.assertEqual(output, 2432)
