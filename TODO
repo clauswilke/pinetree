@@ -1,2 +1,1 @@
-- add tests for overlapping elements (elements that are encoded completely inside other elements)
 - parser needs refactoring
