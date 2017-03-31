@@ -157,6 +157,7 @@ class Parser:
         dna_elements = []
         transcript_template = []
         last_position = 0
+        old_transcript_stop = 0
         for element in element_params:
             if element["type"] == "promoter":
                 # Add 1 because genome coordinates are inclusive
@@ -170,6 +171,13 @@ class Parser:
                                          element["stop"],
                                          element["interactions"])
             elif element["type"] == "transcript":
+                if old_transcript_stop > element["stop"]:
+                    raise RuntimeError("Transcript '{0}' falls entirely within "
+                                       "the previous gene. This can cause "
+                                       "unexpected behavior. Please delete "
+                                       "transcript or change its coordinates."
+                                       .format(element["name"]))
+                old_transcript_stop = element["stop"]
                 element["reading_frame"] = element["start"] % 3
                 transcript_template.append(element)
                 new_element = False

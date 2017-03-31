@@ -605,25 +605,10 @@ elements:
   start: 36916
   stop: 37348
   type: transcript
-- name: gene 18.7
-  rbs: -30
-  start: 37031
-  stop: 37283
-  type: transcript
 - name: gene 19
   rbs: -30
   start: 37369
   stop: 39130
-  type: transcript
-- name: gene 19.2
-  rbs: -30
-  start: 38015
-  stop: 38273
-  type: transcript
-- name: gene 19.3
-  rbs: -30
-  start: 38552
-  stop: 38726
   type: transcript
 - name: gene 19.5
   rbs: -30

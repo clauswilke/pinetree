@@ -1,3 +1,7 @@
+# Knocked out all T7 promoters before phi6.5, except for phi 1.3 because it's
+# right before an E. coli terminator TE. If you knock out all T7 promoters
+# before TE, the phage would presumably not grow.
+
 simulation:
     seed: 34
     runtime: 1200
@@ -20,11 +24,11 @@ genome:
 polymerases:
 - name: rnapol-1
   copy_number: 0
-  speed: 230
+  speed: 45
   footprint: 35
 - name: rnapol-3.5
   copy_number: 0
-  speed: 230
+  speed: 45
   footprint: 35
 - name: ecolipol
   copy_number: 0
@@ -233,29 +237,11 @@ elements:
   start: 3138
   stop: 5887
   type: transcript
-- interactions:
-    rnapol-1:
-      binding_constant: 33000000.0
-    rnapol-3.5:
-      binding_constant: 16000000.0
-  name: T7 promoter phi1.1A
-  start: 5812
-  stop: 5848
-  type: promoter
 - name: gene 1.2
   rbs: -30
   start: 5887
   stop: 6448
   type: transcript
-- interactions:
-    rnapol-1:
-      binding_constant: 33000000.0
-    rnapol-3.5:
-      binding_constant: 16000000.0
-  name: T7 promoter phi1.1B
-  start: 5887
-  stop: 5923
-  type: promoter
 - interactions:
     name:
       binding_constant: 0.0
@@ -286,29 +272,11 @@ elements:
   start: 7607
   stop: 7763
   type: transcript
-- interactions:
-    rnapol-1:
-      binding_constant: 33000000.0
-    rnapol-3.5:
-      binding_constant: 16000000.0
-  name: T7 promoter phi1.5
-  start: 7742
-  stop: 7778
-  type: promoter
 - name: gene 1.5
   rbs: -30
   start: 7790
   stop: 7880
   type: transcript
-- interactions:
-    rnapol-1:
-      binding_constant: 33000000.0
-    rnapol-3.5:
-      binding_constant: 16000000.0
-  name: T7 promoter phi1.6
-  start: 7859
-  stop: 7895
-  type: promoter
 - name: gene 1.6
   rbs: -30
   start: 7905
@@ -329,15 +297,6 @@ elements:
   start: 8897
   stop: 9092
   type: transcript
-- interactions:
-    rnapol-1:
-      binding_constant: 180000000.0
-    rnapol-3.5:
-      binding_constant: 90000000.0
-  name: T7 promoter phi2.5
-  start: 9071
-  stop: 9107
-  type: promoter
 - name: gene 2.5
   rbs: -30
   start: 9157
@@ -358,15 +317,6 @@ elements:
   start: 10705
   stop: 11161
   type: transcript
-- interactions:
-    rnapol-1:
-      binding_constant: 180000000.0
-    rnapol-3.5:
-      binding_constant: 90000000.0
-  name: T7 promoter phi3.8
-  start: 11144
-  stop: 11180
-  type: promoter
 - name: gene 3.8
   rbs: -30
   start: 11224
@@ -377,29 +327,11 @@ elements:
   start: 11564
   stop: 13265
   type: transcript
-- interactions:
-    rnapol-1:
-      binding_constant: 180000000.0
-    rnapol-3.5:
-      binding_constant: 90000000.0
-  name: T7 promoter phi4c
-  start: 12635
-  stop: 12671
-  type: promoter
 - name: gene 4.2
   rbs: -30
   start: 12987
   stop: 13326
   type: transcript
-- interactions:
-    rnapol-1:
-      binding_constant: 180000000.0
-    rnapol-3.5:
-      binding_constant: 90000000.0
-  name: T7 promoter phi4.3
-  start: 13305
-  stop: 13341
-  type: promoter
 - name: gene 4.3
   rbs: -30
   start: 13351
@@ -410,15 +342,6 @@ elements:
   start: 13583
   stop: 13853
   type: transcript
-- interactions:
-    rnapol-1:
-      binding_constant: 180000000.0
-    rnapol-3.5:
-      binding_constant: 90000000.0
-  name: T7 promoter phi4.7
-  start: 13879
-  stop: 13915
-  type: promoter
 - name: gene 4.7
   rbs: -30
   start: 13926
@@ -603,25 +526,10 @@ elements:
   start: 36916
   stop: 37348
   type: transcript
-- name: gene 18.7
-  rbs: -30
-  start: 37031
-  stop: 37283
-  type: transcript
 - name: gene 19
   rbs: -30
   start: 37369
   stop: 39130
-  type: transcript
-- name: gene 19.2
-  rbs: -30
-  start: 38015
-  stop: 38273
-  type: transcript
-- name: gene 19.3
-  rbs: -30
-  start: 38552
-  stop: 38726
   type: transcript
 - name: gene 19.5
   rbs: -30
