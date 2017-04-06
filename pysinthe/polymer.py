@@ -344,6 +344,10 @@ class Polymer:
             return False
         if element.readthrough:
             return False
+        # Should only terminate when right end of polymerase reaches left end
+        # of element
+        if pol.stop != element.start:
+            return False
         random_num = random.random()
         if random_num <= element.efficiency[pol.name]["efficiency"]:
             self.terminate(pol, element.gene)
@@ -476,14 +480,14 @@ class Genome(Polymer):
         # Bind polymerase just like in parent Polymer
         super().bind_polymerase(pol, promoter)
         # Construct transcript
-        transcript = self._build_transcript(pol.start, self.stop)
+        transcript = self._build_transcript(pol.start, pol.stop, self.stop)
         # Connect polymerase movement signal to transcript, so that the
         # transcript knows when to expose new elements
         pol.move_signal.connect(transcript.shift_mask)
         # Fire new transcript signal
         self.transcript_signal.fire(transcript)
 
-    def _build_transcript(self, start, stop):
+    def _build_transcript(self, start, pol_stop, stop):
         """
         Build a transcript object corresponding to start and stop positions
         within this genome.
@@ -525,7 +529,7 @@ class Genome(Polymer):
                              self.start,
                              self.stop,
                              elements,
-                             Mask("mask", start, stop,
+                             Mask("mask", pol_stop, stop,
                                   []))
         return polymer
 
