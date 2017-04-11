@@ -224,7 +224,6 @@ class TestPolymerMethods(unittest.TestCase):
         self.assertEqual(self.polymer._choose_polymerase(), self.pol1)
 
     def test_move_polymerase(self):
-        # TODO: update to test for termination upon hitting end of transcript
         # Start with clean polymer
         self.setUp()
         # Shift mask back to expose promoter
@@ -286,7 +285,18 @@ class TestPolymerMethods(unittest.TestCase):
         self.polymer.terminate(self.pol1, MagicMock())
         # Run polymerase through terminator again, this time it should terminate
         self.polymer.bind_polymerase(self.pol1, "promoter1")
-        for i in range(35):
+        for i in range(36):
+            self.polymer._move_polymerase(self.pol1)
+        self.assertFalse(self.polymer.elements[1].readthrough)
+        with self.assertRaises(ValueError):
+            self.polymer.polymerases.index(self.pol1)
+        # Run the polymerase off the end of the polymer
+        self.polymer.bind_polymerase(self.pol1, "promoter1")
+        random.seed(19)
+        for i in range(42):
+            self.polymer._move_polymerase(self.pol1)
+        self.assertTrue(self.polymer.elements[1].readthrough)
+        for i in range(45):
             self.polymer._move_polymerase(self.pol1)
         self.assertFalse(self.polymer.elements[1].readthrough)
 
@@ -324,7 +334,60 @@ class TestPolymerMethods(unittest.TestCase):
         self.assertFalse(promoter3.is_covered())
 
     def test_recover_elements(self):
-        pass
+        # Test for change in left_most_element
+        # Test that all elements are recovered
+        promoter1 = feature.Promoter("p1", 5, 15, ["ecolipol"])
+        promoter2 = feature.Promoter("p2", 16, 20, [])
+        promoter3 = feature.Promoter("p3", 21, 30, [])
+        term = feature.Terminator("myterm",
+                                  31,
+                                  33,
+                                  {
+                                   "ecolipol": {"efficiency": 1.0}
+                                   }
+                                  )
+        elements = [promoter1, promoter2, promoter3, term]
+        test_polymer = polymer.Polymer("test", 1, 100, elements)
+
+        self.assertFalse(promoter1.is_covered())
+        self.assertFalse(promoter2.is_covered())
+        self.assertFalse(promoter3.is_covered())
+
+        test_pol = feature.Polymerase("ecolipol",
+                                      10,
+                                      30)
+        test_polymer.bind_polymerase(test_pol, "p1")
+        # Uncover promoter after binding
+        promoter1.uncover()
+        test_pol.start = 12
+        test_pol.stop = 12 + test_pol.footprint
+
+        test_polymer._recover_elements(test_pol)
+        self.assertTrue(promoter1.is_covered())
+        self.assertTrue(promoter2.is_covered())
+        self.assertTrue(promoter3.is_covered())
+
+        promoter1.uncover()
+        promoter2.uncover()
+        promoter3.uncover()
+
+        test_pol.start = 16
+        test_pol.stop = 16 + test_pol.footprint
+        test_polymer._recover_elements(test_pol)
+        self.assertFalse(promoter1.is_covered())
+        self.assertTrue(promoter2.is_covered())
+        self.assertTrue(promoter3.is_covered())
+        self.assertEqual(test_pol.left_most_element, 1)
+
+        # test that everything is uncovered upon termination
+        promoter2.uncover()
+        promoter3.uncover()
+        test_pol.start = 21
+        test_pol.stop = 21 + test_pol.footprint
+        test_polymer._recover_elements(test_pol)
+        self.assertFalse(promoter1.is_covered())
+        self.assertFalse(promoter2.is_covered())
+        self.assertFalse(promoter3.is_covered())
 
     def test_resolve_termination(self):
         self.setUp()

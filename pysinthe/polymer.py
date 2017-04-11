@@ -302,6 +302,9 @@ class Polymer:
 
     def _uncover_elements(self, pol):
         save_index = pol.left_most_element
+        if save_index < 0:
+            raise RuntimeError("`left_most_element` for polymerase '{0}' is not"
+                               " defined".format(pol.name))
         while self.elements[save_index].start <= pol.stop:
             if self.elements_intersect(pol, self.elements[save_index]):
                 self.elements[save_index].save_state()
@@ -313,6 +316,9 @@ class Polymer:
     def _recover_elements(self, pol):
         # Check for uncoverings
         old_index = pol.left_most_element
+        if old_index < 0:
+            raise RuntimeError("`left_most_element` for polymerase '{0}' is not"
+                               " defined".format(pol.name))
         reset_index = True
         terminating = False
         while self.elements[old_index].start <= pol.stop:
@@ -325,6 +331,8 @@ class Polymer:
                 else:
                     self.elements[old_index].cover()
                     if self._resolve_termination(pol, self.elements[old_index]):
+                        # reset index to we uncover all elements upon
+                        # termination
                         old_index = pol.left_most_element - 1
                         terminating = True
             self.elements[old_index].check_state()
@@ -445,9 +453,10 @@ class Polymer:
             for i in range(feature.start, feature.stop):
                 feature_locs[i] = str(feature._covered) + "_"
         for pol in self.polymerases:
-            out_string += pol.name + " " + str(pol.start) + "," + str(pol.stop) + " " + \
-                str(pol.left_most_element) + "\n"
-        out_string += "mask " + str(self.mask.start) + "," + str(self.mask.stop) + "\n"
+            out_string += pol.name + " " + str(pol.start) + "," + str(pol.stop)\
+                + " " + str(pol.left_most_element) + "\n"
+        out_string += "mask " + str(self.mask.start) + "," + \
+            str(self.mask.stop) + "\n"
         out_string += "\n" + ''.join(map(str, feature_locs)) + "\n"
         return out_string
 
