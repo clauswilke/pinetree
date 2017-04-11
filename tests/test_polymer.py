@@ -291,7 +291,41 @@ class TestPolymerMethods(unittest.TestCase):
         self.assertFalse(self.polymer.elements[1].readthrough)
 
     def test_uncover_elements(self):
-        pass
+        # Arrange genome with tightly packed elements that are
+        # overlapping
+        # Test that correct elements are uncovered
+        # Test that left_most_element is correct
+        promoter1 = feature.Promoter("p1", 5, 15, ["ecolipol"])
+        promoter2 = feature.Promoter("p2", 16, 20, [])
+        promoter3 = feature.Promoter("p3", 21, 30, [])
+        elements = [promoter1, promoter2, promoter3]
+        test_polymer = polymer.Polymer("test", 1, 100, elements)
+
+        test_pol = feature.Polymerase("ecolipol",
+                                      10,
+                                      30)
+        test_polymer.bind_polymerase(test_pol, "p1")
+        # Move polymerase manually
+        test_pol.start = 12
+        test_pol.stop = 12 + test_pol.footprint
+        # Manually cover elements that should be covered
+        promoter2.cover()
+        promoter3.cover()
+        # Test uncovered elements
+        test_polymer._uncover_elements(test_pol)
+        self.assertFalse(promoter1.is_covered())
+        self.assertFalse(promoter2.is_covered())
+        self.assertFalse(promoter3.is_covered())
+
+        test_pol.start = 16
+        test_pol.stop = 16 + test_pol.footprint
+        promoter1.cover()
+        promoter2.cover()
+        promoter3.cover()
+        test_polymer._uncover_elements(test_pol)
+        self.assertTrue(promoter1.is_covered())
+        self.assertFalse(promoter2.is_covered())
+        self.assertFalse(promoter3.is_covered())
 
     def test_recover_elements(self):
         pass
@@ -508,6 +542,7 @@ class TestGenomeMethods(TestPolymerMethods):
         self.assertEqual(self.transcript.mask.start, old_mask_start + 10)
 
     def test_build_transcript(self):
+        # TODO: update to test that overlapping genes are ordered correctly
         self.setUp()
 
         with self.assertRaises(AssertionError):

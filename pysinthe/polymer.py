@@ -27,7 +27,7 @@ class Polymer:
         polymerization
 
     """
-    def __init__(self, name, start, stop, elements, mask):
+    def __init__(self, name, start, stop, elements, mask=None):
         """
         :param name: name of this polymer (should it be unique?)
         :param length: length of polymer (used purely for debugging, may not be
@@ -48,6 +48,9 @@ class Polymer:
         self.prop_sum = 0  # Total propensity for all pols moving on polymer
         self.prop_list = []  # Individual polymerase propensities (i.e. speeds)
         self.uncovered = {}  # Running count of free promoters
+
+        if self.mask is None:
+            self.mask = Mask("none_mask", self.stop + 1, self.stop, [])
 
         # Cover masked elements and set up signals for covered/uncovered
         # elements
