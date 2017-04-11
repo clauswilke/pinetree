@@ -160,6 +160,19 @@ class TestPolymerMethods(unittest.TestCase):
                 count += 1
         self.assertEqual(self.polymer.count_uncovered("myterm"), count)
 
+    def test_cover_element(self):
+        self.polymer.uncovered["promoter1"] = 0
+        with self.assertRaises(RuntimeError):
+            self.polymer.cover_element("promoter1")
+        self.polymer.uncovered["promoter1"] = 5
+        self.polymer.cover_element("promoter1")
+        self.assertEqual(self.polymer.uncovered["promoter1"], 4)
+
+    def test_uncover_element(self):
+        self.polymer.uncovered["promoter1"] = 0
+        self.polymer.uncover_element("promoter1")
+        self.assertEqual(self.polymer.uncovered["promoter1"], 1)
+
     def test_calculate_propensity(self):
         prop_sum = 0
         for pol in self.polymer.polymerases:
@@ -211,6 +224,7 @@ class TestPolymerMethods(unittest.TestCase):
         self.assertEqual(self.polymer._choose_polymerase(), self.pol1)
 
     def test_move_polymerase(self):
+        # TODO: update to test for termination upon hitting end of transcript
         # Start with clean polymer
         self.setUp()
         # Shift mask back to expose promoter
@@ -276,21 +290,16 @@ class TestPolymerMethods(unittest.TestCase):
             self.polymer._move_polymerase(self.pol1)
         self.assertFalse(self.polymer.elements[1].readthrough)
 
+    def test_uncover_elements(self):
+        pass
+
+    def test_recover_elements(self):
+        pass
+
     def test_resolve_termination(self):
         self.setUp()
-        # Terminator is in readthrough state and should not return anything
         random.seed(22)
-
-        for i in range(100):
-            self.polymer.shift_mask()
-        # Arrange polymerases along polymer
-        self.polymer.bind_polymerase(self.pol1, "promoter1")
-        for i in range(35):
-            self.polymer._move_polymerase(self.pol1)
-        self.polymer.bind_polymerase(self.pol2, "promoter1")
-        for i in range(25):
-            self.polymer._move_polymerase(self.pol2)
-
+        # set up terminator
         term = feature.Terminator("myterm",
                                   23,
                                   60,
@@ -298,21 +307,25 @@ class TestPolymerMethods(unittest.TestCase):
                                    "ecolipol": {"efficiency": 0.6}
                                    }
                                   )
-        pol = self.pol2
-        pol2 = self.pol1
+        self.pol1.start = 1
+        self.pol1.stop = 23
         term.gene = "mygene"
-
+        term.reading_frame = 1
+        self.pol1.reading_frame = 1
         # Create temp termination signal
-        pol.release_signal.connect(lambda x: self.assertEqual(x, 60))
+        self.pol2.release_signal.connect(lambda x: self.assertEqual(x, 60))
         # Terminator will enter readthrough
         term.readthrough = False
-        self.polymer._resolve_termination(pol2, term)
-        self.polymer._resolve_termination(pol2, term)
+        self.polymer._resolve_termination(self.pol1, term)
+        self.polymer._resolve_termination(self.pol1, term)
         self.assertTrue(term.readthrough)
-        # Terminator will end transcription/translation
+        # Polymerase and terminator are in different reading frames
         term.readthrough = False
-        self.polymer._resolve_termination(pol, term)
-        self.assertFalse(term.is_covered())
+        self.pol2.start = 1
+        self.pol2.stop = 23
+        self.pol2.reading_frame = 2
+        result = self.polymer._resolve_termination(self.pol2, term)
+        self.assertFalse(result)
 
     def test_resolve_mask_collisions(self):
         self.setUp()
@@ -470,6 +483,7 @@ class TestGenomeMethods(TestPolymerMethods):
         self.transcript = transcript
 
     def test_bind_polymerase(self):
+        # TODO: Update to test that transcript is being constructed correctly
         with self.assertRaises(RuntimeError):
             self.polymer.bind_polymerase(self.pol1, "promoter1")
 

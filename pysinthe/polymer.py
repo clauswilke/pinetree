@@ -479,15 +479,15 @@ class Genome(Polymer):
         """
         # Bind polymerase just like in parent Polymer
         super().bind_polymerase(pol, promoter)
-        # Construct transcript
-        transcript = self._build_transcript(pol.start, pol.stop, self.stop)
+        # Construct transcript starting from *end* of polymerase
+        transcript = self._build_transcript(pol.stop, self.stop)
         # Connect polymerase movement signal to transcript, so that the
         # transcript knows when to expose new elements
         pol.move_signal.connect(transcript.shift_mask)
         # Fire new transcript signal
         self.transcript_signal.fire(transcript)
 
-    def _build_transcript(self, start, pol_stop, stop):
+    def _build_transcript(self, start, stop):
         """
         Build a transcript object corresponding to start and stop positions
         within this genome.
@@ -529,7 +529,7 @@ class Genome(Polymer):
                              self.start,
                              self.stop,
                              elements,
-                             Mask("mask", pol_stop, stop,
+                             Mask("mask", start, stop,
                                   []))
         return polymer
 
