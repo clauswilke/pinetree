@@ -488,16 +488,9 @@ class TestPolymerMethods(unittest.TestCase):
 
     def test_elements_intersect(self):
         polymer = self.construct_polymer()
-        element1 = feature.Promoter("promoter1",
-                                    5,
-                                    15,
-                                    ["ecolipol", "rnapol"]
-                                    )
-        element2 = feature.Promoter("promoter1",
-                                    5,
-                                    15,
-                                    ["ecolipol", "rnapol"]
-                                    )
+        element1 = feature.Promoter("p1", 5, 15, ["ecolipol", "rnapol"])
+        element2 = feature.Promoter("p1", 5, 15, ["ecolipol", "rnapol"])
+
         self.assertTrue(polymer.elements_intersect(element1, element2))
         self.assertTrue(polymer.elements_intersect(element2, element1))
 
@@ -525,22 +518,18 @@ class TestGenomeMethods(TestPolymerMethods):
 
     def setUp(self):
         super().setUp()
-        # Set up transcript template
         self.transcript_template = [{'type': 'transcript',
                                      'name': 'rnapol',
-                                     'length': 200,
                                      'start': 10,
                                      'stop': 210,
-                                     'rbs': -15},
+                                     'rbs': -10},
                                     {'type': 'transcript',
                                      'name': 'proteinX',
-                                     'length': 40,
                                      'start': 230,
                                      'stop': 270,
                                      'rbs': -15},
                                     {'type': 'transcript',
                                      'name': 'proteinY',
-                                     'length': 300,
                                      'start': 300,
                                      'stop': 600,
                                      'rbs': -15}]
@@ -548,6 +537,7 @@ class TestGenomeMethods(TestPolymerMethods):
         self.fired_transcript = False
 
     def construct_polymer(self):
+        # Make sure that the mask ends at the correct coordinates
         self.mask.stop = 700
         poly = polymer.Genome("g1", 700, [self.promoter, self.terminator],
                               self.transcript_template, self.mask)
@@ -584,7 +574,6 @@ class TestGenomeMethods(TestPolymerMethods):
         self.assertEqual(self.transcript.mask.start, old_mask_start + 10)
 
     def test_build_transcript(self):
-        # TODO: update to test that overlapping genes are ordered correctly
         self.setUp()
         polymer = self.construct_polymer()
 
@@ -594,19 +583,19 @@ class TestGenomeMethods(TestPolymerMethods):
         with self.assertRaises(RuntimeError):
             polymer._build_transcript(600, 600)
 
-        transcript = polymer._build_transcript(0, 230)
+        transcript = polymer._build_transcript(0, 210)
         self.assertEqual(len(transcript.elements), 2)
 
-        transcript = polymer._build_transcript(0, 300)
+        transcript = polymer._build_transcript(0, 270)
         self.assertEqual(len(transcript.elements), 4)
 
         transcript = polymer._build_transcript(0, 600)
         self.assertEqual(len(transcript.elements), 6)
 
-        transcript = polymer._build_transcript(200, 600)
+        transcript = polymer._build_transcript(210, 600)
         self.assertEqual(len(transcript.elements), 4)
 
-        self.assertEqual(transcript.mask.start, 200)
+        self.assertEqual(transcript.mask.start, 210)
         self.assertEqual(transcript.mask.stop, 600)
 
         # Check positions of RBSs and tranlation stop sites
@@ -618,6 +607,89 @@ class TestGenomeMethods(TestPolymerMethods):
         self.assertEqual(transcript.elements[2].stop, 300)
         self.assertEqual(transcript.elements[3].start, 599)
         self.assertEqual(transcript.elements[3].stop, 600)
+
+    def test_overlapping_genes(self):
+        self.setUp()
+        # Set up transcript template w/ overlapping genes
+        self.transcript_template = [{'type': 'transcript',
+                                     'name': 'rnapol',
+                                     'start': 10,
+                                     'stop': 210,
+                                     'rbs': -10},
+                                    {'type': 'transcript',
+                                     'name': 'proteinX',
+                                     'start': 211,
+                                     'stop': 270,
+                                     'rbs': -15},
+                                    {'type': 'transcript',
+                                     'name': 'proteinY',
+                                     'start': 270,
+                                     'stop': 600,
+                                     'rbs': -15}]
+        polymer = self.construct_polymer()
+        # Build full transcript
+        transcript = polymer._build_transcript(0, 600)
+        # Check that everything is arranged in the correct order
+        self.assertEqual(transcript.elements[0].start, 0)
+        self.assertEqual(transcript.elements[0].stop, 10)
+        self.assertEqual(transcript.elements[1].start, 196)
+        self.assertEqual(transcript.elements[1].stop, 211)
+        self.assertEqual(transcript.elements[2].start, 209)
+        self.assertEqual(transcript.elements[2].stop, 210)
+        self.assertEqual(transcript.elements[3].start, 255)
+        self.assertEqual(transcript.elements[3].stop, 270)
+        self.assertEqual(transcript.elements[4].start, 269)
+        self.assertEqual(transcript.elements[4].stop, 270)
+        self.assertEqual(transcript.elements[5].start, 599)
+        self.assertEqual(transcript.elements[5].stop, 600)
+
+        transcript = polymer._build_transcript(0, 270)
+        self.assertEqual(transcript.elements[0].start, 0)
+        self.assertEqual(transcript.elements[0].stop, 10)
+        self.assertEqual(transcript.elements[1].start, 196)
+        self.assertEqual(transcript.elements[1].stop, 211)
+        self.assertEqual(transcript.elements[2].start, 209)
+        self.assertEqual(transcript.elements[2].stop, 210)
+        self.assertEqual(transcript.elements[3].start, 255)
+        self.assertEqual(transcript.elements[3].stop, 270)
+
+        transcript = polymer._build_transcript(200, 270)
+        self.assertEqual(transcript.elements[0].start, 209)
+        self.assertEqual(transcript.elements[0].stop, 210)
+        self.assertEqual(transcript.elements[1].start, 255)
+        self.assertEqual(transcript.elements[1].stop, 270)
+
+    def test_overlapping_genes2(self):
+        self.setUp()
+        # Set up transcript template w/ overlapping genes where one CDS falls
+        # entirely within another
+        self.transcript_template = [{'type': 'transcript',
+                                     'name': 'rnapol',
+                                     'start': 10,
+                                     'stop': 270,
+                                     'rbs': -10},
+                                    {'type': 'transcript',
+                                     'name': 'proteinX',
+                                     'start': 211,
+                                     'stop': 260,
+                                     'rbs': -15},
+                                    {'type': 'transcript',
+                                     'name': 'proteinY',
+                                     'start': 270,
+                                     'stop': 600,
+                                     'rbs': -15}]
+        polymer = self.construct_polymer()
+        # Build full transcript
+        transcript = polymer._build_transcript(0, 270)
+        self.assertEqual(len(transcript.elements), 5)
+        # Check that elements have been constructed in the correct order
+        for i in range(len(transcript.elements)):
+            if i > 0:
+                self.assertTrue(transcript.elements[i].start >=
+                                transcript.elements[i-1].start)
+        # A few more checks...
+        transcript = polymer._build_transcript(215, 270)
+        self.assertEqual(len(transcript.elements), 3)
 
 
 class TestTranscriptMethods(unittest.TestCase):

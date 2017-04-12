@@ -515,27 +515,27 @@ class Genome(Polymer):
         assert stop > 0
         elements = []
         for element in self.transcript_template:
-            if element["start"] >= start and element["stop"] <= stop:
+            rbs_start = element["start"] + element["rbs"]
+            if rbs_start >= start and rbs_start <= stop:
                 # Is this element within the start and stop sites?
                 rbs = Promoter("rbs",
                                element["start"]+element["rbs"],
                                element["start"],
                                ["ribosome"])
+                elements.append(rbs)
+            if element["stop"] <= stop and element["stop"] - 1 >= start:
                 stop_site = Terminator("tstop",
                                        element["stop"]-1,
                                        element["stop"],
                                        {"ribosome": {"efficiency": 1.0}})
                 stop_site.reading_frame = element["start"] % 3
                 stop_site.gene = element["name"]
-                if len(elements) > 0 and elements[-1].start > rbs.start:
-                    elements.insert(-1, rbs)
-                else:
-                    elements.append(rbs)
                 elements.append(stop_site)
         if len(elements) == 0:
             raise RuntimeError("Attempting to create a transcript with no "
                                "elements from genome '{0}'.".format(self.name))
-
+        # Sort elements according to start position
+        elements.sort(key=lambda x: x.start)
         # build transcript
         polymer = Transcript("rna",
                              self.start,
