@@ -1,6 +1,5 @@
 import unittest
 
-from unittest.mock import MagicMock
 import random
 from pysinthe import feature, polymer, _USE_CPP_
 
