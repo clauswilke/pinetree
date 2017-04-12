@@ -1,5 +1,6 @@
 #! /usr/bin/env python3
 
+import bisect
 import random
 
 from .eventsignal import Signal
@@ -230,22 +231,8 @@ class Polymer:
             raise RuntimeError("Polymerase '{0}' is already present on polymer"
                                " '{1}'.".format(pol.name, self.name)
                                )
-        # Polymerases are maintained in order, such that higher-index
-        # polymerases have moved further along the DNA
-        # This make collision detection very efficient
-        found_position = False
-        insert_position = 0
-        for index, old_pol in enumerate(self.polymerases):
-            # Find the first polymerase that is
-            insert_position = index
-            if pol.start < old_pol.start:
-                found_position = True
-                break
-        if found_position is False:
-            # Check to see if we're actually just adding to the end of the list
-            insert_position += 1
-        self.polymerases.insert(insert_position, pol)
-        self.prop_list.insert(insert_position, pol.speed)
+        bisect.insort_left(self.polymerases, pol)
+        self.prop_list.insert(self.polymerases.index(pol), pol.speed)
 
     def _choose_polymerase(self):
         """

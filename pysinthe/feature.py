@@ -61,6 +61,12 @@ class Polymerase:
         # polymerase moves
         self.release_signal = eventsignal.Signal()
 
+    def __lt__(self, other):
+        return self.start < other.start
+
+    def __repr__(self):
+        return "('{0}', {1}, {2})".format(self.name, self.start, self.stop)
+
     def move(self):
         """
         Move one unit forward.
