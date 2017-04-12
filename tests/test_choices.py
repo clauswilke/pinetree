@@ -1,9 +1,13 @@
 import unittest
 import random
-# from pysinthe.choices import weighted_choice
-import cppimport
-module = cppimport.imp("pysinthe.c_choices")
-weighted_choice = module.c_choices.weighted_choice
+from pysinthe import _USE_CPP_
+
+if _USE_CPP_:
+    import cppimport
+    module = cppimport.imp("pysinthe.c_choices")
+    weighted_choice = module.c_choices.weighted_choice
+else:
+    from pysinthe.choices import weighted_choice
 
 
 class TestFeatureMethods(unittest.TestCase):
