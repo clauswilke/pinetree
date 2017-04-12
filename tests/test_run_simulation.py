@@ -92,7 +92,7 @@ class MainTest(unittest.TestCase):
 
         self.assertEqual(results.getvalue(), text)
 
-    def test_gene_promoter_overlap(self):
+    def test_promoter_gene_overlap(self):
         stdout = sys.stdout  # keep a handle on the real standard output
         results = io.StringIO()
         sys.stdout = results  # Choose a file-like object to write to
@@ -112,6 +112,18 @@ class MainTest(unittest.TestCase):
         sys.stdout = stdout
 
         with open('tests/output/three_genes_runoff_out.csv') as f:
+            text = f.read()
+
+        self.assertEqual(results.getvalue(), text)
+
+    def test_overlapping_genes(self):
+        stdout = sys.stdout  # keep a handle on the real standard output
+        results = io.StringIO()
+        sys.stdout = results  # Choose a file-like object to write to
+        simulation.main("tests/params/overlapping_genes.yml")
+        sys.stdout = stdout
+
+        with open('tests/output/overlapping_genes_out.csv') as f:
             text = f.read()
 
         self.assertEqual(results.getvalue(), text)
