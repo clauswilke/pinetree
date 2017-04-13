@@ -171,12 +171,12 @@ class Parser:
                                          element["stop"],
                                          element["interactions"])
             elif element["type"] == "transcript":
-                if old_transcript_stop > element["stop"]:
-                    raise RuntimeError("Transcript '{0}' falls entirely within "
-                                       "the previous gene. This can cause "
-                                       "unexpected behavior. Please delete "
-                                       "transcript or change its coordinates."
-                                       .format(element["name"]))
+                # if old_transcript_stop > element["stop"]:
+                #     raise RuntimeError("Transcript '{0}' falls entirely within "
+                #                        "the previous gene. This can cause "
+                #                        "unexpected behavior. Please delete "
+                #                        "transcript or change its coordinates."
+                #                        .format(element["name"]))
                 old_transcript_stop = element["stop"]
                 element["reading_frame"] = element["start"] % 3
                 transcript_template.append(element)
@@ -184,6 +184,9 @@ class Parser:
             if new_element is not False:
                 dna_elements.append(new_element)
             last_position = element["stop"]
+
+        # sort elements based on start position
+        dna_elements.sort(key=lambda x: x.start)
 
         if "length" in genome_params:
             genome_length = genome_params["length"]
