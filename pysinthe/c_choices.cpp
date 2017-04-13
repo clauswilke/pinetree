@@ -26,8 +26,18 @@ py::object weighted_choice(py::list population,
     return population[index];
 }
 
+py::object choice(py::list population) {
+    // Grab random number from python's random module
+    py::object randfunc = py::module::import("random").attr("random");
+    double random_num = randfunc().cast<double>();
+    int index = random_num * population.size();
+    return population[index];
+}
+
 PYBIND11_PLUGIN(c_choices) {
     py::module m("c_choices", "weighted_choice rewritten in C++");
-    m.def("weighted_choice", &weighted_choice);
+    m.def("weighted_choice", &weighted_choice,
+          py::arg("population").noconvert(), py::arg("weights"));
+    m.def("weighted_choice", &choice, py::arg("population").noconvert());
     return m.ptr();
 }

@@ -5,7 +5,14 @@ import random
 
 from .eventsignal import Signal
 from .feature import Promoter, Terminator, Mask
-from .choices import weighted_choice
+
+from . import _USE_CPP_
+if _USE_CPP_:
+    import cppimport
+    module = cppimport.imp("pysinthe.c_choices")
+    weighted_choice = module.c_choices.weighted_choice
+else:
+    from .choices import weighted_choice
 
 
 class Polymer:

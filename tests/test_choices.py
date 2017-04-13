@@ -35,3 +35,5 @@ class TestFeatureMethods(unittest.TestCase):
             output += weighted_choice(population, weights)
 
         self.assertEqual(output, 2432)
+
+        self.assertEqual(weighted_choice(population), 48)
