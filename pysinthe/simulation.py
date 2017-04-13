@@ -5,7 +5,14 @@ import math
 
 from .feature import Polymerase
 from .eventsignal import Signal
-from .choices import weighted_choice
+
+from . import _USE_CPP_
+if _USE_CPP_:
+    import cppimport
+    module = cppimport.imp("pysinthe.c_choices")
+    weighted_choice = module.c_choices.weighted_choice
+else:
+    from .choices import weighted_choice
 
 CELL_VOLUME = float(8e-16)
 
