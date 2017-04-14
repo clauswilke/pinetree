@@ -7,7 +7,7 @@
 
 #include "feature.hpp"
 
-TEST_CASE("Feature construction.", "[Feature]") {
+TEST_CASE("Feature construction", "[Feature]") {
   std::string name = "testing!";
   int start = 1;
   int stop = 10;
@@ -54,4 +54,50 @@ TEST_CASE("Mask construction and movement", "[Mask]") {
   mask.recede();
   REQUIRE(mask.get_start() == 2);
   REQUIRE(mask.get_stop() == 10);
+}
+
+TEST_CASE("Element construction and state changes", "[Element]") {
+  std::string name = "testing!";
+  int start = 1;
+  int stop = 10;
+  std::vector<std::string> interactions = {"ecolipol", "rnapol"};
+  Element elem = Element(name, start, stop, interactions);
+
+  SECTION("Saving the state") {
+    elem.cover();
+    elem.cover();
+    elem.cover();
+    REQUIRE(elem.is_covered());
+    REQUIRE(elem.was_covered());
+
+    elem.save_state();
+    REQUIRE(!elem.was_covered());
+
+    elem.uncover();
+    elem.uncover();
+    elem.uncover();
+    REQUIRE(!elem.is_covered());
+    REQUIRE(elem.was_uncovered());
+
+    elem.save_state();
+    REQUIRE(!elem.was_uncovered());
+  }
+
+  SECTION("Uncovering and covering an element") {
+    // Make sure covering counts don't go below zero
+    elem.uncover();
+    elem.uncover();
+    elem.uncover();
+    REQUIRE(!elem.is_covered());
+    REQUIRE(!elem.is_covered());
+
+    elem.cover();
+    REQUIRE(elem.is_covered());
+    REQUIRE(elem.was_covered());
+
+    elem.uncover();
+    REQUIRE(!elem.is_covered());
+    REQUIRE(!elem.was_covered());
+    REQUIRE(!elem.was_uncovered());
+  }
 }

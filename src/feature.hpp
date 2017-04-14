@@ -138,20 +138,58 @@ class Mask : public Feature {
   void recede() { start_++; }
 };
 
-// class Mask : Feature {
-//  public:
-//   Mask(std::string &name, int start, int stop,
-//     std::vector<std::string> &interactions);
-//
-//   void save_state() { old_covered_ = covered_; }
-//   bool was_uncoverd() { old_covered >= 1 };
-//   bool was_covered();
-//   void cover();
-//   void uncover();
-//   bool is_covered();
-//   void check_state();
-//
-//
-// }
+/**
+ * A fixed feature in the polymer that can be covered or uncovered.
+ */
+class Element : public Feature {
+ public:
+  /**
+   * Only constructor of Element.
+   */
+  Element(const std::string &name, int start, int stop,
+    const std::vector<std::string> &interactions);
+  /**
+   * Save covering state.
+   */
+  void save_state() { old_covered_ = covered_; }
+  /**
+   * Was this element just uncovered?
+   * @return True if element was just uncovered.
+   */
+  bool was_uncovered() { return old_covered_ >= 1; }
+  /**
+   * Was this element just covered?
+   * @return True if element was just covered.
+   */
+  bool was_covered() { return old_covered_ == 0 && covered_ > 0; }
+  /**
+   * Cover this element. Elements can be covered by multiple features.
+   */
+  void cover() { covered_++; }
+  /**
+   * Uncover element.
+   */
+  void uncover() { if (covered_ > 0) covered_--; }
+  /**
+   * Is this element covered at all?
+   * @return True if at least one feature is covering element.
+   */
+  bool is_covered() { return covered_ > 0; }
+  /**
+   * Check for change in state and react appropriately. (Should be overridden
+   * by children).
+   */
+  void check_state();
+
+ private:
+  /**
+   * Count of how many features are currently covering this element.
+   */
+  int covered_;
+  /**
+   * Used to cache old covering count to then test for changes in state.
+   */
+  int old_covered_;
+};
 
 #endif  // SRC_FEATURE_HPP_

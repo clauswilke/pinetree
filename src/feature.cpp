@@ -47,3 +47,10 @@ Mask::Mask(const std::string &name, int start, int stop,
   const std::vector<std::string> &interactions)
     : Feature(name, start, stop, interactions) {
 }
+
+Element::Element(const std::string &name, int start, int stop,
+  const std::vector<std::string> &interactions)
+    : Feature(name, start, stop, interactions),
+      covered_(0),
+      old_covered_(0) {
+}
