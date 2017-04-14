@@ -29,8 +29,6 @@ Polymerase::Polymerase(const std::string &name, int footprint, int speed)
   bound_ = 0;
   type_ = "polymerase";
   reading_frame_ = 0;
-  // move_signal_ = ;
-  // release_signal_ = ;
 }
 
 void Polymerase::move() {
