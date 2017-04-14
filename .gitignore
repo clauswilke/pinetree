@@ -12,10 +12,11 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# C extensions
+# C extensions and build crap
 *.so
 .rendered.*
 *.cppimporthash
+build/
 
 # Distribution / packaging
 .Python

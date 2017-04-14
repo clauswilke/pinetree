@@ -1,7 +1,7 @@
 #include <catch.h>
 #include <string>
 #include <vector>
-#include "../../pysinthe/cpp/feature.h"
+#include "../feature.h"
 
 TEST_CASE("Feature construction.", "[feature]") {
   std::string name = "testing!";
