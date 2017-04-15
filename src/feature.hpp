@@ -11,7 +11,7 @@
  * A generic feature in or on `Polymer`. Designed to be extended
  * by `Terminator`, `Promoter`, `Polymerase`, etc.
  *
- * TODO: make abstract?by `Terminator`, `Promoter`, `Polymerase`, etc.
+ * TODO: make abstract?
  */
 class Feature {
  public:
