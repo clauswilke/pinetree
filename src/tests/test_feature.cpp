@@ -1,6 +1,6 @@
 /* Copyright (c) 2017 Benjamin Jack All Rights Reserved. */
 
-#include <catch.h>
+#include <catch.hpp>
 
 #include <string>
 #include <vector>

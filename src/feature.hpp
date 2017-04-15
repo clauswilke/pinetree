@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include "Signal.h"
+#include "my_signal.h"
 /**
  * A generic feature in or on `Polymer`. Designed to be extended
  * by `Terminator`, `Promoter`, `Polymerase`, etc.
@@ -82,7 +82,7 @@ class Polymerase {
    */
   void move_back();
 
-  Gallant::Signal1<std::string> move_signal;
+  // Gallant::Signal1<std::string> move_signal;
   // Signal release_signal;
 
  private:

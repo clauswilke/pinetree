@@ -1,6 +1,9 @@
 # macOS Finder
 .DS_store
 
+# VSCode crap
+.vscode
+
 # output from runs
 runs
 
