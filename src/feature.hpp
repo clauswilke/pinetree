@@ -1,6 +1,6 @@
 /* Copyright (c) 2017 Benjamin Jack All Rights Reserved. */
 
-#ifndef SRC_FEATURE_HPP_  // header guard
+#ifndef SRC_FEATURE_HPP_ // header guard
 #define SRC_FEATURE_HPP_
 
 #include <string>
@@ -13,8 +13,9 @@
  *
  * TODO: make abstract?
  */
-class Feature {
- public:
+class Feature
+{
+public:
   /**
    * Default constructor of Feature
    * @param name a (unique?) name for this feature
@@ -24,7 +25,7 @@ class Feature {
    *                     interacts with
    */
   Feature(const std::string &name, int start, int stop,
-    const std::vector<std::string> &interactions);
+          const std::vector<std::string> &interactions);
   /**
    * Getters and setters.
    */
@@ -39,8 +40,15 @@ class Feature {
    */
   bool check_interaction(const std::string &name);
 
- protected:
+protected:
+  /**
+   * Name of this feature.
+   */
   std::string name_;
+  /**
+   * The type of this feature (e.g. "promoter", "terminator", etc.)
+   */
+  std::string type_;
   /**
    * The start site of the feature. Usually the most upstream site position.
    */
@@ -59,8 +67,9 @@ class Feature {
 /**
  * A molecule that binds to `Polymer` and moves.
  */
-class Polymerase {
- public:
+class Polymerase
+{
+public:
   /**
    * The only constructor for Polymerase.
    * @param name name of polymerase (unique?)
@@ -82,10 +91,10 @@ class Polymerase {
    */
   void move_back();
 
-  // Gallant::Signal1<std::string> move_signal;
+  Gallant::Signal1<std::string> move_signal;
   // Signal release_signal;
 
- private:
+private:
   /**
    * Name of polymerase (for determining interactions)
    */
@@ -130,13 +139,14 @@ class Polymerase {
  * yet accessible. For example, as the genome is entering the cell, or as a
  * transcript is being synthesized.
  */
-class Mask : public Feature {
- public:
+class Mask : public Feature
+{
+public:
   /**
    * Only constructor for Mask.
    */
   Mask(const std::string &name, int start, int stop,
-    const std::vector<std::string> &interactions);
+       const std::vector<std::string> &interactions);
   /**
    * Shift mask backwards one position.
    */
@@ -146,13 +156,14 @@ class Mask : public Feature {
 /**
  * A fixed feature in the polymer that can be covered or uncovered.
  */
-class Element : public Feature {
- public:
+class Element : public Feature
+{
+public:
   /**
    * Only constructor of Element.
    */
   Element(const std::string &name, int start, int stop,
-    const std::vector<std::string> &interactions);
+          const std::vector<std::string> &interactions);
   /**
    * Save covering state.
    */
@@ -174,7 +185,11 @@ class Element : public Feature {
   /**
    * Uncover element.
    */
-  void uncover() { if (covered_ > 0) covered_--; }
+  void uncover()
+  {
+    if (covered_ > 0)
+      covered_--;
+  }
   /**
    * Is this element covered at all?
    * @return True if at least one feature is covering element.
@@ -185,8 +200,16 @@ class Element : public Feature {
    * by children).
    */
   void check_state();
+  /**
+   * Signal to fire when element changes state from uncovered to covered
+   */
+  Gallant::Signal1<std::string> cover_signal;
+  /**
+   * Signal to fire when element changes state from covered to uncovered
+   */
+  Gallant::Signal1<std::string> uncover_signal;
 
- private:
+private:
   /**
    * Count of how many features are currently covering this element.
    */
@@ -197,4 +220,26 @@ class Element : public Feature {
   int old_covered_;
 };
 
-#endif  // SRC_FEATURE_HPP_
+/**
+ * A promoter class
+ */
+class Promoter : public Element
+{
+public:
+  /**
+   * The only constructor for Promoter.
+   *
+   * @param name name of promoter
+   * @param start start position of promoter
+   * @param stop stop position of promoter (also transcription start site)
+   * @param interactions vector of polymerases that interact with this promoter
+   */
+  Promoter(const std::string &name, int start, int stop,
+           const std::vector<std::string> interactions);
+  /**
+   * Check to see if covering state has changed and fire appropriate signals.
+   */
+  void check_state();
+};
+
+#endif // SRC_FEATURE_HPP_
