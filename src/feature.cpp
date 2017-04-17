@@ -71,11 +71,11 @@ void Promoter::check_state()
 {
   if (was_covered())
   {
-    cover_signal(name_);
+    cover_signal.emit(name_);
   }
   else if (was_uncovered())
   {
-    uncover_signal(name_);
+    uncover_signal.emit(name_);
   }
 }
 
@@ -92,11 +92,11 @@ void Terminator::check_state()
   if (was_uncovered())
   {
     readthrough_ = false;
-    uncover_signal(name_);
+    uncover_signal.emit(name_);
   }
   else if (was_covered())
   {
-    cover_signal(name_);
+    cover_signal.emit(name_);
   }
 }
 

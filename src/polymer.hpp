@@ -4,6 +4,7 @@
 #define SRC_POLYMER_HPP_
 
 #include <vector>
+#include <map>
 #include <string>
 
 #include "feature.hpp"
@@ -12,18 +13,18 @@
  * Track element objects, polymerase objects, and collisions on a single
  * polymer. Move polymerase objects along the polymer. Handle logic for
  * covering and uncovering of elements. This class contains the core of the
- *   single-moleculre tracking used for both genomes (transcription) and
- *   transcripts (translation).
+ * single-moleculre tracking used for both genomes (transcription) and
+ * transcripts (translation).
  * 
- *  The terms polymer, polymerase, promoter, and terminator are all used
- *  generically in this class. Each term could refer to a different biological
+ * The terms polymer, polymerase, promoter, and terminator are all used
+ * generically in this class. Each term could refer to a different biological
  *  definition in the context of transcription and translation.
  *  
- *  * polymer: genome, transcript
- *  * polymerase: RNA polymerase, ribosome, any object that binds to polymer
- *  * promoter: promoter, ribosome binding site, any site on a polymer in which
+ * * polymer: genome, transcript
+ * * polymerase: RNA polymerase, ribosome, any object that binds to polymer
+ * * promoter: promoter, ribosome binding site, any site on a polymer in which
  *      a protein (polymerase) can bind
- *  * terminator: terminator, stop codon, any site on polymer that ends
+ * * terminator: terminator, stop codon, any site on polymer that ends
  *      polymerization
  */
 class Polymer
@@ -46,12 +47,26 @@ class Polymer
     void execute();
     void shift_mask();
     void terminate();
-    int count_uncovered();
-    void cover_element();
-    void uncover_element();
+    int count_uncovered(const std::string &species_name);
+    void cover_element(const std::string &species_name) {}
+    void uncover_element(const std::string &species_name);
     double calculate_propensity();
+    // Gallant::Signal2<std::string, std::string> termination_signal;
+
+    int get_index() { return index_; }
 
   private:
+    int index_;
+    std::string name_;
+    int start_;
+    int stop_;
+    std::vector<Polymerase> polymerases_;
+    std::vector<Element> elements_;
+    Mask mask_;
+    double prop_sum_;
+    std::vector<double> prop_list_;
+    std::map<std::string, int> uncovered_;
+
     void insert_polymerase_(const Polymerase &pol);
     Polymerase &choose_polymerase_();
     void move_polymerase_(const Polymerase &pol);
@@ -62,4 +77,4 @@ class Polymer
     bool elements_intersect_(const Element &elem1, const Element &elem2);
 };
 
-#endif // SRC_FEATURE_HPP_
+#endif // SRC_POLYMER_HPP_

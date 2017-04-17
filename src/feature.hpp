@@ -91,7 +91,7 @@ public:
    */
   void move_back();
 
-  Gallant::Signal1<std::string> move_signal;
+  // Gallant::Signal1<std::string> move_signal;
   // Signal release_signal;
 
 private:
@@ -203,11 +203,11 @@ public:
   /**
    * Signal to fire when element changes state from uncovered to covered
    */
-  Gallant::Signal1<std::string> cover_signal;
+  Signal<const std::string &> cover_signal;
   /**
    * Signal to fire when element changes state from covered to uncovered
    */
-  Gallant::Signal1<std::string> uncover_signal;
+  Signal<const std::string &> uncover_signal;
 
 private:
   /**
