@@ -235,11 +235,63 @@ public:
    * @param interactions vector of polymerases that interact with this promoter
    */
   Promoter(const std::string &name, int start, int stop,
-           const std::vector<std::string> interactions);
+           const std::vector<std::string> &interactions);
   /**
    * Check to see if covering state has changed and fire appropriate signals.
    */
   void check_state();
+};
+
+class Terminator : public Element
+{
+public:
+  /**
+   * Only constructor for Terminator.
+   * 
+   * @param name name of terminator
+   * @param start start position of terminator
+   * @param stop stop position of terminator
+   * @param interactions list of features that this terminator interacts with 
+   */
+  Terminator(const std::string &name, int start, int stop,
+             const std::vector<std::string> &interactions);
+  /**
+   * Check for changes in covering state and fire appropriate signals.
+   */
+  void check_state();
+  /**
+   * Check to see if feature interacts with this terminator and is in the
+   * correct reading frame.
+   *
+   * @param name name of other feature
+   * @param reading_frame reading frame of of interacting feature
+   *
+   * @return bool true if feature interacts with terminator
+   */
+  bool check_interaction(const std::string &name, int reading_frame);
+  /**
+   * Getters and setters
+   */
+  int get_reading_frame() { return reading_frame_; }
+  void set_reading_frame(int reading_frame) { reading_frame_ = reading_frame; }
+  bool get_readthrough() { return readthrough_; }
+  void set_readthrough(bool readthrough) { readthrough_ = readthrough; }
+
+private:
+  /**
+   * Name of gene that this terminator terminates on. This is the value that 
+   * will get reported to the species tracker.
+   */
+  std::string gene_;
+  /**
+   * Readthrough state of terminator. True if a polymerase is reading through it
+   * and false otherwise.
+   */
+  bool readthrough_;
+  /**
+   * Reading frame for terminator.
+   */
+  int reading_frame_;
 };
 
 #endif // SRC_FEATURE_HPP_

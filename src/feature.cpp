@@ -61,7 +61,7 @@ Element::Element(const std::string &name, int start, int stop,
 }
 
 Promoter::Promoter(const std::string &name, int start, int stop,
-                   const std::vector<std::string> interactions)
+                   const std::vector<std::string> &interactions)
     : Element(name, start, stop, interactions)
 {
   type_ = "promoter";
@@ -77,4 +77,30 @@ void Promoter::check_state()
   {
     uncover_signal(name_);
   }
+}
+
+Terminator::Terminator(const std::string &name, int start, int stop,
+                       const std::vector<std::string> &interactions)
+    : Element(name, start, stop, interactions)
+{
+  readthrough_ = false;
+  reading_frame_ = -1;
+}
+
+void Terminator::check_state()
+{
+  if (was_uncovered())
+  {
+    readthrough_ = false;
+    uncover_signal(name_);
+  }
+  else if (was_covered())
+  {
+    cover_signal(name_);
+  }
+}
+
+bool Terminator::check_interaction(const std::string &name, int reading_frame)
+{
+  return (reading_frame == reading_frame_ && check_interaction(name));
 }
