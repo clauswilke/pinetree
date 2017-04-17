@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include "my_signal.h"
+#include "event_signal.hpp"
 /**
  * A generic feature in or on `Polymer`. Designed to be extended
  * by `Terminator`, `Promoter`, `Polymerase`, etc.
@@ -199,7 +199,7 @@ public:
    * Check for change in state and react appropriately. (Should be overridden
    * by children).
    */
-  void check_state();
+  virtual void check_state() {}
   /**
    * Signal to fire when element changes state from uncovered to covered
    */

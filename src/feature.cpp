@@ -102,5 +102,5 @@ void Terminator::check_state()
 
 bool Terminator::check_interaction(const std::string &name, int reading_frame)
 {
-  return (reading_frame == reading_frame_ && check_interaction(name));
+  return (reading_frame == reading_frame_ && Element::check_interaction(name));
 }
