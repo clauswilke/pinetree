@@ -28,18 +28,18 @@ class Random
         int index = (upper - cum_weights.begin());
         return index;
     }
+    template <class T>
+    int WeightedChoice(const std::vector<T> &population)
+    {
+        // Grab random number from python's random module
+        double random_num = random();
+        int index = random_num * population.size();
+        return index;
+    }
 
   private:
     static std::mt19937 gen_;
     static std::uniform_real_distribution<> dis_;
 };
-
-// py::object Choice(py::list population) {
-//     // Grab random number from python's random module
-//     py::object randfunc = py::module::import("random").attr("random");
-//     double random_num = randfunc().cast<double>();
-//     int index = random_num * population.size();
-//     return population[index];
-// }
 
 #endif // SRC_CHOICES_HPP_

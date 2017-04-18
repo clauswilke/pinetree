@@ -23,4 +23,7 @@ TEST_CASE("Random number generation and weighted choice", "[Random]")
     REQUIRE(out == 46);
     out = rng.WeightedChoice(pop, weights);
     REQUIRE(out == 30);
+    // Test with no weights
+    out = rng.WeightedChoice(pop);
+    REQUIRE(out == 49);
 }

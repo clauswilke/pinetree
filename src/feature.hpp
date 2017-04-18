@@ -78,7 +78,7 @@ public:
    * @param speed speed of polymerase
    */
   Polymerase(const std::string &name, int footprint, int speed);
-
+  typedef std::shared_ptr<Polymerase> Ptr;
   bool operator<(Polymerase const &other_pol) const;
   /**
    * Getters and setters.
@@ -168,6 +168,7 @@ public:
    */
   Element(const std::string &name, int start, int stop,
           const std::vector<std::string> &interactions);
+  typedef std::shared_ptr<Element> Ptr;
   /**
    * Save covering state.
    */
@@ -240,6 +241,7 @@ public:
    */
   Promoter(const std::string &name, int start, int stop,
            const std::vector<std::string> &interactions);
+  typedef std::shared_ptr<Promoter> Ptr;
   /**
    * Check to see if covering state has changed and fire appropriate signals.
    */
@@ -259,6 +261,7 @@ public:
    */
   Terminator(const std::string &name, int start, int stop,
              const std::vector<std::string> &interactions);
+  typedef std::shared_ptr<Terminator> Ptr;
   /**
    * Check for changes in covering state and fire appropriate signals.
    */
