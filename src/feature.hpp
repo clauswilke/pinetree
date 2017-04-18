@@ -78,11 +78,14 @@ public:
    * @param speed speed of polymerase
    */
   Polymerase(const std::string &name, int footprint, int speed);
+
+  bool operator<(Polymerase const &other_pol) const;
   /**
    * Getters and setters.
    */
   int start() const { return start_; }
   int stop() const { return stop_; }
+  double speed() const { return speed_; }
   /**
    * Move one position forward.
    */
@@ -115,7 +118,7 @@ private:
   /**
    * Speed in bp/s.
    */
-  int speed_;
+  double speed_;
   /**
    * Index of left-most interacting element; used for increasing efficiency of
    * polymerase movement.

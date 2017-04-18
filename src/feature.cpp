@@ -34,6 +34,11 @@ Polymerase::Polymerase(const std::string &name, int footprint, int speed)
   reading_frame_ = 0;
 }
 
+bool Polymerase::operator<(const Polymerase &other_pol) const
+{
+  return start_ < other_pol.start();
+}
+
 void Polymerase::Move()
 {
   start_++;
