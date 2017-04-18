@@ -12,6 +12,34 @@ Polymer::Polymer(const std::string &name, int start, int stop,
 {
     for (auto &element : elements_)
     {
-        element.cover_signal.connect_member(this, &Polymer::cover_element);
+        element.cover_signal_.ConnectMember(this, &Polymer::CoverElement);
+        element.uncover_signal_.ConnectMember(this, &Polymer::UncoverElement);
+        // Cover masked elements and set up signals for covered/uncovered
+        // elements
+        if (Intersect(element, mask_))
+        {
+            element.Cover();
+            element.SaveState();
+            if (uncovered_.count(element.name()) == 0)
+            {
+                uncovered_[element.name()] = 0;
+            }
+        }
+        else
+        {
+            if (uncovered_.count(element.name()) == 0)
+            {
+                uncovered_[element.name()] = 1;
+            }
+            else
+            {
+                uncovered_[element.name()]++;
+            }
+        }
     }
+}
+
+bool Polymer::Intersect(const Feature &elem1, const Feature &elem2)
+{
+    return (elem1.stop() >= elem2.start()) && (elem2.stop() >= elem1.start());
 }

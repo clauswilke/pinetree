@@ -15,7 +15,7 @@ Feature::Feature(const std::string &name, int start, int stop,
 {
 }
 
-bool Feature::check_interaction(const std::string &name)
+bool Feature::CheckInteraction(const std::string &name)
 {
   return std::find(interactions_.begin(), interactions_.end(), name) !=
          interactions_.end();
@@ -34,13 +34,13 @@ Polymerase::Polymerase(const std::string &name, int footprint, int speed)
   reading_frame_ = 0;
 }
 
-void Polymerase::move()
+void Polymerase::Move()
 {
   start_++;
   stop_++;
 }
 
-void Polymerase::move_back()
+void Polymerase::MoveBack()
 {
   start_--;
   stop_--;
@@ -67,15 +67,15 @@ Promoter::Promoter(const std::string &name, int start, int stop,
   type_ = "promoter";
 }
 
-void Promoter::check_state()
+void Promoter::CheckState()
 {
-  if (was_covered())
+  if (WasCovered())
   {
-    cover_signal.emit(name_);
+    cover_signal_.Emit(name_);
   }
-  else if (was_uncovered())
+  else if (WasUncovered())
   {
-    uncover_signal.emit(name_);
+    uncover_signal_.Emit(name_);
   }
 }
 
@@ -87,20 +87,20 @@ Terminator::Terminator(const std::string &name, int start, int stop,
   reading_frame_ = -1;
 }
 
-void Terminator::check_state()
+void Terminator::CheckState()
 {
-  if (was_uncovered())
+  if (WasUncovered())
   {
     readthrough_ = false;
-    uncover_signal.emit(name_);
+    uncover_signal_.Emit(name_);
   }
-  else if (was_covered())
+  else if (WasCovered())
   {
-    cover_signal.emit(name_);
+    cover_signal_.Emit(name_);
   }
 }
 
-bool Terminator::check_interaction(const std::string &name, int reading_frame)
+bool Terminator::CheckInteraction(const std::string &name, int reading_frame)
 {
-  return (reading_frame == reading_frame_ && Element::check_interaction(name));
+  return (reading_frame == reading_frame_ && Element::CheckInteraction(name));
 }

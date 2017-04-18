@@ -27,44 +27,44 @@ class Signal
 
     // connects a member function to this Signal
     template <typename T>
-    int connect_member(T *inst, void (T::*func)(Args...))
+    int ConnectMember(T *inst, void (T::*func)(Args...))
     {
-        return connect([=](Args... args) {
+        return Connect([=](Args... args) {
             (inst->*func)(args...);
         });
     }
 
     // connects a const member function to this Signal
     template <typename T>
-    int connect_member(T *inst, void (T::*func)(Args...) const)
+    int ConnectMember(T *inst, void (T::*func)(Args...) const)
     {
-        return connect([=](Args... args) {
+        return Connect([=](Args... args) {
             (inst->*func)(args...);
         });
     }
 
     // connects a std::function to the signal. The returned
     // value can be used to disconnect the function again
-    int connect(std::function<void(Args...)> const &slot) const
+    int Connect(std::function<void(Args...)> const &slot) const
     {
         slots_.insert(std::make_pair(++current_id_, slot));
         return current_id_;
     }
 
     // disconnects a previously connected function
-    void disconnect(int id) const
+    void Disconnect(int id) const
     {
         slots_.erase(id);
     }
 
     // disconnects all previously connected functions
-    void disconnect_all() const
+    void DisconnectAll() const
     {
         slots_.clear();
     }
 
     // calls all connected functions
-    void emit(Args... p)
+    void Emit(Args... p)
     {
         for (auto it : slots_)
         {
@@ -75,7 +75,7 @@ class Signal
     // assignment creates new Signal
     Signal &operator=(Signal const &other)
     {
-        disconnect_all();
+        DisconnectAll();
     }
 
   private:

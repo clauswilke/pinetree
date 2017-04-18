@@ -16,8 +16,8 @@ TEST_CASE("Feature construction", "[Feature]")
   Feature feat = Feature(name, start, stop, interactions);
 
   // Check that interactions have been set up correctly
-  REQUIRE(feat.check_interaction("ecolipol") == true);
-  REQUIRE(feat.check_interaction("some other pol") == false);
+  REQUIRE(feat.CheckInteraction("ecolipol") == true);
+  REQUIRE(feat.CheckInteraction("some other pol") == false);
 }
 
 TEST_CASE("Polymerase construction and movement", "[Polymerase]")
@@ -27,16 +27,16 @@ TEST_CASE("Polymerase construction and movement", "[Polymerase]")
   int speed = 60;
   Polymerase pol = Polymerase(name, footprint, speed);
 
-  REQUIRE(pol.get_start() == 0);
-  REQUIRE(pol.get_stop() == 39);
+  REQUIRE(pol.start() == 0);
+  REQUIRE(pol.stop() == 39);
 
-  pol.move();
-  REQUIRE(pol.get_start() == 1);
-  REQUIRE(pol.get_stop() == 40);
+  pol.Move();
+  REQUIRE(pol.start() == 1);
+  REQUIRE(pol.stop() == 40);
 
-  pol.move_back();
-  REQUIRE(pol.get_start() == 0);
-  REQUIRE(pol.get_stop() == 39);
+  pol.MoveBack();
+  REQUIRE(pol.start() == 0);
+  REQUIRE(pol.stop() == 39);
 }
 
 TEST_CASE("Mask construction and movement", "[Mask]")
@@ -48,15 +48,15 @@ TEST_CASE("Mask construction and movement", "[Mask]")
   Mask mask = Mask(name, start, stop, interactions);
 
   // Check that interactions have been set up correctly
-  REQUIRE(mask.check_interaction("ecolipol") == true);
-  REQUIRE(mask.check_interaction("some other pol") == false);
+  REQUIRE(mask.CheckInteraction("ecolipol") == true);
+  REQUIRE(mask.CheckInteraction("some other pol") == false);
 
-  REQUIRE(mask.get_start() == 1);
-  REQUIRE(mask.get_stop() == 10);
+  REQUIRE(mask.start() == 1);
+  REQUIRE(mask.stop() == 10);
 
-  mask.recede();
-  REQUIRE(mask.get_start() == 2);
-  REQUIRE(mask.get_stop() == 10);
+  mask.Recede();
+  REQUIRE(mask.start() == 2);
+  REQUIRE(mask.stop() == 10);
 }
 
 TEST_CASE("Element construction and state changes", "[Element]")
@@ -69,42 +69,42 @@ TEST_CASE("Element construction and state changes", "[Element]")
 
   SECTION("Saving the state")
   {
-    elem.cover();
-    elem.cover();
-    elem.cover();
-    REQUIRE(elem.is_covered());
-    REQUIRE(elem.was_covered());
+    elem.Cover();
+    elem.Cover();
+    elem.Cover();
+    REQUIRE(elem.IsCovered());
+    REQUIRE(elem.WasCovered());
 
-    elem.save_state();
-    REQUIRE(!elem.was_covered());
+    elem.SaveState();
+    REQUIRE(!elem.WasCovered());
 
-    elem.uncover();
-    elem.uncover();
-    elem.uncover();
-    REQUIRE(!elem.is_covered());
-    REQUIRE(elem.was_uncovered());
+    elem.Uncover();
+    elem.Uncover();
+    elem.Uncover();
+    REQUIRE(!elem.IsCovered());
+    REQUIRE(elem.WasUncovered());
 
-    elem.save_state();
-    REQUIRE(!elem.was_uncovered());
+    elem.SaveState();
+    REQUIRE(!elem.WasUncovered());
   }
 
   SECTION("Uncovering and covering an element")
   {
     // Make sure covering counts don't go below zero
-    elem.uncover();
-    elem.uncover();
-    elem.uncover();
-    REQUIRE(!elem.is_covered());
-    REQUIRE(!elem.is_covered());
+    elem.Uncover();
+    elem.Uncover();
+    elem.Uncover();
+    REQUIRE(!elem.IsCovered());
+    REQUIRE(!elem.IsCovered());
 
-    elem.cover();
-    REQUIRE(elem.is_covered());
-    REQUIRE(elem.was_covered());
+    elem.Cover();
+    REQUIRE(elem.IsCovered());
+    REQUIRE(elem.WasCovered());
 
-    elem.uncover();
-    REQUIRE(!elem.is_covered());
-    REQUIRE(!elem.was_covered());
-    REQUIRE(!elem.was_uncovered());
+    elem.Uncover();
+    REQUIRE(!elem.IsCovered());
+    REQUIRE(!elem.WasCovered());
+    REQUIRE(!elem.WasUncovered());
   }
 }
 
@@ -115,11 +115,11 @@ TEST_CASE("Terminator construction", "[Terminator]")
   int stop = 10;
   std::vector<std::string> interactions = {"ecolipol", "rnapol"};
   Terminator term = Terminator(name, start, stop, interactions);
-  REQUIRE(!term.get_readthrough());
-  REQUIRE(term.get_reading_frame() == -1);
+  REQUIRE(!term.readthrough());
+  REQUIRE(term.reading_frame() == -1);
   // Test for reading frame checking
   term.set_reading_frame(1);
-  REQUIRE(term.check_interaction("ecolipol", 1));
-  REQUIRE(!term.check_interaction("ecolipol", 0));
-  REQUIRE(!term.check_interaction("nopol", 1));
+  REQUIRE(term.CheckInteraction("ecolipol", 1));
+  REQUIRE(!term.CheckInteraction("ecolipol", 0));
+  REQUIRE(!term.CheckInteraction("nopol", 1));
 }

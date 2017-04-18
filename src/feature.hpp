@@ -29,8 +29,9 @@ public:
   /**
    * Getters and setters.
    */
-  int get_start() { return start_; }
-  int get_stop() { return stop_; }
+  std::string const &name() const { return name_; }
+  int start() const { return start_; }
+  int stop() const { return stop_; }
   void set_start(int start) { start_ = start; }
   void set_stop(int stop) { stop_ = stop; }
   /**
@@ -38,7 +39,7 @@ public:
    * @param  name name of a feature object
    * @return      TRUE if features interact
    */
-  bool check_interaction(const std::string &name);
+  bool CheckInteraction(const std::string &name);
 
 protected:
   /**
@@ -80,16 +81,16 @@ public:
   /**
    * Getters and setters.
    */
-  int get_start() { return start_; }
-  int get_stop() { return stop_; }
+  int start() const { return start_; }
+  int stop() const { return stop_; }
   /**
    * Move one position forward.
    */
-  void move();
+  void Move();
   /**
    * Move one positioin back.
    */
-  void move_back();
+  void MoveBack();
 
   // Gallant::Signal1<std::string> move_signal;
   // Signal release_signal;
@@ -150,7 +151,7 @@ public:
   /**
    * Shift mask backwards one position.
    */
-  void recede() { start_++; }
+  void Recede() { start_++; }
 };
 
 /**
@@ -167,25 +168,25 @@ public:
   /**
    * Save covering state.
    */
-  void save_state() { old_covered_ = covered_; }
+  void SaveState() { old_covered_ = covered_; }
   /**
    * Was this element just uncovered?
    * @return True if element was just uncovered.
    */
-  bool was_uncovered() { return old_covered_ >= 1; }
+  bool WasUncovered() { return old_covered_ >= 1; }
   /**
    * Was this element just covered?
    * @return True if element was just covered.
    */
-  bool was_covered() { return old_covered_ == 0 && covered_ > 0; }
+  bool WasCovered() { return old_covered_ == 0 && covered_ > 0; }
   /**
    * Cover this element. Elements can be covered by multiple features.
    */
-  void cover() { covered_++; }
+  void Cover() { covered_++; }
   /**
    * Uncover element.
    */
-  void uncover()
+  void Uncover()
   {
     if (covered_ > 0)
       covered_--;
@@ -194,20 +195,20 @@ public:
    * Is this element covered at all?
    * @return True if at least one feature is covering element.
    */
-  bool is_covered() { return covered_ > 0; }
+  bool IsCovered() { return covered_ > 0; }
   /**
    * Check for change in state and react appropriately. (Should be overridden
    * by children).
    */
-  virtual void check_state() {}
+  virtual void CheckState() {}
   /**
    * Signal to fire when element changes state from uncovered to covered
    */
-  Signal<const std::string &> cover_signal;
+  Signal<const std::string &> cover_signal_;
   /**
    * Signal to fire when element changes state from covered to uncovered
    */
-  Signal<const std::string &> uncover_signal;
+  Signal<const std::string &> uncover_signal_;
 
 private:
   /**
@@ -239,7 +240,7 @@ public:
   /**
    * Check to see if covering state has changed and fire appropriate signals.
    */
-  void check_state();
+  void CheckState();
 };
 
 class Terminator : public Element
@@ -258,7 +259,7 @@ public:
   /**
    * Check for changes in covering state and fire appropriate signals.
    */
-  void check_state();
+  void CheckState();
   /**
    * Check to see if feature interacts with this terminator and is in the
    * correct reading frame.
@@ -268,13 +269,13 @@ public:
    *
    * @return bool true if feature interacts with terminator
    */
-  bool check_interaction(const std::string &name, int reading_frame);
+  bool CheckInteraction(const std::string &name, int reading_frame);
   /**
    * Getters and setters
    */
-  int get_reading_frame() { return reading_frame_; }
+  int reading_frame() { return reading_frame_; }
   void set_reading_frame(int reading_frame) { reading_frame_ = reading_frame; }
-  bool get_readthrough() { return readthrough_; }
+  bool readthrough() { return readthrough_; }
   void set_readthrough(bool readthrough) { readthrough_ = readthrough; }
 
 private:

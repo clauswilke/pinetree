@@ -29,8 +29,8 @@
  */
 class Polymer
 {
-  public:
-    /**
+public:
+  /**
     * The only constructor for Polymer.
     *
     * @param name name of this polymer (should it be unique?)
@@ -41,40 +41,81 @@ class Polymer
     * @param mask mask object which determines which portions of the polymer
     *     are currently inaccessible
     */
-    Polymer(const std::string &name, int start, int stop,
-            const std::vector<Element> &elements, const Mask &mask);
-    void bind_polymerase();
-    void execute();
-    void shift_mask();
-    void terminate();
-    int count_uncovered(const std::string &species_name);
-    void cover_element(const std::string &species_name) {}
-    void uncover_element(const std::string &species_name);
-    double calculate_propensity();
-    // Gallant::Signal2<std::string, std::string> termination_signal;
+  Polymer(const std::string &name, int start, int stop,
+          const std::vector<Element> &elements, const Mask &mask);
+  void BindPolymerase();
+  void Execute();
+  void ShiftMask();
+  void Terminate();
+  void CoverElement(const std::string &species_name) {}
+  void UncoverElement(const std::string &species_name) {}
+  double CalculatePropensity();
+  /**
+   * Getters and setters
+   */
+  int index() { return index_; }
+  int uncovered(const std::string &name) { return uncovered_[name]; }
+  Signal<std::string, std::string> termination_signal_;
 
-    int get_index() { return index_; }
+private:
+  /**
+   * An index for this polymer, used by Simulation.
+   */
+  int index_;
+  /**
+   * Name of polymer
+   */
+  std::string name_;
+  /**
+   * Start position.
+   */
+  int start_;
+  /**
+   * End position
+   */
+  int stop_;
+  /**
+   * Vector of polymerases currently on this polymer.
+   */
+  std::vector<Polymerase> polymerases_;
+  /**
+   * Vector of elements on this polymer (Promoters, Terminators, etc.)
+   */
+  std::vector<Element> elements_;
+  /**
+   * Mask corresponding to this polymer. Controls which elements are hidden.
+   */
+  Mask mask_;
+  /**
+   * Cached total propensity of this polymerase, i.e. the sum of all of the 
+   * polymerase speeds.
+   */
+  double prop_sum_;
+  /**
+   * List of all propensities for polymerases on this polymer.
+   */
+  std::vector<double> prop_list_;
+  /**
+   * Cached count of uncovered elements on this polymer, used by Simulation.
+   */
+  std::map<std::string, int> uncovered_;
 
-  private:
-    int index_;
-    std::string name_;
-    int start_;
-    int stop_;
-    std::vector<Polymerase> polymerases_;
-    std::vector<Element> elements_;
-    Mask mask_;
-    double prop_sum_;
-    std::vector<double> prop_list_;
-    std::map<std::string, int> uncovered_;
-
-    void insert_polymerase_(const Polymerase &pol);
-    Polymerase &choose_polymerase_();
-    void move_polymerase_(const Polymerase &pol);
-    void uncover_elements_(const Polymerase &pol);
-    void recover_elements_(const Polymerase &pol);
-    bool resolve_termination_(const Polymerase &pol, const Element &elem);
-    bool resolve_mask_collisions_(const Polymerase &pol);
-    bool elements_intersect_(const Element &elem1, const Element &elem2);
+  void Insert(const Polymerase &pol);
+  Polymerase Choose();
+  void Move(const Polymerase &pol);
+  void UncoverElements(const Polymerase &pol);
+  void RecoverElements(const Polymerase &pol);
+  bool ResolveTermination(const Polymerase &pol, const Element &elem);
+  bool ResolveMaskCollisions(const Polymerase &pol);
+  /**
+   * Do two elements intersect?
+   * 
+   * @param elem1 an element
+   * @param elem2 another element
+   *
+   * @return true if elements intersect
+   */
+  bool Intersect(const Feature &elem1, const Feature &elem2);
 };
 
 #endif // SRC_POLYMER_HPP_
