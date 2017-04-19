@@ -25,13 +25,13 @@ TEST_CASE("Polymer methods", "[Polymer]")
   std::vector<std::string> interactions = {"ecolipol", "rnapol"};
   Promoter::Ptr prom;
   Terminator::Ptr term;
-  prom = std::make_shared<Promoter>(Promoter("p1", 1, 10, interactions));
+  prom = std::make_shared<Promoter>(Promoter("p1", 5, 15, interactions));
   term = std::make_shared<Terminator>(Terminator("t1", 50, 55, interactions));
 
   std::vector<Element::Ptr> elements;
   elements.push_back(prom);
   elements.push_back(term);
-  Mask mask = Mask("test_mask", 1, 100, interactions);
+  Mask mask = Mask("test_mask", 10, 100, interactions);
 
   Polymer polymer = Polymer("test_polymer", 1, 100, elements, mask);
 
@@ -51,6 +51,11 @@ TEST_CASE("Polymer methods", "[Polymer]")
   SECTION("Polymerase binding")
   {
     Random::seed(22);
+    Helper::ShiftMaskN(&polymer, 10);
+    auto pol = std::make_shared<Polymerase>(Polymerase("ecolipol", 10, 30));
+    polymer.Bind(pol, "p1");
+    REQUIRE(polymer.uncovered("p1") == 0);
+    REQUIRE(polymer.prop_sum() == 30);
   }
 
   SECTION("Mask shifting")

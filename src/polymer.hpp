@@ -63,6 +63,7 @@ public:
    * Getters and setters
    */
   int index() { return index_; }
+  double prop_sum() { return prop_sum_; }
   int uncovered(const std::string &name) { return uncovered_[name]; }
   Signal<std::string, std::string> termination_signal_;
 

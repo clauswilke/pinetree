@@ -73,7 +73,7 @@ void Polymer::Bind(Polymerase::Ptr pol,
     CoverElement(elem->name());
     // Add polymerase to this polymer
     Insert(pol);
-    // Update total move propensity of this polymer
+    // // Update total move propensity of this polymer
     prop_sum_ += pol->speed();
 }
 
@@ -111,8 +111,13 @@ void Polymer::ShiftMask()
 void Polymer::Insert(Polymerase::Ptr pol)
 {
     auto it = std::upper_bound(polymerases_.begin(), polymerases_.end(), pol);
+    // Record position for prop_list_
+    // NOTE: iterators become invalid as soon as a vector is changed!!
+    // Attempting to use an iterator twice will lead to a segfault.
+    auto prop_it = (it - polymerases_.begin()) + prop_list_.begin();
+    // Add polymerase to this polymer
     polymerases_.insert(it, pol);
-    auto prop_it = prop_list_.begin() + (it - polymerases_.begin());
+    // Cache polymerase speed
     prop_list_.insert(prop_it, pol->speed());
 }
 
