@@ -192,7 +192,7 @@ public:
    * Was this element just uncovered?
    * @return True if element was just uncovered.
    */
-  bool WasUncovered() { return old_covered_ >= 1; }
+  bool WasUncovered() { return old_covered_ >= 1 and covered_ == 0; }
   /**
    * Was this element just covered?
    * @return True if element was just covered.

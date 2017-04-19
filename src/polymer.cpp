@@ -77,6 +77,37 @@ void Polymer::Bind(Polymerase::Ptr pol,
     prop_sum_ += pol->speed();
 }
 
+void Polymer::ShiftMask()
+{
+    if (mask_.start() >= mask_.stop())
+    {
+        return;
+    }
+
+    int index = -1;
+    for (size_t i = 0; i < elements_.size(); i++)
+    {
+        if (Intersect(mask_, *elements_[i]))
+        {
+            elements_[i]->SaveState();
+            elements_[i]->Uncover();
+            index = i;
+            break;
+        }
+    }
+    mask_.Recede();
+    if (index == -1)
+    {
+        return;
+    }
+    if (Intersect(mask_, *elements_[index]))
+    {
+        elements_[index]->Cover();
+    }
+    elements_[index]->CheckState();
+    elements_[index]->SaveState();
+}
+
 void Polymer::Insert(Polymerase::Ptr pol)
 {
     auto it = std::upper_bound(polymerases_.begin(), polymerases_.end(), pol);
