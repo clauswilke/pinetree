@@ -4,6 +4,9 @@
 # VSCode crap
 .vscode
 
+# Clang format
+.clang-format
+
 # output from runs
 runs
 

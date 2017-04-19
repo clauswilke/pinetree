@@ -3,9 +3,9 @@
 #ifndef SRC_POLYMER_HPP_ // header guard
 #define SRC_POLYMER_HPP_
 
-#include <vector>
 #include <map>
 #include <string>
+#include <vector>
 
 #include "feature.hpp"
 
@@ -15,11 +15,11 @@
  * covering and uncovering of elements. This class contains the core of the
  * single-moleculre tracking used for both genomes (transcription) and
  * transcripts (translation).
- * 
+ *
  * The terms polymer, polymerase, promoter, and terminator are all used
  * generically in this class. Each term could refer to a different biological
  *  definition in the context of transcription and translation.
- *  
+ *
  * * polymer: genome, transcript
  * * polymerase: RNA polymerase, ribosome, any object that binds to polymer
  * * promoter: promoter, ribosome binding site, any site on a polymer in which
@@ -27,8 +27,7 @@
  * * terminator: terminator, stop codon, any site on polymer that ends
  *      polymerization
  */
-class Polymer
-{
+class Polymer {
 public:
   /**
     * The only constructor for Polymer.
@@ -42,8 +41,7 @@ public:
     *     are currently inaccessible
     */
   Polymer(const std::string &name, int start, int stop,
-          const Element::VecPtr &elements,
-          const Mask &mask);
+          const Element::VecPtr &elements, const Mask &mask);
   /**
    * Bind a polymerase object to the polymer. Randomly select an open
    * promoter with which to bind and update the polymerases position to the
@@ -97,7 +95,7 @@ private:
    */
   Mask mask_;
   /**
-   * Cached total propensity of this polymerase, i.e. the sum of all of the 
+   * Cached total propensity of this polymerase, i.e. the sum of all of the
    * polymerase speeds.
    */
   double prop_sum_;
@@ -119,7 +117,7 @@ private:
   bool ResolveMaskCollisions(const Polymerase &pol);
   /**
    * Do two elements intersect?
-   * 
+   *
    * @param elem1 an element
    * @param elem2 another element
    *
