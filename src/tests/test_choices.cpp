@@ -9,9 +9,8 @@
 
 TEST_CASE("Random number generation and weighted choice", "[Random]")
 {
-    Random rng = Random();
-    rng.seed(5);
-    REQUIRE(rng.random() == Approx(0.0551801));
+    Random::seed(5);
+    REQUIRE(Random::random() == Approx(0.0551801));
 
     std::vector<int> pop;
     for (int i = 0; i < 51; i++)
@@ -19,11 +18,11 @@ TEST_CASE("Random number generation and weighted choice", "[Random]")
         pop.push_back(i);
     }
     std::vector<double> weights(pop.begin(), pop.end());
-    int out = rng.WeightedChoice(pop, weights);
+    int out = Random::WeightedChoice(pop, weights);
     REQUIRE(out == 46);
-    out = rng.WeightedChoice(pop, weights);
+    out = Random::WeightedChoice(pop, weights);
     REQUIRE(out == 30);
     // Test with no weights
-    out = rng.WeightedChoice(pop);
+    out = Random::WeightedChoice(pop);
     REQUIRE(out == 49);
 }

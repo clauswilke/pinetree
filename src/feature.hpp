@@ -78,14 +78,25 @@ public:
    * @param speed speed of polymerase
    */
   Polymerase(const std::string &name, int footprint, int speed);
+  /**
+   * Some typedefs to make code less verbose
+   */
   typedef std::shared_ptr<Polymerase> Ptr;
+  typedef std::vector<std::shared_ptr<Polymerase>> VecPtr;
+  /**
+   * Polymerases should be compared by their start positions.
+   */
   bool operator<(Polymerase const &other_pol) const;
   /**
    * Getters and setters.
    */
   int start() const { return start_; }
+  void set_start(int start) { start_ = start; }
   int stop() const { return stop_; }
+  void set_stop(int stop) { stop_ = stop; }
   double speed() const { return speed_; }
+  int footprint() const { return footprint_; }
+  void set_left_most_element(int index) { left_most_element_ = index; }
   /**
    * Move one position forward.
    */
@@ -168,7 +179,11 @@ public:
    */
   Element(const std::string &name, int start, int stop,
           const std::vector<std::string> &interactions);
+  /**
+   * Some convenience typedefs.
+   */
   typedef std::shared_ptr<Element> Ptr;
+  typedef std::vector<std::shared_ptr<Element>> VecPtr;
   /**
    * Save covering state.
    */
@@ -241,7 +256,11 @@ public:
    */
   Promoter(const std::string &name, int start, int stop,
            const std::vector<std::string> &interactions);
+  /**
+   * Some convenience typedefs.
+   */
   typedef std::shared_ptr<Promoter> Ptr;
+  typedef std::vector<std::shared_ptr<Promoter>> VecPtr;
   /**
    * Check to see if covering state has changed and fire appropriate signals.
    */
@@ -261,7 +280,11 @@ public:
    */
   Terminator(const std::string &name, int start, int stop,
              const std::vector<std::string> &interactions);
+  /**
+   * Some convenience typedefs.
+   */
   typedef std::shared_ptr<Terminator> Ptr;
+  typedef std::vector<std::shared_ptr<Terminator>> VecPtr;
   /**
    * Check for changes in covering state and fire appropriate signals.
    */

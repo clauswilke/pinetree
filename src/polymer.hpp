@@ -42,9 +42,17 @@ public:
     *     are currently inaccessible
     */
   Polymer(const std::string &name, int start, int stop,
-          const std::vector<Element::Ptr> &elements,
+          const Element::VecPtr &elements,
           const Mask &mask);
-  void Bind(std::shared_ptr<Polymerase> pol, const std::string &promoter_name);
+  /**
+   * Bind a polymerase object to the polymer. Randomly select an open
+   * promoter with which to bind and update the polymerases position to the
+   * position of that promoter.
+   *
+   * @param pol polymerase object (pointer)
+   * @param promoter_name the name of a promoter that pol will bind
+   */
+  void Bind(Polymerase::Ptr pol, const std::string &promoter_name);
   void Execute();
   void ShiftMask();
   void Terminate();
@@ -78,11 +86,11 @@ private:
   /**
    * Vector of polymerases currently on this polymer.
    */
-  std::vector<Polymerase::Ptr> polymerases_;
+  Polymerase::VecPtr polymerases_;
   /**
    * Vector of elements on this polymer (Promoters, Terminators, etc.)
    */
-  std::vector<Element::Ptr> elements_;
+  Element::VecPtr elements_;
   /**
    * Mask corresponding to this polymer. Controls which elements are hidden.
    */
@@ -101,7 +109,7 @@ private:
    */
   std::map<std::string, int> uncovered_;
 
-  void Insert(std::shared_ptr<Polymerase> pol);
+  void Insert(Polymerase::Ptr pol);
   Polymerase Choose();
   void Move(const Polymerase &pol);
   void UncoverElements(const Polymerase &pol);

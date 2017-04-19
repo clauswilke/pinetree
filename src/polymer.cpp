@@ -1,7 +1,8 @@
 #include "polymer.hpp"
+#include "choices.hpp"
 
 Polymer::Polymer(const std::string &name, int start, int stop,
-                 const std::vector<Element::Ptr> &elements,
+                 const Element::VecPtr &elements,
                  const Mask &mask)
     : index_(0),
       name_(name),
@@ -40,14 +41,43 @@ Polymer::Polymer(const std::string &name, int start, int stop,
     }
 }
 
-void Polymer::Bind(std::shared_ptr<Polymerase> pol,
+void Polymer::Bind(Polymerase::Ptr pol,
                    const std::string &promoter_name)
 {
+    // Make a list of free promoters that pol can bind
     bool found = false;
-    // Do more
+    Element::VecPtr element_choices;
+    for (auto &elem : elements_)
+    {
+        if (elem->name() == promoter_name && !elem->IsCovered())
+        {
+            element_choices.push_back(elem);
+            found = true;
+        }
+    }
+    // Error checking.
+    // Randomly select promoter.
+    Element::Ptr elem = Random::WeightedChoice(element_choices);
+    // More error checking.
+    // Update polymerase coordinates
+    // (TODO: refactor; pol doesn't need to expose footprint/stop position)
+    pol->set_start(elem->start());
+    pol->set_stop(elem->start() + pol->footprint() - 1);
+    // Find index of element
+    auto it = std::find(elements_.begin(), elements_.end(), elem);
+    pol->set_left_most_element(it - elements_.begin());
+    // More error checking.
+    elem->Cover();
+    elem->SaveState();
+    // Cover promoter in cache
+    CoverElement(elem->name());
+    // Add polymerase to this polymer
+    Insert(pol);
+    // Update total move propensity of this polymer
+    prop_sum_ += pol->speed();
 }
 
-void Polymer::Insert(std::shared_ptr<Polymerase> pol)
+void Polymer::Insert(Polymerase::Ptr pol)
 {
     auto it = std::upper_bound(polymerases_.begin(), polymerases_.end(), pol);
     polymerases_.insert(it, pol);
