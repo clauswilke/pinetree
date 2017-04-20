@@ -7,8 +7,7 @@
 
 #include "feature.hpp"
 
-TEST_CASE("Feature construction", "[Feature]")
-{
+TEST_CASE("Feature construction", "[Feature]") {
   std::string name = "testing!";
   int start = 1;
   int stop = 10;
@@ -20,8 +19,7 @@ TEST_CASE("Feature construction", "[Feature]")
   REQUIRE(feat.CheckInteraction("some other pol") == false);
 }
 
-TEST_CASE("Polymerase construction and movement", "[Polymerase]")
-{
+TEST_CASE("Polymerase construction and movement", "[Polymerase]") {
   std::string name = "testing!";
   int footprint = 40;
   int speed = 60;
@@ -39,8 +37,7 @@ TEST_CASE("Polymerase construction and movement", "[Polymerase]")
   REQUIRE(pol.stop() == 39);
 }
 
-TEST_CASE("Mask construction and movement", "[Mask]")
-{
+TEST_CASE("Mask construction and movement", "[Mask]") {
   std::string name = "testing!";
   int start = 1;
   int stop = 10;
@@ -59,16 +56,14 @@ TEST_CASE("Mask construction and movement", "[Mask]")
   REQUIRE(mask.stop() == 10);
 }
 
-TEST_CASE("Element construction and state changes", "[Element]")
-{
+TEST_CASE("Element construction and state changes", "[Element]") {
   std::string name = "testing!";
   int start = 1;
   int stop = 10;
   std::vector<std::string> interactions = {"ecolipol", "rnapol"};
   Element elem = Element(name, start, stop, interactions);
 
-  SECTION("Saving the state")
-  {
+  SECTION("Saving the state") {
     elem.Cover();
     elem.Cover();
     elem.Cover();
@@ -88,8 +83,7 @@ TEST_CASE("Element construction and state changes", "[Element]")
     REQUIRE(!elem.WasUncovered());
   }
 
-  SECTION("Uncovering and covering an element")
-  {
+  SECTION("Uncovering and covering an element") {
     // Make sure covering counts don't go below zero
     elem.Uncover();
     elem.Uncover();
@@ -108,13 +102,15 @@ TEST_CASE("Element construction and state changes", "[Element]")
   }
 }
 
-TEST_CASE("Terminator construction", "[Terminator]")
-{
+TEST_CASE("Terminator construction", "[Terminator]") {
   std::string name = "testing!";
   int start = 1;
   int stop = 10;
   std::vector<std::string> interactions = {"ecolipol", "rnapol"};
-  Terminator term = Terminator(name, start, stop, interactions);
+  std::map<std::string, double> efficiency;
+  efficiency["ecolipol"] = 0.5;
+  efficiency["rnapol"] = 0.8;
+  Terminator term = Terminator(name, start, stop, interactions, efficiency);
   REQUIRE(!term.readthrough());
   REQUIRE(term.reading_frame() == -1);
   // Test for reading frame checking

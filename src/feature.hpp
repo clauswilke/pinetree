@@ -33,6 +33,7 @@ public:
   int stop() const { return stop_; }
   void set_start(int start) { start_ = start; }
   void set_stop(int stop) { stop_ = stop; }
+  std::string const &type() const { return type_; }
   /**
    * Check to see if some other feature interacts with this feature.
    * @param  name name of a feature object
@@ -67,7 +68,7 @@ protected:
 /**
  * A molecule that binds to `Polymer` and moves.
  */
-class Polymerase {
+class Polymerase : public Feature {
 public:
   /**
    * The only constructor for Polymerase.
@@ -88,14 +89,11 @@ public:
   /**
    * Getters and setters.
    */
-  std::string const &name() const { return name_; }
-  int start() const { return start_; }
-  void set_start(int start) { start_ = start; }
-  int stop() const { return stop_; }
-  void set_stop(int stop) { stop_ = stop; }
   double speed() const { return speed_; }
   int footprint() const { return footprint_; }
+  int left_most_element() const { return left_most_element_; }
   void set_left_most_element(int index) { left_most_element_ = index; }
+  int reading_frame() const { return reading_frame_; }
   /**
    * Move one position forward.
    */
@@ -109,18 +107,6 @@ public:
   // Signal release_signal;
 
 private:
-  /**
-   * Name of polymerase (for determining interactions)
-   */
-  std::string name_;
-  /**
-   * Start position of polymerase.
-   */
-  int start_;
-  /**
-   * End position of polymerase.
-   */
-  int stop_;
   /**
    * Foot print in base pairs of polymerase.
    */
@@ -273,7 +259,8 @@ public:
    * @param interactions list of features that this terminator interacts with
    */
   Terminator(const std::string &name, int start, int stop,
-             const std::vector<std::string> &interactions);
+             const std::vector<std::string> &interactions,
+             const std::map<std::string, double> &efficiency);
   /**
    * Some convenience typedefs.
    */
@@ -296,10 +283,14 @@ public:
   /**
    * Getters and setters
    */
-  int reading_frame() { return reading_frame_; }
+  int reading_frame() const { return reading_frame_; }
   void set_reading_frame(int reading_frame) { reading_frame_ = reading_frame; }
-  bool readthrough() { return readthrough_; }
+  bool readthrough() const { return readthrough_; }
   void set_readthrough(bool readthrough) { readthrough_ = readthrough; }
+  double efficiency(const std::string &pol_name) {
+    return efficiency_[pol_name];
+  }
+  const std::string &gene() const { return gene_; }
 
 private:
   /**
@@ -316,6 +307,10 @@ private:
    * Reading frame for terminator.
    */
   int reading_frame_;
+  /**
+   * Readthrough efficiencies for different polymerases.
+   */
+  std::map<std::string, double> efficiency_;
 };
 
 #endif // SRC_FEATURE_HPP_

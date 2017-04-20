@@ -67,14 +67,14 @@ public:
   void Terminate(Polymerase::Ptr pol, const std::string &last_gene);
   /**
    * Update the cached count of uncovered promoters/elements.
-   * TODO: Should this really be public?
+   * TODO: Make private and refactor covering signals
    *
    * @param species_name name of species to cover
    */
   void CoverElement(const std::string &species_name);
   /**
    * Update the cached count of uncovered promoters/elements.
-   * TODO: Should this really be public?
+   * TODO: Make private and refactor covering signals
    *
    * @param species_name name of species to uncover
    */
@@ -143,12 +143,21 @@ private:
    * @param pol pointer to polymerase object
    */
   void Insert(Polymerase::Ptr pol);
-  Polymerase Choose();
+  /**
+   * Randomly select next polymerase to move, weighted by propensity
+   * (i.e. speed).
+   *
+   * @return pointer to selected polymerase object
+   */
+  Polymerase::Ptr Choose();
   void Move(const Polymerase &pol);
-  void UncoverElements(const Polymerase &pol);
-  void RecoverElements(const Polymerase &pol);
-  bool ResolveTermination(const Polymerase &pol, const Element &elem);
-  bool ResolveMaskCollisions(const Polymerase &pol);
+  void UncoverElements(Polymerase::Ptr pol);
+  void RecoverElements(Polymerase::Ptr pol);
+  bool ResolveTermination(Polymerase::Ptr pol, Terminator::Ptr element);
+  bool ResolveTermination(Polymerase::Ptr pol, Element::Ptr elem) {
+    return false;
+  }
+  bool ResolveMaskCollisions(Polymerase::Ptr pol);
   /**
    * Do two elements intersect?
    *

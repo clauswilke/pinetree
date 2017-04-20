@@ -27,7 +27,11 @@ TEST_CASE("Polymer methods", "[Polymer]") {
   Promoter::Ptr prom;
   Terminator::Ptr term;
   prom = std::make_shared<Promoter>(Promoter("p1", 5, 15, interactions));
-  term = std::make_shared<Terminator>(Terminator("t1", 50, 55, interactions));
+  std::map<std::string, double> efficiency;
+  efficiency["ecolipol"] = 0.5;
+  efficiency["rnapol"] = 0.8;
+  term = std::make_shared<Terminator>(
+      Terminator("t1", 50, 55, interactions, efficiency));
 
   std::vector<Element::Ptr> elements;
   elements.push_back(prom);

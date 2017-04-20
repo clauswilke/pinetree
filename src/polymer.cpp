@@ -112,6 +112,76 @@ void Polymer::Insert(Polymerase::Ptr pol) {
   prop_list_.insert(prop_it, pol->speed());
 }
 
+Polymerase::Ptr Polymer::Choose() {
+  return Random::WeightedChoice(polymerases_, prop_list_);
+}
+
+void Polymer::UncoverElements(Polymerase::Ptr pol) {
+  int save_index = pol->left_most_element();
+  // TODO: Error checking
+  while (elements_[save_index]->start() <= pol->stop()) {
+    if (Intersect(*pol, *elements_[save_index])) {
+      elements_[save_index]->SaveState();
+      elements_[save_index]->Uncover();
+    }
+    save_index++;
+    if (save_index >= elements_.size()) {
+      break;
+    }
+  }
+}
+
+void Polymer::RecoverElements(Polymerase::Ptr pol) {
+  int old_index = pol->left_most_element();
+  bool reset_index = true;
+  bool terminating = false;
+  while (elements_[old_index]->start() <= pol->stop()) {
+    if (Intersect(*pol, *elements_[old_index])) {
+      if (reset_index) {
+        pol->set_left_most_element(old_index);
+        reset_index = false;
+      }
+      if (terminating) {
+        elements_[old_index]->Uncover();
+      } else {
+        elements_[old_index]->Cover();
+        if (ResolveTermination(pol, elements_[old_index])) {
+          old_index = pol->left_most_element() - 1;
+          terminating = true;
+        }
+      }
+    }
+    elements_[old_index]->CheckState();
+    elements_[old_index]->SaveState();
+    old_index++;
+    if (old_index >= elements_.size()) {
+      break;
+    }
+  }
+}
+
+bool Polymer::ResolveTermination(Polymerase::Ptr pol, Terminator::Ptr element) {
+  if (!element->CheckInteraction(pol->name(), pol->reading_frame())) {
+    return false;
+  }
+  if (element->readthrough()) {
+    return false;
+  }
+  if (pol->stop() != element->start()) {
+    return false;
+  }
+  double random_num = Random::random();
+  if (random_num <= element->efficiency(pol->name())) {
+    Terminate(pol, element->gene());
+    return true;
+  } else {
+    element->set_readthrough(true);
+    return false;
+  }
+}
+
+bool Polymer::ResolveMaskCollisions(Polymerase::Ptr pol) {}
+
 bool Polymer::Intersect(const Feature &elem1, const Feature &elem2) {
   return (elem1.stop() >= elem2.start()) && (elem2.stop() >= elem1.start());
 }
