@@ -13,8 +13,7 @@
  *
  * TODO: make abstract?
  */
-class Feature
-{
+class Feature {
 public:
   /**
    * Default constructor of Feature
@@ -68,8 +67,7 @@ protected:
 /**
  * A molecule that binds to `Polymer` and moves.
  */
-class Polymerase
-{
+class Polymerase {
 public:
   /**
    * The only constructor for Polymerase.
@@ -90,6 +88,7 @@ public:
   /**
    * Getters and setters.
    */
+  std::string const &name() const { return name_; }
   int start() const { return start_; }
   void set_start(int start) { start_ = start; }
   int stop() const { return stop_; }
@@ -154,8 +153,7 @@ private:
  * yet accessible. For example, as the genome is entering the cell, or as a
  * transcript is being synthesized.
  */
-class Mask : public Feature
-{
+class Mask : public Feature {
 public:
   /**
    * Only constructor for Mask.
@@ -171,8 +169,7 @@ public:
 /**
  * A fixed feature in the polymer that can be covered or uncovered.
  */
-class Element : public Feature
-{
+class Element : public Feature {
 public:
   /**
    * Only constructor of Element.
@@ -205,8 +202,7 @@ public:
   /**
    * Uncover element.
    */
-  void Uncover()
-  {
+  void Uncover() {
     if (covered_ > 0)
       covered_--;
   }
@@ -243,8 +239,7 @@ private:
 /**
  * A promoter class
  */
-class Promoter : public Element
-{
+class Promoter : public Element {
 public:
   /**
    * The only constructor for Promoter.
@@ -267,16 +262,15 @@ public:
   void CheckState();
 };
 
-class Terminator : public Element
-{
+class Terminator : public Element {
 public:
   /**
    * Only constructor for Terminator.
-   * 
+   *
    * @param name name of terminator
    * @param start start position of terminator
    * @param stop stop position of terminator
-   * @param interactions list of features that this terminator interacts with 
+   * @param interactions list of features that this terminator interacts with
    */
   Terminator(const std::string &name, int start, int stop,
              const std::vector<std::string> &interactions);
@@ -309,7 +303,7 @@ public:
 
 private:
   /**
-   * Name of gene that this terminator terminates on. This is the value that 
+   * Name of gene that this terminator terminates on. This is the value that
    * will get reported to the species tracker.
    */
   std::string gene_;

@@ -83,6 +83,23 @@ void Polymer::ShiftMask() {
   elements_[index]->SaveState();
 }
 
+void Polymer::Terminate(Polymerase::Ptr pol, const std::string &last_gene) {
+  prop_sum_ -= pol->speed();
+  auto it = std::find(polymerases_.begin(), polymerases_.end(), pol);
+  int index = it - polymerases_.begin();
+  termination_signal_.Emit(index, pol->name(), last_gene);
+  polymerases_.erase(it);
+  prop_list_.erase(prop_list_.begin() + index);
+}
+
+void Polymer::CoverElement(const std::string &species_name) {
+  uncovered_[species_name]--;
+}
+
+void Polymer::UncoverElement(const std::string &species_name) {
+  uncovered_[species_name]++;
+}
+
 void Polymer::Insert(Polymerase::Ptr pol) {
   auto it = std::upper_bound(polymerases_.begin(), polymerases_.end(), pol);
   // Record position for prop_list_

@@ -52,18 +52,45 @@ public:
    */
   void Bind(Polymerase::Ptr pol, const std::string &promoter_name);
   void Execute();
+  /**
+   * Shift mask by 1 base-pair and check for uncovered elements.
+   */
   void ShiftMask();
-  void Terminate();
-  void CoverElement(const std::string &species_name) {}
-  void UncoverElement(const std::string &species_name) {}
-  double CalculatePropensity();
+  /**
+   * Terminate polymerization reaction, fire the appropriate signals,
+   * reduce the total propensity of this polymer, and then delete the
+   * polymerase object itself.
+   *
+   * @param pol polymerase object to be deleted
+   * @param last_gene last gene polymerase passed over before terminating
+   */
+  void Terminate(Polymerase::Ptr pol, const std::string &last_gene);
+  /**
+   * Update the cached count of uncovered promoters/elements.
+   * TODO: Should this really be public?
+   *
+   * @param species_name name of species to cover
+   */
+  void CoverElement(const std::string &species_name);
+  /**
+   * Update the cached count of uncovered promoters/elements.
+   * TODO: Should this really be public?
+   *
+   * @param species_name name of species to uncover
+   */
+  void UncoverElement(const std::string &species_name);
   /**
    * Getters and setters
    */
   int index() { return index_; }
+  /**
+   * There are two getters for prop_sum_... mostly to maintain the interface
+   * that Simulation expects.
+   */
+  double CalculatePropensity() { return prop_sum_; }
   double prop_sum() { return prop_sum_; }
   int uncovered(const std::string &name) { return uncovered_[name]; }
-  Signal<std::string, std::string> termination_signal_;
+  Signal<int, std::string, std::string> termination_signal_;
 
 private:
   /**
@@ -107,7 +134,14 @@ private:
    * Cached count of uncovered elements on this polymer, used by Simulation.
    */
   std::map<std::string, int> uncovered_;
-
+  /**
+   * Add a polymerase to polymerase list, while maintaining the
+   * order in which polymerases currently on the polymer. Higher
+   * indices correspond to downstream polymerases, and lower
+   * indices correspond to upstream polymerases.
+   *
+   * @param pol pointer to polymerase object
+   */
   void Insert(Polymerase::Ptr pol);
   Polymerase Choose();
   void Move(const Polymerase &pol);
