@@ -158,6 +158,7 @@ private:
     return false;
   }
   bool ResolveMaskCollisions(Polymerase::Ptr pol);
+  bool ResolveCollisions(Polymerase::Ptr pol);
   /**
    * Do two elements intersect?
    *

@@ -216,7 +216,54 @@ bool Polymer::ResolveTermination(Polymerase::Ptr pol, Terminator::Ptr element) {
   }
 }
 
-bool Polymer::ResolveMaskCollisions(Polymerase::Ptr pol) {}
+bool Polymer::ResolveMaskCollisions(Polymerase::Ptr pol) {
+  if (mask_.start() > stop_) {
+    // Is there still a mask?
+    return false;
+  }
+  if (Intersect(*pol, mask_)) {
+    if (pol->stop() - mask_.start() > 1) {
+      std::string err =
+          "Polymerase " + pol->name() +
+          " is overlapping mask by more than one position on polymer";
+      throw std::runtime_error(err);
+    }
+    if (mask_.CheckInteraction(pol->name())) {
+      ShiftMask();
+    } else {
+      pol->MoveBack();
+      return true;
+    }
+  }
+  return false;
+}
+
+bool Polymer::ResolveCollisions(Polymerase::Ptr pol) {
+  bool collision = false;
+  auto it = std::find(polymerases_.begin(), polymerases_.end(), pol);
+  int index = it - polymerases_.begin();
+  if (index + 1 > polymerases_.size() - 1) {
+    return collision;
+  }
+  // We only need to check the polymerase one position ahead of this polymerase
+  if (Intersect(*pol, *polymerases_[index + 1])) {
+    if (pol->stop() > polymerases_[index + 1]->start()) {
+      std::string err =
+          "Polymerase " + pol->name() + " (start: " +
+          std::to_string(pol->start()) + ", stop: " +
+          std::to_string(pol->stop()) + ", index: " + std::to_string(index) +
+          ") is overlapping polymerase " + polymerases_[index + 1]->name() +
+          " (start: " + std::to_string(polymerases_[index + 1]->start()) +
+          ", stop: " + std::to_string(polymerases_[index + 1]->stop()) +
+          ", index: " + std::to_string(index + 1) +
+          ") by more than one position on polymer " + name_;
+      throw std::runtime_error(err);
+    }
+    pol->MoveBack();
+    collision = true;
+  }
+  return collision;
+}
 
 bool Polymer::Intersect(const Feature &elem1, const Feature &elem2) {
   return (elem1.stop() >= elem2.start()) && (elem2.stop() >= elem1.start());
