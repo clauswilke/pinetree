@@ -46,7 +46,7 @@ void Polymer::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
   // Randomly select promoter.
   Element::Ptr elem = Random::WeightedChoice(element_choices);
   // More error checking.
-  if (!CheckInteraction(pol->name())) {
+  if (!elem->CheckInteraction(pol->name())) {
     std::string err = "Polymerase " + pol->name() +
                       " does not interact with promoter " + promoter_name;
     throw std::runtime_error(err);
@@ -112,6 +112,11 @@ void Polymer::Terminate(Polymerase::Ptr pol, const std::string &last_gene) {
 
 void Polymer::CoverElement(const std::string &species_name) {
   uncovered_[species_name]--;
+  if (uncovered_[species_name] < 0) {
+    std::string err = "Cached count of uncovered element " + species_name +
+                      " cannot be a negative value";
+    throw std::runtime_error(err);
+  }
 }
 
 void Polymer::UncoverElement(const std::string &species_name) {
@@ -131,12 +136,20 @@ void Polymer::Insert(Polymerase::Ptr pol) {
 }
 
 Polymerase::Ptr Polymer::Choose() {
+  if (prop_list_.size() == 0) {
+    std::string err = "There are no active polymerases on polymer " + name_;
+    throw std::runtime_error(err);
+  }
   return Random::WeightedChoice(polymerases_, prop_list_);
 }
 
 void Polymer::UncoverElements(Polymerase::Ptr pol) {
   int save_index = pol->left_most_element();
-  // TODO: Error checking
+  if (save_index < 0) {
+    std::string err = "`left_most_element` for polymerase " + pol->name() +
+                      " is not defined.";
+    throw std::runtime_error(err);
+  }
   while (elements_[save_index]->start() <= pol->stop()) {
     if (Intersect(*pol, *elements_[save_index])) {
       elements_[save_index]->SaveState();
@@ -151,6 +164,11 @@ void Polymer::UncoverElements(Polymerase::Ptr pol) {
 
 void Polymer::RecoverElements(Polymerase::Ptr pol) {
   int old_index = pol->left_most_element();
+  if (old_index < 0) {
+    std::string err = "`left_most_element` for polymerase " + pol->name() +
+                      " is not defined.";
+    throw std::runtime_error(err);
+  }
   bool reset_index = true;
   bool terminating = false;
   while (elements_[old_index]->start() <= pol->stop()) {
