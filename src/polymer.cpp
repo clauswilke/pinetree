@@ -124,7 +124,10 @@ void Polymer::UncoverElement(const std::string &species_name) {
 }
 
 void Polymer::Insert(Polymerase::Ptr pol) {
-  auto it = std::upper_bound(polymerases_.begin(), polymerases_.end(), pol);
+  auto it = std::upper_bound(polymerases_.begin(), polymerases_.end(), pol,
+                             [](Polymerase::Ptr a, Polymerase::Ptr b) {
+                               return a->start() < b->start();
+                             });
   // Record position for prop_list_
   // NOTE: iterators become invalid as soon as a vector is changed!!
   // Attempting to use an iterator twice will lead to a segfault.

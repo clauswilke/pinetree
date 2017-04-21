@@ -85,7 +85,7 @@ public:
   /**
    * Polymerases should be compared by their start positions.
    */
-  bool operator<(Polymerase const &other_pol) const;
+  bool operator<(const Polymerase::Ptr other_pol) const;
   /**
    * Getters and setters.
    */
