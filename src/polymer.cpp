@@ -143,6 +143,29 @@ Polymerase::Ptr Polymer::Choose() {
   return Random::WeightedChoice(polymerases_, prop_list_);
 }
 
+void Polymer::Move(Polymerase::Ptr pol) {
+  // Error checking to make sure that pol is in vector
+  // Find which elements this polymerase is covering and temporarily uncover
+  // them
+  UncoverElements(pol);
+  // Move polymerase
+  pol->Move();
+  // Resolve any collisions between polymerases or with mask
+  bool pol_collision = ResolveCollisions(pol);
+  bool mask_collision = ResolveMaskCollisions(pol);
+  // Check to see if it's safe to broadcast that this polymerase has moved
+  if (!pol_collision && !mask_collision) {
+    pol->move_signal.Emit();
+  }
+  // Check for uncoverings
+  RecoverElements(pol);
+  // Terminate polymerase if it's run off the end of the polymer
+  if (pol->stop() > stop_) {
+    // TODO: Why are we sending the stop position of the polymer ?
+    Terminate(pol, std::to_string(stop_));
+  }
+}
+
 void Polymer::UncoverElements(Polymerase::Ptr pol) {
   int save_index = pol->left_most_element();
   if (save_index < 0) {

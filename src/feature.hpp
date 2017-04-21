@@ -103,7 +103,7 @@ public:
    */
   void MoveBack();
 
-  // Gallant::Signal1<std::string> move_signal;
+  Signal<> move_signal;
   // Signal release_signal;
 
 private:

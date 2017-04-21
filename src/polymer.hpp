@@ -52,6 +52,7 @@ public:
    */
   void Bind(Polymerase::Ptr pol, const std::string &promoter_name);
   void Execute();
+  void Move(Polymerase::Ptr pol);
   /**
    * Shift mask by 1 base-pair and check for uncovered elements.
    */
@@ -150,7 +151,6 @@ private:
    * @return pointer to selected polymerase object
    */
   Polymerase::Ptr Choose();
-  void Move(const Polymerase &pol);
   void UncoverElements(Polymerase::Ptr pol);
   void RecoverElements(Polymerase::Ptr pol);
   bool ResolveTermination(Polymerase::Ptr pol, Terminator::Ptr element);
