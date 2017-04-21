@@ -16,6 +16,11 @@ void ShiftMaskN(Polymer *polymer, int n) {
     polymer->ShiftMask();
   }
 }
+void MovePolymeraseN(Polymer *polymer, Polymerase::Ptr pol, int n) {
+  for (int i = 0; i < n; i++) {
+    polymer->Move(pol);
+  }
+}
 void EmitTermination(int index, const std::string &pol_name,
                      const std::string &last_gene) {
   termination_fired = true;
@@ -28,20 +33,23 @@ TEST_CASE("Polymer methods", "[Polymer]") {
   Terminator::Ptr term;
   prom = std::make_shared<Promoter>(Promoter("p1", 5, 15, interactions));
   std::map<std::string, double> efficiency;
-  efficiency["ecolipol"] = 0.5;
-  efficiency["rnapol"] = 0.8;
+  efficiency["ecolipol"] = 0.6;
+  efficiency["rnapol"] = 1.0;
   term = std::make_shared<Terminator>(
       Terminator("t1", 50, 55, interactions, efficiency));
 
   std::vector<Element::Ptr> elements;
   elements.push_back(prom);
   elements.push_back(term);
-  Mask mask = Mask("test_mask", 10, 100, interactions);
+  std::vector<std::string> mask_interactions = {"ecolipol"};
+  Mask mask = Mask("test_mask", 10, 100, mask_interactions);
 
   Polymer polymer = Polymer("test_polymer", 1, 100, elements, mask);
   polymer.termination_signal_.Connect(Helper::EmitTermination);
 
   auto pol = std::make_shared<Polymerase>(Polymerase("ecolipol", 10, 30));
+  auto pol2 = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 30));
+  auto pol3 = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 30));
 
   SECTION("Construction") {
     REQUIRE(polymer.index() == 0);
@@ -94,5 +102,22 @@ TEST_CASE("Polymer methods", "[Polymer]") {
     REQUIRE(polymer.uncovered("p1") == 1);
     polymer.CoverElement("p1");
     REQUIRE(polymer.uncovered("p1") == 0);
+  }
+
+  SECTION("Moving polymerase") {
+    // Shift mask back to expose promoter
+    Helper::ShiftMaskN(&polymer, 10);
+    polymer.Bind(pol, "p1");
+    // Make sure promoter is recorded as covered
+    REQUIRE(polymer.uncovered("p1") == 0);
+    REQUIRE(prom->IsCovered());
+    // Move polymerase 10 spaces and re-expose promoter
+    Helper::MovePolymeraseN(&polymer, pol, 11);
+    REQUIRE(polymer.uncovered("p1") == 1);
+    REQUIRE(!prom->IsCovered());
+    // Check for collisions between polymerases
+    polymer.Bind(pol2, "p1");
+    Helper::MovePolymeraseN(&polymer, pol2, 15);
+    REQUIRE(pol2->stop() + 1 == pol->start());
   }
 }
