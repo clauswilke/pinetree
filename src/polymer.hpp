@@ -51,7 +51,24 @@ public:
    * @param promoter_name the name of a promoter that pol will bind
    */
   void Bind(Polymerase::Ptr pol, const std::string &promoter_name);
+  /**
+   * Select a polymerase to move next and deal with terminations.
+   */
   void Execute();
+  /**
+   * Move polymerase and deal with collisions and covering/uncovering of
+   * elements.
+   *
+   * This method is optimized to take advantage of the fact that we only ever
+   * need to look at the elements that this polymerase is covering, and then
+   * one element ahead on the polymer, and one element behind after the
+   * polymerase has moved.
+   *
+   * It probably shouldn't be public, but the logic in here is complex and
+   * needs to be unit tested.
+   *
+   * @param pol polymerase to move
+   */
   void Move(Polymerase::Ptr pol);
   /**
    * Shift mask by 1 base-pair and check for uncovered elements.
@@ -91,6 +108,9 @@ public:
   double CalculatePropensity() { return prop_sum_; }
   double prop_sum() { return prop_sum_; }
   int uncovered(const std::string &name) { return uncovered_[name]; }
+  /**
+   * Signal to fire when a polymerase terminates.
+   */
   Signal<int, std::string, std::string> termination_signal_;
 
 private:
@@ -151,13 +171,56 @@ private:
    * @return pointer to selected polymerase object
    */
   Polymerase::Ptr Choose();
+  /**
+   * Temporarily uncover all elements covered by a given polymerase.
+   *
+   * @param pol pointer to polymerase object
+   */
   void UncoverElements(Polymerase::Ptr pol);
+  /**
+   * Recover all elements that a given polymerase should be covering,
+   * and trigger actions if there has been a change in state (for example,
+   * from covered to uncovered).
+   *
+   * @param pol pointer to polymerase object
+   */
   void RecoverElements(Polymerase::Ptr pol);
+  /**
+   * Determine if polymerase should terminate upon interacting with a terminator
+   * or if it should read through the terminator.
+   *
+   * @param pol pointer to polymerase object
+   * @param element pointer to terminator object
+   *
+   * @return true if polymerase is terminating
+   */
   bool ResolveTermination(Polymerase::Ptr pol, Terminator::Ptr element);
+  /**
+   * Overload method above in case the given element is not a terminator.
+   * (Yes, this is a bit wonky, but since this was translated from Python and
+   * C++ doesn't have duck-typing, this is the best we can do.)
+   *
+   * @param pol pointer to polymerase object
+   * @param elem pointer to element object
+   */
   bool ResolveTermination(Polymerase::Ptr pol, Element::Ptr elem) {
     return false;
   }
+  /**
+   * Check for collisions between polymerase and this polymer's mask.
+   *
+   * @param pol pointer to polymerase object
+   *
+   * @return true if this pol will collide with mask (but not shift mask)
+   */
   bool ResolveMaskCollisions(Polymerase::Ptr pol);
+  /**
+   * Check for collisions between polymerases.
+   *
+   * @param pol pointer to polymerase object
+   *
+   * @return true if polymerases will collide
+   */
   bool ResolveCollisions(Polymerase::Ptr pol);
   /**
    * Do two elements intersect?
