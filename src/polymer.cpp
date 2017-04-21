@@ -36,10 +36,21 @@ void Polymer::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
       found = true;
     }
   }
-  // Error checking.
+  // Error checking
+  if (!found) {
+    std::string err = "Polymerase " + pol->name() +
+                      " could not find free promoter " + promoter_name +
+                      " to bind in the polyemr " + name_;
+    throw std::runtime_error(err);
+  }
   // Randomly select promoter.
   Element::Ptr elem = Random::WeightedChoice(element_choices);
   // More error checking.
+  if (!CheckInteraction(pol->name())) {
+    std::string err = "Polymerase " + pol->name() +
+                      " does not interact with promoter " + promoter_name;
+    throw std::runtime_error(err);
+  }
   // Update polymerase coordinates
   // (TODO: refactor; pol doesn't need to expose footprint/stop position)
   pol->set_start(elem->start());
@@ -48,6 +59,13 @@ void Polymer::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
   auto it = std::find(elements_.begin(), elements_.end(), elem);
   pol->set_left_most_element(it - elements_.begin());
   // More error checking.
+  if (pol->stop() > mask_.start()) {
+    std::string err = "Polymerase " + pol->name() +
+                      " will overlap with mask upon promoter binding. This may "
+                      "cause the polymerase to stall and produce unexpected "
+                      "behavior.";
+    throw std::runtime_error(err);
+  }
   elem->Cover();
   elem->SaveState();
   // Cover promoter in cache

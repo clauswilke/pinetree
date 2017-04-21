@@ -57,6 +57,8 @@ TEST_CASE("Polymer methods", "[Polymer]") {
 
   SECTION("Polymerase binding") {
     Random::seed(22);
+    // Promoter should be covered an inaccessible
+    REQUIRE_THROWS(polymer.Bind(pol, "p1"));
     Helper::ShiftMaskN(&polymer, 10);
     polymer.Bind(pol, "p1");
     REQUIRE(polymer.uncovered("p1") == 0);
