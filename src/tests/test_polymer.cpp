@@ -119,5 +119,18 @@ TEST_CASE("Polymer methods", "[Polymer]") {
     polymer.Bind(pol2, "p1");
     Helper::MovePolymeraseN(&polymer, pol2, 15);
     REQUIRE(pol2->stop() + 1 == pol->start());
+    // Remove pol and make sure pol2 can't shift mask'
+    polymer.Terminate(pol, "gene1");
+    int old_stop = pol2->stop();
+    Helper::MovePolymeraseN(&polymer, pol2, 20);
+    // Pol should only be able to move 10 spaces
+    REQUIRE(pol2->stop() == old_stop + 10);
+    // Expose terminator
+    REQUIRE(polymer.uncovered("t1") == 0);
+    Helper::ShiftMaskN(&polymer, 60);
+    REQUIRE(polymer.uncovered("t1") == 1);
+    // Test termination, pol should detach as soon as it hits terminator
+    Helper::MovePolymeraseN(&polymer, pol2, 25);
+    REQUIRE_THROWS(polymer.Move(pol2));
   }
 }

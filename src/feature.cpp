@@ -21,7 +21,7 @@ Polymerase::Polymerase(const std::string &name, int footprint, int speed)
   left_most_element_ = 0;
   bound_ = 0;
   type_ = "polymerase";
-  reading_frame_ = 0;
+  reading_frame_ = -1;
 }
 
 bool Polymerase::operator<(const Polymerase::Ptr other_pol) const {
@@ -66,6 +66,7 @@ Terminator::Terminator(const std::string &name, int start, int stop,
     : Element(name, start, stop, interactions), efficiency_(efficiency) {
   readthrough_ = false;
   reading_frame_ = -1;
+  type_ = "terminator";
 }
 
 void Terminator::CheckState() {

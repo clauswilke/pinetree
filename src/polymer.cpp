@@ -150,6 +150,12 @@ Polymerase::Ptr Polymer::Choose() {
 
 void Polymer::Move(Polymerase::Ptr pol) {
   // Error checking to make sure that pol is in vector
+  auto it = std::find(polymerases_.begin(), polymerases_.end(), pol);
+  if (it == polymerases_.end()) {
+    std::string err = "Attempting to move unbound polymerase " + pol->name() +
+                      " on polymer " + name_;
+    throw std::runtime_error(err);
+  }
   // Find which elements this polymerase is covering and temporarily uncover
   // them
   UncoverElements(pol);
@@ -224,23 +230,29 @@ void Polymer::RecoverElements(Polymerase::Ptr pol) {
   }
 }
 
-bool Polymer::ResolveTermination(Polymerase::Ptr pol, Terminator::Ptr element) {
-  if (!element->CheckInteraction(pol->name(), pol->reading_frame())) {
+bool Polymer::ResolveTermination(Polymerase::Ptr pol, Element::Ptr element) {
+  // TODO: find less janky way to do this
+  Terminator::Ptr term = std::dynamic_pointer_cast<Terminator>(element);
+  if (element->type() != "terminator") {
     return false;
-  }
-  if (element->readthrough()) {
-    return false;
-  }
-  if (pol->stop() != element->start()) {
-    return false;
-  }
-  double random_num = Random::random();
-  if (random_num <= element->efficiency(pol->name())) {
-    Terminate(pol, element->gene());
-    return true;
   } else {
-    element->set_readthrough(true);
-    return false;
+    if (!term->CheckInteraction(pol->name(), pol->reading_frame())) {
+      return false;
+    }
+    if (term->readthrough()) {
+      return false;
+    }
+    if (pol->stop() != term->start()) {
+      return false;
+    }
+    double random_num = Random::random();
+    if (random_num <= term->efficiency(pol->name())) {
+      Terminate(pol, term->gene());
+      return true;
+    } else {
+      term->set_readthrough(true);
+      return false;
+    }
   }
 }
 

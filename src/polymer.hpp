@@ -194,18 +194,7 @@ private:
    *
    * @return true if polymerase is terminating
    */
-  bool ResolveTermination(Polymerase::Ptr pol, Terminator::Ptr element);
-  /**
-   * Overload method above in case the given element is not a terminator.
-   * (Yes, this is a bit wonky, but since this was translated from Python and
-   * C++ doesn't have duck-typing, this is the best we can do.)
-   *
-   * @param pol pointer to polymerase object
-   * @param elem pointer to element object
-   */
-  bool ResolveTermination(Polymerase::Ptr pol, Element::Ptr elem) {
-    return false;
-  }
+  bool ResolveTermination(Polymerase::Ptr pol, Element::Ptr element);
   /**
    * Check for collisions between polymerase and this polymer's mask.
    *
