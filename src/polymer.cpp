@@ -124,6 +124,8 @@ void Polymer::UncoverElement(const std::string &species_name) {
 }
 
 void Polymer::Insert(Polymerase::Ptr pol) {
+  // Find where in vector polymerase should insert; use a lambada function
+  // to make comparison between polymerase pointers
   auto it = std::upper_bound(polymerases_.begin(), polymerases_.end(), pol,
                              [](Polymerase::Ptr a, Polymerase::Ptr b) {
                                return a->start() < b->start();
