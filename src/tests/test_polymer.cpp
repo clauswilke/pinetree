@@ -27,7 +27,7 @@ void EmitTermination(int index, const std::string &pol_name,
 }
 }
 
-TEST_CASE("Polymer methods (simple)", "[Polymer]") {
+TEST_CASE("Polymer methods", "[Polymer]") {
   std::vector<std::string> interactions = {"ecolipol", "rnapol"};
   Promoter::Ptr prom;
   Terminator::Ptr term;
@@ -151,6 +151,6 @@ TEST_CASE("Polymer methods (simple)", "[Polymer]") {
   }
 }
 
-TEST_CASE("Polymer methods (multi promoter)", "[Polymer]") {
+TEST_CASE("Polymer methods 2", "[Polymer]") {
   // tests here
 }

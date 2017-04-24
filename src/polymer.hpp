@@ -13,7 +13,7 @@
  * Track element objects, polymerase objects, and collisions on a single
  * polymer. Move polymerase objects along the polymer. Handle logic for
  * covering and uncovering of elements. This class contains the core of the
- * single-moleculre tracking used for both genomes (transcription) and
+ * single-molecule tracking used for both genomes (transcription) and
  * transcripts (translation).
  *
  * The terms polymer, polymerase, promoter, and terminator are all used
@@ -220,6 +220,24 @@ private:
    * @return true if elements intersect
    */
   bool Intersect(const Feature &elem1, const Feature &elem2);
+};
+
+class Transcript : public Polymer {
+public:
+  Transcript(const std::string &name, int start, int stop,
+             const Element::VecPtr &elements, const Mask &mask);
+  typedef std::shared_ptr<Transcript> Ptr;
+  void Bind(Polymerase::Ptr pol, const std::string &promoter_name);
+};
+
+class Genome : public Polymer {
+public:
+  Genome(const std::string &name, int length, const Element::VecPtr &elements,
+         const Element::VecPtr &transcript_template, const Mask &mask);
+  void Bind(Polymerase::Ptr pol, const std::string &promoter_name);
+
+private:
+  Transcript::Ptr BuildTranscript(int start, int stop);
 };
 
 #endif // SRC_POLYMER_HPP_
