@@ -132,5 +132,21 @@ TEST_CASE("Polymer methods", "[Polymer]") {
     // Test termination, pol should detach as soon as it hits terminator
     Helper::MovePolymeraseN(&polymer, pol2, 25);
     REQUIRE_THROWS(polymer.Move(pol2));
+
+    // Now check for readthrough
+    polymer.Bind(pol, "p1");
+    Random::seed(55);
+    Helper::MovePolymeraseN(&polymer, pol, 42);
+    REQUIRE(term->readthrough());
+    Helper::MovePolymeraseN(&polymer, pol, 10);
+    // Now run polymerase off of the end of the transcript
+    Helper::MovePolymeraseN(&polymer, pol, 35);
+    REQUIRE_THROWS(polymer.Move(pol));
+    // Run polymerase through terminator again, this time it should terminate
+    Random::seed(19);
+    polymer.Bind(pol, "p1");
+    Helper::MovePolymeraseN(&polymer, pol, 36);
+    REQUIRE(!term->readthrough());
+    REQUIRE_THROWS(polymer.Move(pol));
   }
 }
