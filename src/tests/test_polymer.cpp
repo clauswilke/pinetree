@@ -27,7 +27,7 @@ void EmitTermination(int index, const std::string &pol_name,
 }
 }
 
-TEST_CASE("Polymer methods", "[Polymer]") {
+TEST_CASE("Polymer methods (simple)", "[Polymer]") {
   std::vector<std::string> interactions = {"ecolipol", "rnapol"};
   Promoter::Ptr prom;
   Terminator::Ptr term;
@@ -149,4 +149,8 @@ TEST_CASE("Polymer methods", "[Polymer]") {
     REQUIRE(!term->readthrough());
     REQUIRE_THROWS(polymer.Move(pol));
   }
+}
+
+TEST_CASE("Polymer methods (multi promoter)", "[Polymer]") {
+  // tests here
 }
