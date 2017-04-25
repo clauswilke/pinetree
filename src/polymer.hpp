@@ -113,7 +113,7 @@ public:
    */
   Signal<int, std::string, std::string> termination_signal_;
 
-private:
+protected:
   /**
    * An index for this polymer, used by Simulation.
    */
@@ -230,13 +230,48 @@ public:
   void Bind(Polymerase::Ptr pol, const std::string &promoter_name);
 };
 
+/**
+ * Track polymeraes on DNA, deal with collisions, promoters, terminators, and
+ * constructing transcripts. Inherits from Polymer. Unlike Polymer, Genome must
+ * * construct a transcript upon promoter binding.
+ */
 class Genome : public Polymer {
 public:
+  /**
+   * Genome's only constructor.
+   *
+   * @param name name of this genome
+   * @param length length of genome (do we still need this ?)
+   * @param elements DNA elements
+   * @param transcript_template vector of all possible elements that could
+   *  be producted by this genome (i. e. the largest possible polycistronic)
+   *  transcript)
+   * @param mask polymer mask (i.e. protion of genome that has not yet entered
+   *  the cell)
+   */
   Genome(const std::string &name, int length, const Element::VecPtr &elements,
          const Element::VecPtr &transcript_template, const Mask &mask);
+  /**
+   * Bind a polymerase to genome and construct new transcript.
+   *
+   * @param pol pointer to polymerase to bind
+   * @param promoter name of promoter to which this polymerase binds
+   */
   void Bind(Polymerase::Ptr pol, const std::string &promoter_name);
 
 private:
+  std::vector<Element> transcript_template_;
+  /**
+   * Build a transcript object corresponding to start and stop positions within
+   * this genome.
+   *
+   * NOTE: Assumes that elements are already ordered by start position.
+   *
+   * @param start start position of transcript within genome
+   * @param stop stop position of transcript within genome
+   *
+   * @returns pointer to Transcript object
+   */
   Transcript::Ptr BuildTranscript(int start, int stop);
 };
 

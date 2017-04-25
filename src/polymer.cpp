@@ -308,3 +308,21 @@ bool Polymer::ResolveCollisions(Polymerase::Ptr pol) {
 bool Polymer::Intersect(const Feature &elem1, const Feature &elem2) {
   return (elem1.stop() >= elem2.start()) && (elem2.stop() >= elem1.start());
 }
+
+Transcript::Transcript(const std::string &name, int start, int stop,
+                       const Element::VecPtr &elements, const Mask &mask)
+    : Polymer(name, start, stop, elements, mask) {}
+
+Transcript::Ptr Genome::BuildTranscript(int start, int stop) {
+  Element::VecPtr elements;
+  for (const auto &elem : transcript_template_) {
+    if (elem.start() >= start && elem.stop() <= stop) {
+      elements.push_back(std::make_shared<Element>(elem));
+    }
+  }
+  Transcript::Ptr transcript;
+  Mask mask = Mask("mask", start, stop, std::vector<std::string>());
+  transcript = std::make_shared<Transcript>(
+      Transcript("rna", start_, stop_, elements, mask));
+  return transcript;
+}
