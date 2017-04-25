@@ -83,10 +83,6 @@ public:
   typedef std::shared_ptr<Polymerase> Ptr;
   typedef std::vector<std::shared_ptr<Polymerase>> VecPtr;
   /**
-   * Polymerases should be compared by their start positions.
-   */
-  bool operator<(const Polymerase::Ptr other_pol) const;
-  /**
    * Getters and setters.
    */
   double speed() const { return speed_; }

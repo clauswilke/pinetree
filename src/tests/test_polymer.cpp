@@ -27,7 +27,7 @@ void EmitTermination(int index, const std::string &pol_name,
 }
 }
 
-TEST_CASE("Polymer methodsj", "[Polymer]") {
+TEST_CASE("Polymer methods", "[Polymer]") {
   std::vector<std::string> interactions = {"ecolipol", "rnapol"};
   Promoter::Ptr prom;
   Terminator::Ptr term;
@@ -151,6 +151,43 @@ TEST_CASE("Polymer methodsj", "[Polymer]") {
   }
 }
 
-TEST_CASE("Polymer methods 2", "[Polymer]") {
-  // tests here
+TEST_CASE("Polymer methods with multipromoter", "[Polymer]") {
+  std::vector<std::string> interactions = {"ecolipol"};
+  Promoter::Ptr prom1, prom2, prom3;
+  Terminator::Ptr term;
+  prom1 = std::make_shared<Promoter>(Promoter("p1", 5, 15, interactions));
+  prom2 = std::make_shared<Promoter>(Promoter("p2", 16, 20, interactions));
+  prom3 = std::make_shared<Promoter>(Promoter("p3", 21, 30, interactions));
+  std::map<std::string, double> efficiency;
+  efficiency["ecolipol"] = 1.0;
+  term = std::make_shared<Terminator>(
+      Terminator("t1", 31, 33, interactions, efficiency));
+
+  std::vector<Element::Ptr> elements;
+  elements.push_back(prom1);
+  elements.push_back(prom2);
+  elements.push_back(prom3);
+  elements.push_back(term);
+  std::vector<std::string> mask_interactions = {"ecolipol"};
+  Mask mask = Mask("test_mask", 100, 100, mask_interactions);
+
+  Polymer polymer = Polymer("test_polymer", 1, 100, elements, mask);
+  polymer.termination_signal_.Connect(Helper::EmitTermination);
+
+  auto pol = std::make_shared<Polymerase>(Polymerase("ecolipol", 10, 30));
+  auto pol2 = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 30));
+  auto pol3 = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 30));
+
+  SECTION("Moving polymerase") {
+    polymer.Bind(pol, "p1");
+    Helper::MovePolymeraseN(&polymer, pol, 7);
+    REQUIRE(prom1->IsCovered());
+    REQUIRE(prom2->IsCovered());
+    REQUIRE(prom3->IsCovered());
+
+    Helper::MovePolymeraseN(&polymer, pol, 4);
+    REQUIRE(!prom1->IsCovered());
+    REQUIRE(prom2->IsCovered());
+    REQUIRE(prom3->IsCovered());
+  }
 }
