@@ -166,7 +166,7 @@ void Polymer::Move(Polymerase::Ptr pol) {
   bool mask_collision = ResolveMaskCollisions(pol);
   // Check to see if it's safe to broadcast that this polymerase has moved
   if (!pol_collision && !mask_collision) {
-    pol->move_signal.Emit();
+    pol->move_signal_.Emit();
   }
   // Check for uncoverings
   RecoverElements(pol);
@@ -312,6 +312,19 @@ bool Polymer::Intersect(const Feature &elem1, const Feature &elem2) {
 Transcript::Transcript(const std::string &name, int start, int stop,
                        const Element::VecPtr &elements, const Mask &mask)
     : Polymer(name, start, stop, elements, mask) {}
+
+void Transcript::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
+  Polymer::Bind(pol, promoter_name);
+  pol->set_reading_frame(pol->start() % 3);
+}
+
+void Genome::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
+  Polymer::Bind(pol, promoter_name);
+  Transcript::Ptr transcript = BuildTranscript(pol->stop(), stop_);
+  // TODO: figure out if this could cause a memory leak
+  pol->move_signal_.ConnectMember(&(*transcript), &Transcript::ShiftMask);
+  // transcript_signal_.Emit();
+}
 
 Transcript::Ptr Genome::BuildTranscript(int start, int stop) {
   Element::VecPtr elements;

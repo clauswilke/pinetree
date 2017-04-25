@@ -90,6 +90,7 @@ public:
   int left_most_element() const { return left_most_element_; }
   void set_left_most_element(int index) { left_most_element_ = index; }
   int reading_frame() const { return reading_frame_; }
+  void set_reading_frame(int reading_frame) { reading_frame_ = reading_frame; }
   /**
    * Move one position forward.
    */
@@ -99,7 +100,7 @@ public:
    */
   void MoveBack();
 
-  Signal<> move_signal;
+  Signal<> move_signal_;
   // Signal release_signal;
 
 private:

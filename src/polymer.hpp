@@ -228,6 +228,7 @@ public:
              const Element::VecPtr &elements, const Mask &mask);
   typedef std::shared_ptr<Transcript> Ptr;
   void Bind(Polymerase::Ptr pol, const std::string &promoter_name);
+  void ShiftMask() { Polymer::ShiftMask(); }
 };
 
 /**
