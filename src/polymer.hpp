@@ -251,7 +251,7 @@ public:
    *  the cell)
    */
   Genome(const std::string &name, int length, const Element::VecPtr &elements,
-         const Element::VecPtr &transcript_template, const Mask &mask);
+         const std::vector<Element> &transcript_template, const Mask &mask);
   /**
    * Bind a polymerase to genome and construct new transcript.
    *
@@ -262,7 +262,7 @@ public:
   Signal<Transcript::Ptr> transcript_signal_;
 
 private:
-  Element::VecPtr transcript_template_;
+  std::vector<Element> transcript_template_;
   /**
    * Build a transcript object corresponding to start and stop positions within
    * this genome.

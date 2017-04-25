@@ -194,26 +194,21 @@ TEST_CASE("Polymer methods with multipromoter", "[Polymer]") {
 
 TEST_CASE("Genome methods", "[Polymer]") {
   // Set up transcript template
-  std::vector<Element::Ptr> transcript_template;
+  std::vector<Element> transcript_template;
   std::vector<std::string> interactions = {"ribosome"};
   std::map<std::string, double> efficiency;
   efficiency["ribosome"] = 1.0;
-  Promoter::Ptr rbs1, rbs2, rbs3;
-  Terminator::Ptr stop1, stop2, stop3;
-  rbs1 = std::make_shared<Promoter>(Promoter("rbs", 0, 10, interactions));
+  Promoter rbs1 = Promoter("rbs", 0, 10, interactions);
   transcript_template.push_back(rbs1);
-  stop1 = std::make_shared<Terminator>(
-      Terminator("stop", 209, 210, interactions, efficiency));
+  Terminator stop1 = Terminator("stop", 209, 210, interactions, efficiency);
   transcript_template.push_back(stop1);
-  rbs2 = std::make_shared<Promoter>(Promoter("rbs", 215, 230, interactions));
+  Promoter rbs2 = Promoter("rbs", 215, 230, interactions);
   transcript_template.push_back(rbs2);
-  stop2 = std::make_shared<Terminator>(
-      Terminator("stop", 269, 270, interactions, efficiency));
+  Terminator stop2 = Terminator("stop", 269, 270, interactions, efficiency);
   transcript_template.push_back(stop2);
-  rbs3 = std::make_shared<Promoter>(Promoter("rbs", 285, 300, interactions));
+  Promoter rbs3 = Promoter("rbs", 285, 300, interactions);
   transcript_template.push_back(rbs3);
-  stop3 = std::make_shared<Terminator>(
-      Terminator("stop", 599, 600, interactions, efficiency));
+  Terminator stop3 = Terminator("stop", 599, 600, interactions, efficiency);
   transcript_template.push_back(stop3);
   // Set up genome
   interactions = {"ecolipol", "rnapol"};

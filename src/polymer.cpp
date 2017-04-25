@@ -323,7 +323,8 @@ void Transcript::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
 
 Genome::Genome(const std::string &name, int length,
                const Element::VecPtr &elements,
-               const Element::VecPtr &transcript_template, const Mask &mask)
+               const std::vector<Element> &transcript_template,
+               const Mask &mask)
     : Polymer(name, 1, length, elements, mask),
       transcript_template_(transcript_template) {}
 
@@ -343,8 +344,9 @@ void Genome::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
 Transcript::Ptr Genome::BuildTranscript(int start, int stop) {
   Element::VecPtr elements;
   for (const auto &elem : transcript_template_) {
-    if (elem->start() >= start && elem->stop() <= stop) {
-      elements.push_back(std::make_shared<Element>(*elem));
+    if (elem.start() >= start && elem.stop() <= stop) {
+      // Construct a *copy* and insert into elements
+      elements.push_back(std::make_shared<Element>(elem));
     }
   }
   Transcript::Ptr transcript;
