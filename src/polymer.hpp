@@ -262,7 +262,7 @@ public:
   Signal<Transcript::Ptr> transcript_signal_;
 
 private:
-  std::vector<Element> transcript_template_;
+  Element::VecPtr transcript_template_;
   /**
    * Build a transcript object corresponding to start and stop positions within
    * this genome.

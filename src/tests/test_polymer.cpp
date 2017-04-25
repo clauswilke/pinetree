@@ -193,5 +193,49 @@ TEST_CASE("Polymer methods with multipromoter", "[Polymer]") {
 }
 
 TEST_CASE("Genome methods", "[Polymer]") {
-  // tests here
+  // Set up transcript template
+  std::vector<Element::Ptr> transcript_template;
+  std::vector<std::string> interactions = {"ribosome"};
+  std::map<std::string, double> efficiency;
+  efficiency["ribosome"] = 1.0;
+  Promoter::Ptr rbs1, rbs2, rbs3;
+  Terminator::Ptr stop1, stop2, stop3;
+  rbs1 = std::make_shared<Promoter>(Promoter("rbs", 0, 10, interactions));
+  transcript_template.push_back(rbs1);
+  stop1 = std::make_shared<Terminator>(
+      Terminator("stop", 209, 210, interactions, efficiency));
+  transcript_template.push_back(stop1);
+  rbs2 = std::make_shared<Promoter>(Promoter("rbs", 215, 230, interactions));
+  transcript_template.push_back(rbs2);
+  stop2 = std::make_shared<Terminator>(
+      Terminator("stop", 269, 270, interactions, efficiency));
+  transcript_template.push_back(stop2);
+  rbs3 = std::make_shared<Promoter>(Promoter("rbs", 285, 300, interactions));
+  transcript_template.push_back(rbs3);
+  stop3 = std::make_shared<Terminator>(
+      Terminator("stop", 599, 600, interactions, efficiency));
+  transcript_template.push_back(stop3);
+  // Set up genome
+  interactions = {"ecolipol", "rnapol"};
+  Promoter::Ptr prom;
+  Terminator::Ptr term;
+  prom = std::make_shared<Promoter>(Promoter("p1", 5, 15, interactions));
+  efficiency["ecolipol"] = 1.0;
+  term = std::make_shared<Terminator>(
+      Terminator("t1", 601, 605, interactions, efficiency));
+  std::vector<Element::Ptr> elements;
+  elements.push_back(prom);
+  elements.push_back(term);
+  std::vector<std::string> mask_interactions = {"ecolipol"};
+  Mask mask = Mask("test_mask", 10, 100, mask_interactions);
+  Genome genome =
+      Genome("test_genome", 700, elements, transcript_template, mask);
+  genome.termination_signal_.Connect(Helper::EmitTermination);
+
+  auto pol = std::make_shared<Polymerase>(Polymerase("ecolipol", 10, 30));
+
+  SECTION("Bind polymerase to genome") {
+    genome.Bind(pol, "p1");
+    // tests here
+  }
 }
