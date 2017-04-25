@@ -314,16 +314,24 @@ Transcript::Transcript(const std::string &name, int start, int stop,
     : Polymer(name, start, stop, elements, mask) {}
 
 void Transcript::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
+  // Bind polymerase just like in parent Polymer
   Polymer::Bind(pol, promoter_name);
+  // Set the reading frame of the polymerase
+  // TODO: should the reading frame be set by the polymerase start position?
   pol->set_reading_frame(pol->start() % 3);
 }
 
 void Genome::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
+  // Bind polymerase
   Polymer::Bind(pol, promoter_name);
+  // Construct a transcript starting from *end* of polymerase
   Transcript::Ptr transcript = BuildTranscript(pol->stop(), stop_);
+  // Connect polymerase movement signal to transcript, so that transcript knows
+  // when to expose new elements
   // TODO: figure out if this could cause a memory leak
   pol->move_signal_.ConnectMember(&(*transcript), &Transcript::ShiftMask);
-  // transcript_signal_.Emit();
+  // Fire new transcript signal (adds transcript to Simulation)
+  transcript_signal_.Emit(transcript);
 }
 
 Transcript::Ptr Genome::BuildTranscript(int start, int stop) {

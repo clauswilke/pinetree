@@ -259,6 +259,7 @@ public:
    * @param promoter name of promoter to which this polymerase binds
    */
   void Bind(Polymerase::Ptr pol, const std::string &promoter_name);
+  Signal<Transcript::Ptr> transcript_signal_;
 
 private:
   std::vector<Element> transcript_template_;

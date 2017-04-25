@@ -191,3 +191,7 @@ TEST_CASE("Polymer methods with multipromoter", "[Polymer]") {
     REQUIRE(prom3->IsCovered());
   }
 }
+
+TEST_CASE("Genome methods", "[Polymer]") {
+  // tests here
+}
