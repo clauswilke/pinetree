@@ -56,6 +56,10 @@ void Promoter::CheckState() {
   }
 }
 
+Element::Ptr Promoter::Clone() const {
+  return std::make_shared<Promoter>(*this);
+}
+
 Terminator::Terminator(const std::string &name, int start, int stop,
                        const std::vector<std::string> &interactions,
                        const std::map<std::string, double> &efficiency)
@@ -72,6 +76,10 @@ void Terminator::CheckState() {
   } else if (WasCovered()) {
     cover_signal_.Emit(name_);
   }
+}
+
+Element::Ptr Terminator::Clone() const {
+  return std::make_shared<Terminator>(*this);
 }
 
 bool Terminator::CheckInteraction(const std::string &name, int reading_frame) {

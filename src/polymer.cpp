@@ -323,8 +323,7 @@ void Transcript::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
 
 Genome::Genome(const std::string &name, int length,
                const Element::VecPtr &elements,
-               const std::vector<Element> &transcript_template,
-               const Mask &mask)
+               const Element::VecPtr &transcript_template, const Mask &mask)
     : Polymer(name, 1, length, elements, mask),
       transcript_template_(transcript_template) {}
 
@@ -336,6 +335,7 @@ void Genome::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
   // Connect polymerase movement signal to transcript, so that transcript knows
   // when to expose new elements
   // TODO: figure out if this could cause a memory leak
+  // What happens if transcript gets deleted?
   pol->move_signal_.ConnectMember(&(*transcript), &Transcript::ShiftMask);
   // Fire new transcript signal (adds transcript to Simulation)
   transcript_signal_.Emit(transcript);
@@ -344,14 +344,17 @@ void Genome::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
 Transcript::Ptr Genome::BuildTranscript(int start, int stop) {
   Element::VecPtr elements;
   for (const auto &elem : transcript_template_) {
-    if (elem.start() >= start && elem.stop() <= stop) {
+    if (elem->start() >= start && elem->stop() <= stop) {
       // Construct a *copy* and insert into elements
-      elements.push_back(std::make_shared<Element>(elem));
+      elements.emplace_back(elem->Clone());
     }
   }
   Transcript::Ptr transcript;
   Mask mask = Mask("mask", start, stop, std::vector<std::string>());
-  transcript = std::make_shared<Transcript>(
-      Transcript("rna", start_, stop_, elements, mask));
+  // We need to used the standard shared_ptr constructor here because the
+  // constructor of Transcript needs to know its address in memory to wire
+  // signals appropriately.
+  transcript =
+      std::make_shared<Transcript>("rna", start_, stop_, elements, mask);
   return transcript;
 }

@@ -108,6 +108,8 @@ public:
   double CalculatePropensity() { return prop_sum_; }
   double prop_sum() { return prop_sum_; }
   int uncovered(const std::string &name) { return uncovered_[name]; }
+  int start() const { return start_; }
+  int stop() const { return stop_; }
   /**
    * Signal to fire when a polymerase terminates.
    */
@@ -138,10 +140,14 @@ protected:
    * Vector of elements on this polymer (Promoters, Terminators, etc.)
    */
   Element::VecPtr elements_;
+
+public:
   /**
    * Mask corresponding to this polymer. Controls which elements are hidden.
    */
   Mask mask_;
+
+protected:
   /**
    * Cached total propensity of this polymerase, i.e. the sum of all of the
    * polymerase speeds.
@@ -251,7 +257,7 @@ public:
    *  the cell)
    */
   Genome(const std::string &name, int length, const Element::VecPtr &elements,
-         const std::vector<Element> &transcript_template, const Mask &mask);
+         const Element::VecPtr &transcript_template, const Mask &mask);
   /**
    * Bind a polymerase to genome and construct new transcript.
    *
@@ -262,7 +268,7 @@ public:
   Signal<Transcript::Ptr> transcript_signal_;
 
 private:
-  std::vector<Element> transcript_template_;
+  Element::VecPtr transcript_template_;
   /**
    * Build a transcript object corresponding to start and stop positions within
    * this genome.

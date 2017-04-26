@@ -2,6 +2,7 @@
 
 #include <catch.hpp>
 
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -11,6 +12,8 @@
 
 namespace Helper {
 bool termination_fired = false;
+bool transcript_fired = false;
+Transcript::Ptr my_transcript;
 void ShiftMaskN(Polymer *polymer, int n) {
   for (int i = 0; i < n; i++) {
     polymer->ShiftMask();
@@ -25,18 +28,21 @@ void EmitTermination(int index, const std::string &pol_name,
                      const std::string &last_gene) {
   termination_fired = true;
 }
+void EmitTranscript(const Transcript::Ptr &transcript) {
+  transcript_fired = true;
+  my_transcript = transcript;
+}
 }
 
 TEST_CASE("Polymer methods", "[Polymer]") {
   std::vector<std::string> interactions = {"ecolipol", "rnapol"};
   Promoter::Ptr prom;
   Terminator::Ptr term;
-  prom = std::make_shared<Promoter>(Promoter("p1", 5, 15, interactions));
+  prom = std::make_shared<Promoter>("p1", 5, 15, interactions);
   std::map<std::string, double> efficiency;
   efficiency["ecolipol"] = 0.6;
   efficiency["rnapol"] = 1.0;
-  term = std::make_shared<Terminator>(
-      Terminator("t1", 50, 55, interactions, efficiency));
+  term = std::make_shared<Terminator>("t1", 50, 55, interactions, efficiency);
 
   std::vector<Element::Ptr> elements;
   elements.push_back(prom);
@@ -47,9 +53,9 @@ TEST_CASE("Polymer methods", "[Polymer]") {
   Polymer polymer = Polymer("test_polymer", 1, 100, elements, mask);
   polymer.termination_signal_.Connect(Helper::EmitTermination);
 
-  auto pol = std::make_shared<Polymerase>(Polymerase("ecolipol", 10, 30));
-  auto pol2 = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 30));
-  auto pol3 = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 30));
+  auto pol = std::make_shared<Polymerase>("ecolipol", 10, 30);
+  auto pol2 = std::make_shared<Polymerase>("rnapol", 10, 30);
+  auto pol3 = std::make_shared<Polymerase>("rnapol", 10, 30);
 
   SECTION("Construction") {
     REQUIRE(polymer.index() == 0);
@@ -155,13 +161,12 @@ TEST_CASE("Polymer methods with multipromoter", "[Polymer]") {
   std::vector<std::string> interactions = {"ecolipol"};
   Promoter::Ptr prom1, prom2, prom3;
   Terminator::Ptr term;
-  prom1 = std::make_shared<Promoter>(Promoter("p1", 5, 15, interactions));
-  prom2 = std::make_shared<Promoter>(Promoter("p2", 16, 20, interactions));
-  prom3 = std::make_shared<Promoter>(Promoter("p3", 21, 30, interactions));
+  prom1 = std::make_shared<Promoter>("p1", 5, 15, interactions);
+  prom2 = std::make_shared<Promoter>("p2", 16, 20, interactions);
+  prom3 = std::make_shared<Promoter>("p3", 21, 30, interactions);
   std::map<std::string, double> efficiency;
   efficiency["ecolipol"] = 1.0;
-  term = std::make_shared<Terminator>(
-      Terminator("t1", 31, 33, interactions, efficiency));
+  term = std::make_shared<Terminator>("t1", 31, 33, interactions, efficiency);
 
   std::vector<Element::Ptr> elements;
   elements.push_back(prom1);
@@ -174,9 +179,9 @@ TEST_CASE("Polymer methods with multipromoter", "[Polymer]") {
   Polymer polymer = Polymer("test_polymer", 1, 100, elements, mask);
   polymer.termination_signal_.Connect(Helper::EmitTermination);
 
-  auto pol = std::make_shared<Polymerase>(Polymerase("ecolipol", 10, 30));
-  auto pol2 = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 30));
-  auto pol3 = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 30));
+  auto pol = std::make_shared<Polymerase>("ecolipol", 10, 30);
+  auto pol2 = std::make_shared<Polymerase>("rnapol", 10, 30);
+  auto pol3 = std::make_shared<Polymerase>("rnapol", 10, 30);
 
   SECTION("Moving polymerase") {
     polymer.Bind(pol, "p1");
@@ -194,43 +199,54 @@ TEST_CASE("Polymer methods with multipromoter", "[Polymer]") {
 
 TEST_CASE("Genome methods", "[Polymer]") {
   // Set up transcript template
-  std::vector<Element> transcript_template;
+  Element::VecPtr transcript_template;
   std::vector<std::string> interactions = {"ribosome"};
   std::map<std::string, double> efficiency;
   efficiency["ribosome"] = 1.0;
-  Promoter rbs1 = Promoter("rbs", 0, 10, interactions);
-  transcript_template.push_back(rbs1);
-  Terminator stop1 = Terminator("stop", 209, 210, interactions, efficiency);
-  transcript_template.push_back(stop1);
-  Promoter rbs2 = Promoter("rbs", 215, 230, interactions);
-  transcript_template.push_back(rbs2);
-  Terminator stop2 = Terminator("stop", 269, 270, interactions, efficiency);
-  transcript_template.push_back(stop2);
-  Promoter rbs3 = Promoter("rbs", 285, 300, interactions);
-  transcript_template.push_back(rbs3);
-  Terminator stop3 = Terminator("stop", 599, 600, interactions, efficiency);
-  transcript_template.push_back(stop3);
+  transcript_template.push_back(
+      std::make_shared<Promoter>("rbs1", 0, 10, interactions));
+  transcript_template.push_back(
+      std::make_shared<Terminator>("stop", 209, 210, interactions, efficiency));
+  transcript_template.push_back(
+      std::make_shared<Promoter>("rbs", 215, 230, interactions));
+  transcript_template.push_back(
+      std::make_shared<Terminator>("stop", 269, 270, interactions, efficiency));
+  transcript_template.push_back(
+      std::make_shared<Promoter>("rbs", 285, 300, interactions));
+  transcript_template.push_back(
+      std::make_shared<Terminator>("stop", 599, 600, interactions, efficiency));
   // Set up genome
   interactions = {"ecolipol", "rnapol"};
   Promoter::Ptr prom;
   Terminator::Ptr term;
-  prom = std::make_shared<Promoter>(Promoter("p1", 5, 15, interactions));
+  prom = std::make_shared<Promoter>("p1", 5, 15, interactions);
   efficiency["ecolipol"] = 1.0;
-  term = std::make_shared<Terminator>(
-      Terminator("t1", 601, 605, interactions, efficiency));
-  std::vector<Element::Ptr> elements;
+  term = std::make_shared<Terminator>("t1", 601, 605, interactions, efficiency);
+  Element::VecPtr elements;
   elements.push_back(prom);
   elements.push_back(term);
   std::vector<std::string> mask_interactions = {"ecolipol"};
-  Mask mask = Mask("test_mask", 10, 100, mask_interactions);
+  Mask mask = Mask("test_mask", 10, 700, mask_interactions);
   Genome genome =
       Genome("test_genome", 700, elements, transcript_template, mask);
   genome.termination_signal_.Connect(Helper::EmitTermination);
+  genome.transcript_signal_.Connect(Helper::EmitTranscript);
 
   auto pol = std::make_shared<Polymerase>(Polymerase("ecolipol", 10, 30));
 
   SECTION("Bind polymerase to genome") {
+    REQUIRE(!Helper::transcript_fired);
+    Helper::ShiftMaskN(&genome, 20);
     genome.Bind(pol, "p1");
-    // tests here
+    REQUIRE(Helper::transcript_fired);
+    REQUIRE(Helper::my_transcript->stop() == genome.stop());
+  }
+
+  SECTION("Polymerase movement and transcript unmasking") {
+    Helper::ShiftMaskN(&genome, 20);
+    genome.Bind(pol, "p1");
+    Helper::MovePolymeraseN(&genome, pol, 500);
+    genome.Move(pol);
+    REQUIRE(Helper::my_transcript->uncovered("stop") == 2);
   }
 }

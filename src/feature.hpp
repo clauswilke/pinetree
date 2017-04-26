@@ -198,7 +198,7 @@ public:
    * Check for change in state and react appropriately. (Should be overridden
    * by children).
    */
-  virtual void CheckState() {}
+  virtual void CheckState() = 0;
   /**
    * Signal to fire when element changes state from uncovered to covered
    */
@@ -207,6 +207,7 @@ public:
    * Signal to fire when element changes state from covered to uncovered
    */
   Signal<const std::string &> uncover_signal_;
+  virtual Element::Ptr Clone() const = 0;
 
 private:
   /**
@@ -243,6 +244,7 @@ public:
    * Check to see if covering state has changed and fire appropriate signals.
    */
   void CheckState();
+  virtual Element::Ptr Clone() const;
 };
 
 class Terminator : public Element {
@@ -267,6 +269,7 @@ public:
    * Check for changes in covering state and fire appropriate signals.
    */
   void CheckState();
+  virtual Element::Ptr Clone() const;
   /**
    * Check to see if feature interacts with this terminator and is in the
    * correct reading frame.

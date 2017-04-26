@@ -61,7 +61,7 @@ TEST_CASE("Element construction and state changes", "[Element]") {
   int start = 1;
   int stop = 10;
   std::vector<std::string> interactions = {"ecolipol", "rnapol"};
-  Element elem = Element(name, start, stop, interactions);
+  Promoter elem = Promoter(name, start, stop, interactions);
 
   SECTION("Saving the state") {
     elem.Cover();
