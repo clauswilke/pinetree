@@ -21,7 +21,8 @@ set(TEST_DIR "${SOURCE_DIR}/tests")
 set(SOURCE 
     "${SOURCE_DIR}/feature.cpp"
     "${SOURCE_DIR}/polymer.cpp"
-    "${SOURCE_DIR}/choices.cpp")
+    "${SOURCE_DIR}/choices.cpp"
+    "${SOURCE_DIR}/simulation.cpp")
 set(SOURCE ${SOURCE}
     "${TEST_DIR}/test_main.cpp"
     "${TEST_DIR}/test_feature.cpp"
