@@ -204,7 +204,7 @@ TEST_CASE("Genome methods", "[Polymer]") {
   std::map<std::string, double> efficiency;
   efficiency["ribosome"] = 1.0;
   transcript_template.push_back(
-      std::make_shared<Promoter>("rbs1", 0, 10, interactions));
+      std::make_shared<Promoter>("rbs", 0, 10, interactions));
   transcript_template.push_back(
       std::make_shared<Terminator>("stop", 209, 210, interactions, efficiency));
   transcript_template.push_back(
@@ -246,7 +246,9 @@ TEST_CASE("Genome methods", "[Polymer]") {
     Helper::ShiftMaskN(&genome, 20);
     genome.Bind(pol, "p1");
     Helper::MovePolymeraseN(&genome, pol, 500);
-    genome.Move(pol);
     REQUIRE(Helper::my_transcript->uncovered("stop") == 2);
+    REQUIRE(Helper::my_transcript->uncovered("rbs") == 2);
+    Helper::MovePolymeraseN(&genome, pol, 87);
+    REQUIRE(Helper::my_transcript->uncovered("stop") == 3);
   }
 }
