@@ -28,12 +28,6 @@ public:
     return Connect([=](Args... args) { (inst->*func)(args...); });
   }
 
-  // connects a member function to this Signal
-  template <typename T>
-  int ConnectMember(std::shared_ptr<T> inst, void (T::*func)(Args...)) {
-    return Connect([=](Args... args) { ((*inst).*func)(args...); });
-  }
-
   // connects a const member function to this Signal
   template <typename T>
   int ConnectMember(T *inst, void (T::*func)(Args...) const) {
