@@ -39,7 +39,7 @@ public:
    * @param  name name of a feature object
    * @return      TRUE if features interact
    */
-  bool CheckInteraction(const std::string &name);
+  virtual bool CheckInteraction(const std::string &name);
 
 protected:
   /**

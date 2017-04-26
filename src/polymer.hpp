@@ -42,6 +42,8 @@ public:
     */
   Polymer(const std::string &name, int start, int stop,
           const Element::VecPtr &elements, const Mask &mask);
+  typedef std::shared_ptr<Polymer> Ptr;
+  typedef std::vector<std::shared_ptr<Polymer>> VecPtr;
   /**
    * Bind a polymerase object to the polymer. Randomly select an open
    * promoter with which to bind and update the polymerases position to the
@@ -50,7 +52,7 @@ public:
    * @param pol polymerase object (pointer)
    * @param promoter_name the name of a promoter that pol will bind
    */
-  void Bind(Polymerase::Ptr pol, const std::string &promoter_name);
+  virtual void Bind(Polymerase::Ptr pol, const std::string &promoter_name);
   /**
    * Select a polymerase to move next and deal with terminations.
    */
@@ -73,7 +75,7 @@ public:
   /**
    * Shift mask by 1 base-pair and check for uncovered elements.
    */
-  void ShiftMask();
+  virtual void ShiftMask();
   /**
    * Terminate polymerization reaction, fire the appropriate signals,
    * reduce the total propensity of this polymer, and then delete the
@@ -140,14 +142,10 @@ protected:
    * Vector of elements on this polymer (Promoters, Terminators, etc.)
    */
   Element::VecPtr elements_;
-
-public:
   /**
    * Mask corresponding to this polymer. Controls which elements are hidden.
    */
   Mask mask_;
-
-protected:
   /**
    * Cached total propensity of this polymerase, i.e. the sum of all of the
    * polymerase speeds.
