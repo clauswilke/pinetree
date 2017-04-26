@@ -232,7 +232,7 @@ TEST_CASE("Genome methods", "[Polymer]") {
   genome.termination_signal_.Connect(Helper::EmitTermination);
   genome.transcript_signal_.Connect(Helper::EmitTranscript);
 
-  auto pol = std::make_shared<Polymerase>(Polymerase("ecolipol", 10, 30));
+  auto pol = std::make_shared<Polymerase>("ecolipol", 10, 30);
 
   SECTION("Bind polymerase to genome") {
     REQUIRE(!Helper::transcript_fired);
