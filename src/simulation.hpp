@@ -98,6 +98,10 @@ public:
    */
   const Reaction::VecPtr &FindReactions(const std::string &species_name);
   /**
+   * Getters and setters
+   */
+  int species(const std::string &reactant) { return species_[reactant]; }
+  /**
    * Signal to fire when propensity needs to be updated.
    */
   Signal<int> propensity_signal_;
@@ -148,6 +152,24 @@ public:
    * Execute the reaction. Decrement reactants and increment products.
    */
   void Execute();
+
+private:
+  /**
+   * Pointer to SpeciesTracker.
+   */
+  SpeciesTracker::Ptr tracker_;
+  /**
+   * Rate constant of reaction.
+   */
+  double rate_constant_;
+  /**
+   * Vector of reactant names.
+   */
+  const std::vector<std::string> reactants_;
+  /**
+   * Vector of product names.
+   */
+  const std::vector<std::string> products_;
 };
 
 #endif // header guard
