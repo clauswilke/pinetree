@@ -144,6 +144,38 @@ private:
 };
 
 /**
+ * A thin wrapper for Polymer so it can participate in species-level reaction
+ * processing.
+ */
+class Bridge : public Reaction {
+public:
+  /**
+   * Only constructor for Bridge.
+   *
+   * @param polymer pointer to polymer object that this reaction is
+   *  encapsulating
+   */
+  Bridge(Polymer::Ptr polymer) : polymer_(polymer) {}
+  /**
+   * Retrieve total propensity of all reactions tha tmay occur within this
+   * polymer.
+   *
+   * @return total propensity of reactions within polymer
+   */
+  double CalculatePropensity() { return polymer_->CalculatePropensity(); }
+  /**
+   * Execute reaction within polymer (e.g. typically moving a polymerase)
+   */
+  void Execute() { polymer_->Execute(); }
+
+private:
+  /**
+   * Pointer to polymer object that this reaction encapsulates.
+   */
+  Polymer::Ptr polymer_;
+}
+
+/**
  * Tracks species' copy numbers and maintains promoter-to-polymer and species-
  * to-reaction maps to easily look up which polymers contain a given promoter
  * and which reactions involve a given species. These maps are needed to cache
