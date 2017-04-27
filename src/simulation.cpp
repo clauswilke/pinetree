@@ -3,6 +3,50 @@
 const static double AVAGADRO = double(6.0221409e+23);
 const static double CELL_VOLUME = double(8e-15);
 
+SpeciesReaction::SpeciesReaction(double rate_constant,
+                                 const std::vector<std::string> &reactants,
+                                 const std::vector<std::string> &products)
+    : rate_constant_(rate_constant), reactants_(reactants),
+      products_(products) {
+  // Error checking
+  if (reactants_.size() > 2) {
+    throw std::runtime_error("Simulation does not support reactions with "
+                             "more than two reactant species.");
+  }
+  // Rate constant has to be transformed from macroscopic to mesoscopic
+  if (reactants_.size() == 2) {
+    rate_constant_ = rate_constant_ / (AVAGADRO * CELL_VOLUME);
+  }
+}
+
+double SpeciesReaction::CalculatePropensity() {
+  double propensity = rate_constant_;
+  for (const auto &reactant : reactants_) {
+    propensity *= SpeciesTracker::Instance().species(reactant);
+  }
+  return propensity;
+}
+
+void SpeciesReaction::Execute() {
+  for (const auto &reactant : reactants_) {
+    SpeciesTracker::Instance().Increment(reactant, -1);
+  }
+  for (const auto &product : products_) {
+    SpeciesTracker::Instance().Increment(product, 1);
+  }
+}
+
+SpeciesTracker &SpeciesTracker::Instance() {
+  static SpeciesTracker instance;
+  return instance;
+}
+
+void SpeciesTracker::Clear() {
+  species_.clear();
+  promoter_map_.clear();
+  species_map_.clear();
+}
+
 void SpeciesTracker::Register(SpeciesReaction::Ptr reaction) {
   // Add this reaction to SpeciesTracker
   for (const auto &reactant : reaction->reactants()) {
@@ -70,37 +114,4 @@ SpeciesTracker::FindPolymers(const std::string &promoter_name) {
 
 int SpeciesTracker::species(const std::string &reactant) {
   return species_[reactant];
-}
-
-SpeciesReaction::SpeciesReaction(double rate_constant,
-                                 const std::vector<std::string> &reactants,
-                                 const std::vector<std::string> &products)
-    : rate_constant_(rate_constant), reactants_(reactants),
-      products_(products) {
-  // Error checking
-  if (reactants_.size() > 2) {
-    throw std::runtime_error("Simulation does not support reactions with "
-                             "more than two reactant species.");
-  }
-  // Rate constant has to be transformed from macroscopic to mesoscopic
-  if (reactants_.size() == 2) {
-    rate_constant_ = rate_constant_ / (AVAGADRO * CELL_VOLUME);
-  }
-}
-
-double SpeciesReaction::CalculatePropensity() {
-  double propensity = rate_constant_;
-  for (const auto &reactant : reactants_) {
-    propensity *= SpeciesTracker::species(reactant);
-  }
-  return propensity;
-}
-
-void SpeciesReaction::Execute() {
-  for (const auto &reactant : reactants_) {
-    SpeciesTracker::Increment(reactant, -1);
-  }
-  for (const auto &product : products_) {
-    SpeciesTracker::Increment(product, 1);
-  }
 }
