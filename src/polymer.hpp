@@ -286,6 +286,10 @@ public:
   Genome(const std::string &name, int length, const Element::VecPtr &elements,
          const Element::VecPtr &transcript_template, const Mask &mask);
   /**
+   * Convenience typedefs
+   */
+  typedef std::shared_ptr<Genome> Ptr;
+  /**
    * Bind a polymerase to genome and construct new transcript.
    *
    * @param pol pointer to polymerase to bind
