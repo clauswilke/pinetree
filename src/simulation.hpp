@@ -103,6 +103,10 @@ private:
  * and which reactions involve a given species. These maps are needed to cache
  * propensities and increase the performance of the simulation.
  *
+ * NOTE: This just a name spacebecause we will only ever need one global
+ * SpeciesTracker. Defining a class here is uneccessary, and complicates the
+ * need to make sure that only one SpeciesTracker exists for a simulation.
+ *
  * TODO: Move propensity cache from Simulation into this class?
  */
 namespace SpeciesTracker {
