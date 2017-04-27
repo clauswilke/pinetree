@@ -179,7 +179,6 @@ class Bind(Reaction):
 
         TODO: Refactor so Bind inherits from SpeciesReaction
 
-        :param sim: reference to simulation object in which this reaction occurs
         :param rate_constant: rate constant of reaction
         :param promoter_name: name of promoter involved in this reaction
         :param pol_args: list of arguments to pass to polymerase

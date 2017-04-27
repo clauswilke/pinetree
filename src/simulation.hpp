@@ -98,6 +98,52 @@ private:
 };
 
 /**
+ * Bind a polymerase to a polymer.
+ */
+class Bind : public Reaction {
+public:
+  /**
+   * The only constructor of Bind.
+   *
+   * @param rate_constant rate constant of the binding reaction
+   * @param promoter_name name of promoter involved in this reaction
+   * @param pol_template Polymerase object that will get copied and bound to
+   *  Polymer upon execution of this reaction
+   */
+  Bind(double rate_constant, const std::string &promoter_name,
+       const Polymerase &pol_template);
+  /**
+   * Calculate propensity of binding reaction.
+   *
+   * @return propensity of this reaction
+   */
+  double CalculatePropensity();
+  /**
+   * Decrement reactants, choose polymer to bind, construct a new polymerase,
+   * and bind the polymerase to the polymer.
+   */
+  void Execute();
+
+private:
+  /**
+   * Rate constant of this reaction.
+   */
+  double rate_constant_;
+  /**
+   * Name of promoter involved in this binding reaction.
+   */
+  const std::string promoter_name_;
+  /**
+   * Name of polymerase involved in this binding reaction.
+   */
+  const std::string pol_name_;
+  /**
+   * Polymerase object to be copied and bound to Polymer upon execution.
+   */
+  const Polymerase pol_template_;
+};
+
+/**
  * Tracks species' copy numbers and maintains promoter-to-polymer and species-
  * to-reaction maps to easily look up which polymers contain a given promoter
  * and which reactions involve a given species. These maps are needed to cache

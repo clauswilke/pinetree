@@ -1,4 +1,5 @@
 #include "simulation.hpp"
+#include "choices.hpp"
 
 const static double AVAGADRO = double(6.0221409e+23);
 const static double CELL_VOLUME = double(8e-15);
@@ -34,6 +35,33 @@ void SpeciesReaction::Execute() {
   for (const auto &product : products_) {
     SpeciesTracker::Instance().Increment(product, 1);
   }
+}
+
+Bind::Bind(double rate_constant, const std::string &promoter_name,
+           const Polymerase &pol_template)
+    : rate_constant_(rate_constant), promoter_name_(promoter_name),
+      pol_name_(pol_template.name()), pol_template_(pol_template) {
+  rate_constant_ = rate_constant_ / (AVAGADRO * CELL_VOLUME);
+}
+
+double Bind::CalculatePropensity() {
+  auto &tracker = SpeciesTracker::Instance();
+  return rate_constant_ * tracker.species(pol_name_) *
+         tracker.species(promoter_name_);
+}
+
+void Bind::Execute() {
+  auto &tracker = SpeciesTracker::Instance();
+  auto weights = std::vector<double>();
+  for (const auto &polymer : tracker.FindPolymers(promoter_name_)) {
+    weights.push_back(double(polymer->uncovered(promoter_name_)));
+  }
+  Polymer::Ptr polymer =
+      Random::WeightedChoice(tracker.FindPolymers(promoter_name_), weights);
+  auto new_pol = std::make_shared<Polymerase>(pol_template_);
+  tracker.propensity_signal_.Emit(polymer->index());
+  tracker.Increment(promoter_name_, -1);
+  tracker.Increment(pol_name_, -1);
 }
 
 SpeciesTracker &SpeciesTracker::Instance() {
