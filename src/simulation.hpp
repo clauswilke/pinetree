@@ -173,7 +173,132 @@ private:
    * Pointer to polymer object that this reaction encapsulates.
    */
   Polymer::Ptr polymer_;
-}
+};
+
+/**
+ * Coordinate polymers and species-level reactions.
+ */
+class Simulation {
+public:
+  Simulation();
+  /**
+   * Run the simulation until the given time point and write output to a file.
+   */
+  void Run();
+  /**
+   * Add a SpeciesReaction object to the list of reactions.
+   *
+   * @param reaction pointer to SpeciesReaction object
+   */
+  void Register(Reaction::Ptr reaction);
+  /**
+   * Add a generic polymer to the list of reactions.
+   *
+   * @param polymer pointer to Polymer object
+   */
+  void Register(Polymer::Ptr polymer);
+  /**
+   * Add a genome to the list of reactions.
+   *
+   * @param genome pointer to Genome object
+   */
+  void Register(Genome::Ptr genome);
+  /**
+   * Add a transcript to the list of reactions.
+   *
+   * @param pointer to Transcript object
+   */
+  void Register(Transcript::Ptr transcript);
+  /**
+   * Initialize propensities. Must be called before simulation is run.
+   *
+   * TODO: Make private?
+   */
+  void InitPropensity();
+  /**
+   * Update propensity of a reaction at a given index.
+   *
+   * @index index of polymer in reaction list
+   */
+  void UpdatePropensity(int index);
+  /**
+   * Execute one iteration of gillespie algorithm.
+   */
+  void Execute();
+  /**
+   * Increment promoter count at species level.
+   *
+   * TODO: Possibley remove this function and call SpeciesTracker directly
+   * elsewhere?
+   *
+   * @param species_name name of promoter to free
+   */
+  void FreePromoter(const std::string &species_name);
+  /**
+   * Decrement promoter count at species level.
+   *
+   * TODO: Possibly remove this function and call SpeciesTracker directly.
+   *
+   * @param species_name name of promoter to block
+   */
+  void BlockPromoters(const std::string &species_name);
+  /**
+   * Update propensities and species counts after transcription has terminated.
+   *
+   * @param polymer_index index of genome in reaction list
+   * @param pol_name name of polymerase completing transcription
+   * @param gene_name name of last gene on the polymerase encountered (not
+   *  currently used, but may be used in future)
+   */
+  void TerminateTranscription(int polymer_index, const std::string &pol_name,
+                              const std::string &gene_name);
+  /**
+  * Update propensities and species counts after translation has terminated.
+  *
+  * @param polymer_index index of transcript in reaction list
+  * @param pol_name name of ribosome completing transcription
+  * @param protein_name name of newly-synthesized protein
+  */
+  void TerminateTranslation(int polymer_index, const std::string &pol_name,
+                            const std::string &protein_name);
+  /**
+   * Record when a polymerase reaches a terminator so that we can track total
+   * quantity of a species synthesized during simulation.
+   *
+   * TODO: Move to species tracker.
+   */
+  void CountTermination(const std::string &name);
+
+private:
+  /**
+   * Current simulation time.
+   */
+  double time_;
+  /**
+   * Time at which simulation should stop.
+   */
+  double stop_time_;
+  /**
+   * Time step at which to report data.
+   */
+  double time_step_;
+  /**
+   * Simulation iteraction counter
+   */
+  int iteration_;
+  /**
+   * Vector of all reactions in this simulation.
+   */
+  Reaction::VecPtr reactions_;
+  /**
+   * Vector of propensity values for reactions in this simulation.
+   */
+  std::vector<double> alpha_list_;
+  /**
+   * Total simulation propensity.
+   */
+  double alpha_sum_;
+};
 
 /**
  * Tracks species' copy numbers and maintains promoter-to-polymer and species-
