@@ -59,6 +59,7 @@ void Bind::Execute() {
   Polymer::Ptr polymer =
       Random::WeightedChoice(tracker.FindPolymers(promoter_name_), weights);
   auto new_pol = std::make_shared<Polymerase>(pol_template_);
+  polymer->Bind(new_pol, promoter_name_);
   tracker.propensity_signal_.Emit(polymer->index());
   tracker.Increment(promoter_name_, -1);
   tracker.Increment(pol_name_, -1);
