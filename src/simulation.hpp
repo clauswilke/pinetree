@@ -14,7 +14,6 @@
  */
 class Reaction {
 public:
-  Reaction();
   /**
    * Some convenience typedefs.
    */
@@ -39,7 +38,7 @@ protected:
   /**
    * The index of this reaction in the reaction list maintained by Simulation.
    */
-  const int index_;
+  int index_;
 };
 
 /**
@@ -52,10 +51,6 @@ protected:
  */
 class SpeciesTracker {
 public:
-  /**
-   * Only constructor of SpeciesTracker.
-   */
-  SpeciesTracker();
   /**
    * Some convenience typedefs.
    */

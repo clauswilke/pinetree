@@ -3,8 +3,6 @@
 const static double AVAGADRO = double(6.0221409e+23);
 const static double CELL_VOLUME = double(8e-15);
 
-SpeciesTracker::SpeciesTracker() {}
-
 void SpeciesTracker::Increment(const std::string &species_name,
                                int copy_number) {
   if (species_.count(species_name) != 0) {
@@ -59,8 +57,8 @@ SpeciesReaction::SpeciesReaction(SpeciesTracker::Ptr tracker,
                                  double rate_constant,
                                  const std::vector<std::string> &reactants,
                                  const std::vector<std::string> &products)
-    : Reaction(), tracker_(tracker), rate_constant_(rate_constant),
-      reactants_(reactants), products_(products) {
+    : tracker_(tracker), rate_constant_(rate_constant), reactants_(reactants),
+      products_(products) {
   // Error checking
   if (reactants_.size() > 2) {
     throw std::runtime_error("Simulation does not support reactions with "

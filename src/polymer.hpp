@@ -42,6 +42,9 @@ public:
     */
   Polymer(const std::string &name, int start, int stop,
           const Element::VecPtr &elements, const Mask &mask);
+  /**
+   * Some convenience typedefs.
+   */
   typedef std::shared_ptr<Polymer> Ptr;
   typedef std::vector<std::shared_ptr<Polymer>> VecPtr;
   /**
@@ -100,13 +103,10 @@ public:
    */
   void UncoverElement(const std::string &species_name);
   /**
-   * Getters and setters
+   * Getters and setters. There are two getters for prop_sum_... mostly to
+   * maintain the interface that Simulation expects.
    */
   int index() { return index_; }
-  /**
-   * There are two getters for prop_sum_... mostly to maintain the interface
-   * that Simulation expects.
-   */
   double CalculatePropensity() { return prop_sum_; }
   double prop_sum() { return prop_sum_; }
   int uncovered(const std::string &name) { return uncovered_[name]; }
@@ -226,19 +226,48 @@ protected:
   bool Intersect(const Feature &elem1, const Feature &elem2);
 };
 
+/**
+ * An mRNA transcript. Tracks ribosomes and protein production. Only differs
+ * from Polymer in capability to receive signasl from a moving polymerase on a
+ * Genome and uncover the appropriate, "newly-synthesized" RNA elements.
+ */
 class Transcript : public Polymer {
 public:
+  /**
+   * The only constructor of Transcript.
+   *
+   * @param name name of transcript
+   * @param start start position of transcript (in genomic coordinates)
+   * @param stop stop position of transcript (in genomeic coordinates)
+   * @param elements vector of pointers to Element objects that make up this
+   *  transcript
+   * @param mask mask object that gets shifted as polymerase "synthesizes" more
+   *  of the transcript
+   */
   Transcript(const std::string &name, int start, int stop,
              const Element::VecPtr &elements, const Mask &mask);
+  /**
+   * Convenience typdefs.
+   */
   typedef std::shared_ptr<Transcript> Ptr;
+  /**
+   * Bind ribosome to this transcript.
+   *
+   * @param pol polymerase (ribosome) object pointer
+   * @param promoter_name name of RBS to bind (typically just "rbs")
+   */
   void Bind(Polymerase::Ptr pol, const std::string &promoter_name);
+  /**
+   * Hack-y redeclaration of ShiftMask so that Signal doesn't complain about
+   * mismatched types.
+   */
   void ShiftMask() { Polymer::ShiftMask(); }
 };
 
 /**
  * Track polymeraes on DNA, deal with collisions, promoters, terminators, and
  * constructing transcripts. Inherits from Polymer. Unlike Polymer, Genome must
- * * construct a transcript upon promoter binding.
+ * construct a transcript upon promoter binding.
  */
 class Genome : public Polymer {
 public:
