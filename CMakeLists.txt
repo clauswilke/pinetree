@@ -27,7 +27,8 @@ set(SOURCE ${SOURCE}
     "${TEST_DIR}/test_main.cpp"
     "${TEST_DIR}/test_feature.cpp"
     "${TEST_DIR}/test_polymer.cpp"
-    "${TEST_DIR}/test_choices.cpp")
+    "${TEST_DIR}/test_choices.cpp"
+    "${TEST_DIR}/test_simulation.cpp")
 
 # Generate shared library since ultimately this code will interface with python
 # and won't contain a main executable

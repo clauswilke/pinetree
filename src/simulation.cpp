@@ -3,6 +3,21 @@
 const static double AVAGADRO = double(6.0221409e+23);
 const static double CELL_VOLUME = double(8e-15);
 
+void SpeciesTracker::Register(SpeciesReaction::Ptr reaction) {
+  // Add this reaction to SpeciesTracker
+  for (const auto &reactant : reaction->reactants()) {
+    Add(reactant, reaction);
+    // Initialize reactant counts (this usually gets set to some non-zero
+    // value later)
+    Increment(reactant, 0);
+  }
+  // Do the same for products
+  for (const auto &product : reaction->products()) {
+    Add(product, reaction);
+    Increment(product, 0);
+  }
+}
+
 void SpeciesTracker::Increment(const std::string &species_name,
                                int copy_number) {
   if (species_.count(species_name) != 0) {
@@ -53,11 +68,14 @@ SpeciesTracker::FindPolymers(const std::string &promoter_name) {
   return promoter_map_[promoter_name];
 }
 
-SpeciesReaction::SpeciesReaction(SpeciesTracker::Ptr tracker,
-                                 double rate_constant,
+int SpeciesTracker::species(const std::string &reactant) {
+  return species_[reactant];
+}
+
+SpeciesReaction::SpeciesReaction(double rate_constant,
                                  const std::vector<std::string> &reactants,
                                  const std::vector<std::string> &products)
-    : tracker_(tracker), rate_constant_(rate_constant), reactants_(reactants),
+    : rate_constant_(rate_constant), reactants_(reactants),
       products_(products) {
   // Error checking
   if (reactants_.size() > 2) {
@@ -68,33 +86,21 @@ SpeciesReaction::SpeciesReaction(SpeciesTracker::Ptr tracker,
   if (reactants_.size() == 2) {
     rate_constant_ = rate_constant_ / (AVAGADRO * CELL_VOLUME);
   }
-  // Add this reaction to SpeciesTracker
-  for (const auto &reactant : reactants_) {
-    tracker_->Add(reactant, Ptr(this));
-    // Initialize reactant counts (this usually gets set to some non-zero value
-    // later)
-    tracker_->Increment(reactant, 0);
-  }
-  // Do the same for products
-  for (const auto &product : products_) {
-    tracker_->Add(product, Ptr(this));
-    tracker_->Increment(product, 0);
-  }
 }
 
 double SpeciesReaction::CalculatePropensity() {
   double propensity = rate_constant_;
   for (const auto &reactant : reactants_) {
-    propensity *= tracker_->species(reactant);
+    propensity *= SpeciesTracker::species(reactant);
   }
   return propensity;
 }
 
 void SpeciesReaction::Execute() {
   for (const auto &reactant : reactants_) {
-    tracker_->Increment(reactant, -1);
+    SpeciesTracker::Increment(reactant, -1);
   }
   for (const auto &product : products_) {
-    tracker_->Increment(product, 1);
+    SpeciesTracker::Increment(product, 1);
   }
 }
