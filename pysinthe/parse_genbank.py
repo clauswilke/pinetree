@@ -196,8 +196,8 @@ def get_promoter_interactions(name):
               "T7 promoter phi4c",
               "T7 promoter phi4.3",
               "T7 promoter phi4.7"]
-    phi6_5 = ["T7 promoter phi6.5",
-              "T7 promoter phi9"]
+    phi6_5 = ["T7 promoter phi6.5"]
+    phi9 = ["T7 promoter phi9"]
     phi10 = ["T7 promoter phi10"]
     phi13 = ["T7 promoter phi13",
              "T7 promoter phi17"]
@@ -211,20 +211,23 @@ def get_promoter_interactions(name):
         return {'ecolipol': {'binding_constant': 1e7},
                 'ecolipol-p': {'binding_constant': 0.3e7}}
     elif name in phi1_3:
-        return {'rnapol-1': {'binding_constant': phi10_bind*0.045},
-                'rnapol-3.5': {'binding_constant': phi10_bind*0.045*0.5}}
+        return {'rnapol-1': {'binding_constant': phi10_bind*0.01},
+                'rnapol-3.5': {'binding_constant': phi10_bind*0.01*0.5}}
     elif name in phi3_8:
-        return {'rnapol-1': {'binding_constant': phi10_bind*0.07},
-                'rnapol-3.5': {'binding_constant': phi10_bind*0.07*0.5}}
+        return {'rnapol-1': {'binding_constant': phi10_bind*0.01},
+                'rnapol-3.5': {'binding_constant': phi10_bind*0.01*0.5}}
     elif name in phi6_5:
-        return {'rnapol-1': {'binding_constant': phi10_bind*0.61},
-                'rnapol-3.5': {'binding_constant': phi10_bind*0.61*0.5}}
+        return {'rnapol-1': {'binding_constant': phi10_bind*0.05},
+                'rnapol-3.5': {'binding_constant': phi10_bind*0.05*0.5}}
+    elif name in phi9:
+        return {'rnapol-1': {'binding_constant': phi10_bind*0.2},
+                'rnapol-3.5': {'binding_constant': phi10_bind*0.2*0.5}}
     elif name in phi10:
         return {'rnapol-1': {'binding_constant': phi10_bind},
                 'rnapol-3.5': {'binding_constant': phi10_bind*0.5}}
     elif name in phi13:
-        return {'rnapol-1': {'binding_constant': phi10_bind*0.79},
-                'rnapol-3.5': {'binding_constant': phi10_bind*0.79*0.5}}
+        return {'rnapol-1': {'binding_constant': phi10_bind*0.1},
+                'rnapol-3.5': {'binding_constant': phi10_bind*0.1*0.5}}
     else:
         raise ValueError("Promoter strength for {0} not assigned.".format(name))
 
@@ -236,8 +239,8 @@ def get_terminator_interactions(name):
                 'rnapol-1': {'efficiency': 0.0},
                 'rnapol-3.5': {'efficiency': 0.0}}
     elif name == "T7 transcription terminator Tphi":
-        return {'rnapol-1': {'efficiency': 0.8},
-                'rnapol-3.5': {'efficiency': 0.8}}
+        return {'rnapol-1': {'efficiency': 0.85},
+                'rnapol-3.5': {'efficiency': 0.85}}
     else:
         return {'name': {'efficiency': 0.0}}
 
