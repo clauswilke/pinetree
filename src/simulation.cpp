@@ -76,7 +76,7 @@ void Simulation::Run() {
   // coming soon
 }
 
-void Simulation::Register(Reaction::Ptr reaction) {
+void Simulation::RegisterReaction(Reaction::Ptr reaction) {
   auto it = std::find(reactions_.begin(), reactions_.end(), reaction);
   if (it == reactions_.end()) {
     reaction->index(reactions_.size());
@@ -87,7 +87,7 @@ void Simulation::Register(Reaction::Ptr reaction) {
   }
 }
 
-void Simulation::Register(Polymer::Ptr polymer) {
+void Simulation::RegisterPolymer(Polymer::Ptr polymer) {
   for (auto &elem : polymer->elements()) {
     elem->uncover_signal_.ConnectMember(this, &Simulation::FreePromoter);
     elem->cover_signal_.ConnectMember(this, &Simulation::BlockPromoter);
@@ -95,8 +95,22 @@ void Simulation::Register(Polymer::Ptr polymer) {
   }
   // Encapsulate polymer in Bridge reaction and add to reaction list
   auto bridge = std::make_shared<Bridge>(polymer);
-  Register(bridge);
+  RegisterReaction(bridge);
   polymer->index(bridge->index());
+}
+
+void Simulation::RegisterGenome(Genome::Ptr genome) {
+  RegisterPolymer(genome);
+  genome->termination_signal_.ConnectMember(
+      this, &Simulation::TerminateTranscription);
+  genome->transcript_signal_.ConnectMember(this,
+                                           &Simulation::RegisterTranscript);
+}
+
+void Simulation::RegisterTranscript(Transcript::Ptr transcript) {
+  RegisterPolymer(transcript);
+  transcript->termination_signal_.ConnectMember(
+      this, &Simulation::TerminateTranslation);
 }
 
 void Simulation::UpdatePropensity(int index) {
@@ -108,6 +122,14 @@ void Simulation::UpdatePropensity(int index) {
 
 void Simulation::FreePromoter(const std::string &species_name) {}
 void Simulation::BlockPromoter(const std::string &species_name) {}
+
+void Simulation::TerminateTranscription(int polymer_index,
+                                        const std::string &pol_name,
+                                        const std::string &gene_name) {}
+
+void Simulation::TerminateTranslation(int polymer_index,
+                                      const std::string &pol_name,
+                                      const std::string &gene_name) {}
 
 SpeciesTracker &SpeciesTracker::Instance() {
   static SpeciesTracker instance;

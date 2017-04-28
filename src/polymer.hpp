@@ -117,7 +117,7 @@ public:
   /**
    * Signal to fire when a polymerase terminates.
    */
-  Signal<int, std::string, std::string> termination_signal_;
+  Signal<int, const std::string &, const std::string &> termination_signal_;
 
 protected:
   /**

@@ -191,25 +191,25 @@ public:
    *
    * @param reaction pointer to SpeciesReaction object
    */
-  void Register(Reaction::Ptr reaction);
+  void RegisterReaction(Reaction::Ptr reaction);
   /**
    * Add a generic polymer to the list of reactions.
    *
    * @param polymer pointer to Polymer object
    */
-  void Register(Polymer::Ptr polymer);
+  void RegisterPolymer(Polymer::Ptr polymer);
   /**
    * Add a genome to the list of reactions.
    *
    * @param genome pointer to Genome object
    */
-  void Register(Genome::Ptr genome);
+  void RegisterGenome(Genome::Ptr genome);
   /**
    * Add a transcript to the list of reactions.
    *
    * @param pointer to Transcript object
    */
-  void Register(Transcript::Ptr transcript);
+  void RegisterTranscript(Transcript::Ptr transcript);
   /**
    * Initialize propensities. Must be called before simulation is run.
    *
