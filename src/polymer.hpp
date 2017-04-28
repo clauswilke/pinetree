@@ -107,11 +107,13 @@ public:
    * maintain the interface that Simulation expects.
    */
   int index() { return index_; }
+  void index(int index) { index_ = index; }
   double CalculatePropensity() { return prop_sum_; }
   double prop_sum() { return prop_sum_; }
   int uncovered(const std::string &name) { return uncovered_[name]; }
   int start() const { return start_; }
   int stop() const { return stop_; }
+  Element::VecPtr &elements() { return elements_; }
   /**
    * Signal to fire when a polymerase terminates.
    */

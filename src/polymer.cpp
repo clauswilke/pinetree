@@ -76,6 +76,15 @@ void Polymer::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
   prop_sum_ += pol->speed();
 }
 
+void Polymer::Execute() {
+  if (prop_sum_ == 0) {
+    throw std::runtime_error(
+        "Attempting to execute polymer with reaction propensity of 0.");
+  }
+  auto pol = Choose();
+  Move(pol);
+}
+
 void Polymer::ShiftMask() {
   if (mask_.start() >= mask_.stop()) {
     return;

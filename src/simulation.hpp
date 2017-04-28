@@ -33,6 +33,7 @@ public:
    * Return the index of the reaction.
    */
   int index() const { return index_; }
+  void index(int index) { index_ = index; }
 
 protected:
   /**
@@ -241,7 +242,7 @@ public:
    *
    * @param species_name name of promoter to block
    */
-  void BlockPromoters(const std::string &species_name);
+  void BlockPromoter(const std::string &species_name);
   /**
    * Update propensities and species counts after transcription has terminated.
    *

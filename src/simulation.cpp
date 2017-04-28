@@ -1,5 +1,6 @@
 #include "simulation.hpp"
 #include "choices.hpp"
+#include "polymer.hpp"
 
 const static double AVAGADRO = double(6.0221409e+23);
 const static double CELL_VOLUME = double(8e-15);
@@ -64,6 +65,49 @@ void Bind::Execute() {
   tracker.Increment(promoter_name_, -1);
   tracker.Increment(pol_name_, -1);
 }
+
+Simulation::Simulation()
+    : time_(0), stop_time_(0), time_step_(0), alpha_sum_(0) {
+  auto &tracker = SpeciesTracker::Instance();
+  tracker.propensity_signal_.ConnectMember(this, &Simulation::UpdatePropensity);
+}
+
+void Simulation::Run() {
+  // coming soon
+}
+
+void Simulation::Register(Reaction::Ptr reaction) {
+  auto it = std::find(reactions_.begin(), reactions_.end(), reaction);
+  if (it == reactions_.end()) {
+    reaction->index(reactions_.size());
+    double new_prop = reaction->CalculatePropensity();
+    alpha_list_.push_back(new_prop);
+    alpha_sum_ += new_prop;
+    reactions_.push_back(reaction);
+  }
+}
+
+void Simulation::Register(Polymer::Ptr polymer) {
+  for (auto &elem : polymer->elements()) {
+    elem->uncover_signal_.ConnectMember(this, &Simulation::FreePromoter);
+    elem->cover_signal_.ConnectMember(this, &Simulation::BlockPromoter);
+    SpeciesTracker::Instance().Add(elem->name(), polymer);
+  }
+  // Encapsulate polymer in Bridge reaction and add to reaction list
+  auto bridge = std::make_shared<Bridge>(polymer);
+  Register(bridge);
+  polymer->index(bridge->index());
+}
+
+void Simulation::UpdatePropensity(int index) {
+  double new_prop = reactions_[index]->CalculatePropensity();
+  double diff = new_prop - alpha_list_[index];
+  alpha_sum_ += diff;
+  alpha_list_[index] = new_prop;
+}
+
+void Simulation::FreePromoter(const std::string &species_name) {}
+void Simulation::BlockPromoter(const std::string &species_name) {}
 
 SpeciesTracker &SpeciesTracker::Instance() {
   static SpeciesTracker instance;
