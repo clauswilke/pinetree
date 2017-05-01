@@ -1,23 +1,22 @@
 cmake_minimum_required(VERSION 3.8.0)
 
+# For VSCode debugger support
+include(CMakeToolsHelpers OPTIONAL)
+# Required for CTest to function properly
+include(Dart)
+# Automatically parse Catch unit tests
+include(ParseAndAddCatchTests)
+# Set up for Catch unit testing
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/src/cmake.modules/")
+enable_testing()
+
 project(pysinthe)
 
 # Modern C++ woooo!
 set(CMAKE_CXX_STANDARD 11)
 
-# For VSCode debugger support
-include(CMakeToolsHelpers OPTIONAL)
-
-# Required for CTest to function properly
-include(Dart)
-
-# Set up for Catch unit testing
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/src/cmake.modules/")
-enable_testing()
-
 # Tell Cmake that headers are also in source directory
 include_directories(src)
-include_directories(src/tests)
 
 # Pull in source and test files
 set(SOURCE_DIR "${CMAKE_SOURCE_DIR}/src")
@@ -27,26 +26,19 @@ set(SOURCES
     "${SOURCE_DIR}/polymer.cpp"
     "${SOURCE_DIR}/choices.cpp"
     "${SOURCE_DIR}/simulation.cpp")
-set(SOURCES ${SOURCES}
+set(TESTS ${SOURCES}
     "${TEST_DIR}/test_main.cpp"
     "${TEST_DIR}/test_feature.cpp"
     "${TEST_DIR}/test_polymer.cpp"
     "${TEST_DIR}/test_choices.cpp"
     "${TEST_DIR}/test_simulation.cpp")
 
-# Generate shared library since ultimately this code will interface with python
-# and won't contain a main executable
-# add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES})
-
-add_executable("${PROJECT_NAME}_test" ${SOURCES})
+# Generate a test executable
+add_executable("${PROJECT_NAME}_test" ${TESTS})
 
 # Automatically parse Catch unit tests
-# Run `make; make test` to run all tests after running cmake
-include(ParseAndAddCatchTests)
 ParseAndAddCatchTests("${PROJECT_NAME}_test")
 
 # Python bindings!
-set(PYBIND11_PYTHON_VERSION 3.6)
-set(PYTHON_EXECUTABLE python3)
 add_subdirectory(src/pybind11)
 pybind11_add_module(pysinthe "${SOURCE_DIR}/python_bindings.cpp" ${SOURCES})
