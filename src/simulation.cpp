@@ -115,6 +115,17 @@ void Simulation::RegisterTranscript(Transcript::Ptr transcript) {
       this, &Simulation::TerminateTranslation);
 }
 
+void Simulation::InitPropensity() {
+  for (int i = 0; i < reactions_.size(); i++) {
+    UpdatePropensity(i);
+  }
+  // Make sure prop sum is starting from 0
+  alpha_sum_ = 0;
+  for (const auto &alpha : alpha_list_) {
+    alpha_sum_ += alpha;
+  }
+}
+
 void Simulation::UpdatePropensity(int index) {
   double new_prop = reactions_[index]->CalculatePropensity();
   double diff = new_prop - alpha_list_[index];

@@ -270,6 +270,8 @@ public:
    */
   void CountTermination(const std::string &name);
 
+  double alpha_sum() { return alpha_sum_; }
+
 private:
   /**
    * Current simulation time.

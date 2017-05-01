@@ -117,8 +117,16 @@ TEST_CASE("SpeciesTracker methods", "[SpeciesTracker]") {
 
 TEST_CASE("Simulation methods", "[Simulation]") {
   auto sim = Simulation();
+  auto &tracker = SpeciesTracker::Instance();
+  tracker.Clear();
+  tracker.Increment("reactant1", 1);
+
   SECTION("Register reaction") {
-    auto reaction1 = SpeciesReaction(1.5, {"reactant1"}, {"product1"});
-    REQUIRE(0 == 0);
+    auto reaction1 = std::make_shared<SpeciesReaction>(
+        1.5, std::vector<std::string>{"reactant1"},
+        std::vector<std::string>{"product1"});
+    sim.RegisterReaction(reaction1);
+    sim.InitPropensity();
+    REQUIRE(sim.alpha_sum() == 1.5);
   }
 }
