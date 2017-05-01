@@ -275,6 +275,7 @@ public:
   void stop_time(double stop_time) { stop_time_ = stop_time; }
   double stop_time() { return stop_time_; }
   void time_step(double time_step) { time_step_ = time_step; }
+  double time_step() { return time_step_; }
   double alpha_sum() { return alpha_sum_; }
 
 private:
