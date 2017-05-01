@@ -8,6 +8,9 @@ set(CMAKE_CXX_STANDARD 11)
 # For VSCode debugger support
 include(CMakeToolsHelpers OPTIONAL)
 
+# Required for CTest to function properly
+include(Dart)
+
 # Set up for Catch unit testing
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/src/cmake.modules/")
 enable_testing()
