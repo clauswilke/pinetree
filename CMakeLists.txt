@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.8.0)
 
-project(pysinthe_test)
+project(pysinthe)
 
 # Modern C++ woooo!
 set(CMAKE_CXX_STANDARD 11)
@@ -38,9 +38,15 @@ set(SOURCES ${SOURCES}
 # and won't contain a main executable
 # add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES})
 
-add_executable(${PROJECT_NAME} ${SOURCES})
+add_executable("${PROJECT_NAME}_test" ${SOURCES})
 
 # Automatically parse Catch unit tests
 # Run `make; make test` to run all tests after running cmake
 include(ParseAndAddCatchTests)
-ParseAndAddCatchTests(${PROJECT_NAME})
+ParseAndAddCatchTests("${PROJECT_NAME}_test")
+
+# Python bindings!
+set(PYBIND11_PYTHON_VERSION 3.6)
+set(PYTHON_EXECUTABLE python3)
+add_subdirectory(src/pybind11)
+pybind11_add_module(simulation "${SOURCE_DIR}/simulation_pybind.cpp" ${SOURCES})
