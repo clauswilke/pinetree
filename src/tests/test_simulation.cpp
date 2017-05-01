@@ -114,3 +114,19 @@ TEST_CASE("SpeciesTracker methods", "[SpeciesTracker]") {
             polymers.end());
   }
 }
+
+TEST_CASE("Simulation methods", "[Simulation]") {
+  auto sim = Simulation();
+  SECTION("Register reaction") {
+    auto reaction1 = SpeciesReaction(1.5, {"reactant1"}, {"product1"});
+    REQUIRE(0 == 2);
+  }
+}
+
+TEST_CASE("Simulation methods again", "[Simulation]") {
+  auto sim = Simulation();
+  SECTION("Register reaction") {
+    auto reaction1 = SpeciesReaction(1.5, {"reactant1"}, {"product1"});
+    REQUIRE(0 == 2);
+  }
+}

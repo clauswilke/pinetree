@@ -1,6 +1,8 @@
-#include "simulation.hpp"
+#include <cmath>
+
 #include "choices.hpp"
 #include "polymer.hpp"
+#include "simulation.hpp"
 
 const static double AVAGADRO = double(6.0221409e+23);
 const static double CELL_VOLUME = double(8e-15);
@@ -120,16 +122,50 @@ void Simulation::UpdatePropensity(int index) {
   alpha_list_[index] = new_prop;
 }
 
-void Simulation::FreePromoter(const std::string &species_name) {}
-void Simulation::BlockPromoter(const std::string &species_name) {}
+void Simulation::Execute() {
+  // Generate random number
+  double random_num = Random::random();
+  // Calculate tau, i.e. time until next reaction
+  double tau = (1.0 / alpha_sum_) * std::log(1.0 / random_num);
+  time_ += tau;
+  // Randomly select next reaction to execute, weighted by propensities
+  auto next_reaction = Random::WeightedChoice(reactions_, alpha_list_);
+  next_reaction->Execute();
+  iteration_++;
+}
+
+void Simulation::FreePromoter(const std::string &species_name) {
+  SpeciesTracker::Instance().Increment(species_name, 1);
+}
+void Simulation::BlockPromoter(const std::string &species_name) {
+  SpeciesTracker::Instance().Increment(species_name, -1);
+}
 
 void Simulation::TerminateTranscription(int polymer_index,
                                         const std::string &pol_name,
-                                        const std::string &gene_name) {}
+                                        const std::string &gene_name) {
+  SpeciesTracker::Instance().Increment(pol_name, 1);
+  UpdatePropensity(polymer_index);
+  CountTermination("transcript");
+}
 
 void Simulation::TerminateTranslation(int polymer_index,
                                       const std::string &pol_name,
-                                      const std::string &gene_name) {}
+                                      const std::string &gene_name) {
+  SpeciesTracker::Instance().Increment(pol_name, 1);
+  SpeciesTracker::Instance().Increment(gene_name, 1);
+  UpdatePropensity(polymer_index);
+  CountTermination(gene_name);
+}
+
+void Simulation::CountTermination(const std::string &name) {
+  auto new_name = name + "_total";
+  if (terminations_.count(name) == 0) {
+    terminations_[new_name] = 1;
+  } else {
+    terminations_[new_name]++;
+  }
+}
 
 SpeciesTracker &SpeciesTracker::Instance() {
   static SpeciesTracker instance;

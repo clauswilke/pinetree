@@ -299,6 +299,10 @@ private:
    * Total simulation propensity.
    */
   double alpha_sum_;
+  /**
+   * Map of terminations.
+   */
+  std::map<std::string, int> terminations_;
 };
 
 /**

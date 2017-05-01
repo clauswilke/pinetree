@@ -14,16 +14,17 @@ enable_testing()
 
 # Tell Cmake that headers are also in source directory
 include_directories(src)
+include_directories(src/tests)
 
 # Pull in source and test files
-set(SOURCE_DIR "src")
+set(SOURCE_DIR "${CMAKE_SOURCE_DIR}/src")
 set(TEST_DIR "${SOURCE_DIR}/tests")
-set(SOURCE 
+set(SOURCES 
     "${SOURCE_DIR}/feature.cpp"
     "${SOURCE_DIR}/polymer.cpp"
     "${SOURCE_DIR}/choices.cpp"
     "${SOURCE_DIR}/simulation.cpp")
-set(SOURCE ${SOURCE}
+set(SOURCES ${SOURCES}
     "${TEST_DIR}/test_main.cpp"
     "${TEST_DIR}/test_feature.cpp"
     "${TEST_DIR}/test_polymer.cpp"
@@ -34,7 +35,7 @@ set(SOURCE ${SOURCE}
 # and won't contain a main executable
 # add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES})
 
-add_executable(${PROJECT_NAME} ${SOURCE})
+add_executable(${PROJECT_NAME} ${SOURCES})
 
 # Automatically parse Catch unit tests
 # Run `make; make test` to run all tests after running cmake
