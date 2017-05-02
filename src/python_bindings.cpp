@@ -1,4 +1,6 @@
 #include "choices.hpp"
+#include "feature.hpp"
+#include "polymer.hpp"
 #include "simulation.hpp"
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
@@ -9,6 +11,11 @@ PYBIND11_PLUGIN(pysinthe) {
   py::module m("pysinthe", "pybind11 example plugin");
 
   m.def("seed", &Random::seed, "set a global seed for the simulation");
+
+  py::class_<SpeciesTracker>(m, "SpeciesTracker")
+      .def("get_instance", SpeciesTracker::Instance,
+           py::return_value_policy::reference)
+      .def("increment", &SpeciesTracker::Increment);
 
   py::class_<Simulation>(m, "Simulation")
       .def(py::init<>())
@@ -55,6 +62,13 @@ PYBIND11_PLUGIN(pysinthe) {
                     const std::map<std::string, double> &>());
 
   // Polymers, genomes, and transcripts
+  py::class_<Polymer>(m, "Polymer");
+  py::class_<Transcript, Polymer>(m, "Transcript")
+      .def(py::init<const std::string &, int, int, const Element::VecPtr &,
+                    const Mask &>());
+  py::class_<Genome, Polymer>(m, "Genome")
+      .def(py::init<const std::string &, int, const Element::VecPtr &,
+                    const Element::VecPtr &, const Mask &>());
 
   return m.ptr();
 }

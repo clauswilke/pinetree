@@ -8,3 +8,5 @@ prom = pysinthe.Promoter("test", 1, 10, ["ecolipol"])
 print(prom.start, prom.stop)
 prom.start = 3
 print(prom.start)
+
+tracker = pysinthe.SpeciesTracker.get_instance()
