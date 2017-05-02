@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.8.0)
 
+project(pysinthe)
+
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/src/cmake.modules/")
+
 # For VSCode debugger support
 include(CMakeToolsHelpers OPTIONAL)
 # Required for CTest to function properly
@@ -7,10 +11,7 @@ include(Dart)
 # Automatically parse Catch unit tests
 include(ParseAndAddCatchTests)
 # Set up for Catch unit testing
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/src/cmake.modules/")
 enable_testing()
-
-project(pysinthe)
 
 # Modern C++ woooo!
 set(CMAKE_CXX_STANDARD 11)
