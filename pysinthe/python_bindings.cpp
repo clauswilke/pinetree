@@ -17,7 +17,7 @@ PYBIND11_PLUGIN(core) {
            py::return_value_policy::reference)
       .def("increment", &SpeciesTracker::Increment);
 
-  py::class_<Simulation>(m, "Simulation")
+  py::class_<Simulation, std::shared_ptr<Simulation>>(m, "Simulation")
       .def(py::init<>())
       .def_property("stop_time",
                     (double (Simulation::*)()) & Simulation::stop_time,
@@ -29,7 +29,8 @@ PYBIND11_PLUGIN(core) {
                     "time step at which to output data")
       .def("register_reaction", &Simulation::RegisterReaction,
            "register a species-level reaction")
-      .def("register_genome", &Simulation::RegisterGenome, "register a genome");
+      .def("register_genome", &Simulation::RegisterGenome, "register a genome")
+      .def("run", &Simulation::Run, "run the simulation");
 
   // Binding for abtract Reaction so pybind11 doesn't complain when doing
   // conversions between Reaction and its child classes
@@ -44,29 +45,42 @@ PYBIND11_PLUGIN(core) {
       .def(py::init<Polymer::Ptr>());
 
   // Features and elements
-  py::class_<Feature>(m, "Feature")
+  py::class_<Feature, std::shared_ptr<Feature>>(m, "Feature")
       .def_property("start", (int (Feature::*)()) & Feature::start,
                     (void (Feature::*)(int)) & Feature::start)
       .def_property("stop", (int (Feature::*)()) & Feature::stop,
-                    (void (Feature::*)(int)) & Feature::stop);
-  py::class_<Mask, Feature>(m, "Mask").def(
+                    (void (Feature::*)(int)) & Feature::stop)
+      .def_property_readonly("type", (const std::string &(Feature::*)() const) &
+                                         Feature::type)
+      .def_property_readonly("name", (const std::string &(Feature::*)() const) &
+                                         Feature::name);
+  py::class_<Mask, Feature, std::shared_ptr<Mask>>(m, "Mask").def(
       py::init<const std::string &, int, int,
                const std::vector<std::string> &>());
-  py::class_<Element, Feature>(m, "Element");
-  py::class_<Promoter, Element>(m, "Promoter")
+  py::class_<Element, Feature, Element::Ptr>(m, "Element");
+  py::class_<Promoter, Element, Promoter::Ptr>(m, "Promoter")
       .def(py::init<const std::string &, int, int,
                     const std::vector<std::string> &>());
-  py::class_<Terminator, Element>(m, "Terminator")
+  py::class_<Terminator, Element, Terminator::Ptr>(m, "Terminator")
       .def(py::init<const std::string &, int, int,
                     const std::vector<std::string> &,
-                    const std::map<std::string, double> &>());
+                    const std::map<std::string, double> &>())
+      .def_property("reading_frame",
+                    (int (Terminator::*)()) & Terminator::reading_frame,
+                    (void (Terminator::*)(int)) & Terminator::set_reading_frame)
+      .def_property(
+          "gene",
+          (const std::string &(Terminator::*)() const) & Terminator::gene,
+          (void (Terminator::*)(const std::string &)) & Terminator::gene);
+  py::class_<Polymerase, Feature, Polymerase::Ptr>(m, "Polymerase")
+      .def(py::init<const std::string &, int, int>());
 
   // Polymers, genomes, and transcripts
-  py::class_<Polymer>(m, "Polymer");
-  py::class_<Transcript, Polymer>(m, "Transcript")
+  py::class_<Polymer, Polymer::Ptr>(m, "Polymer");
+  py::class_<Transcript, Polymer, Transcript::Ptr>(m, "Transcript")
       .def(py::init<const std::string &, int, int, const Element::VecPtr &,
                     const Mask &>());
-  py::class_<Genome, Polymer>(m, "Genome")
+  py::class_<Genome, Polymer, Genome::Ptr>(m, "Genome")
       .def(py::init<const std::string &, int, const Element::VecPtr &,
                     const Element::VecPtr &, const Mask &>());
 

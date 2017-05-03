@@ -4,10 +4,14 @@
 Polymer::Polymer(const std::string &name, int start, int stop,
                  const Element::VecPtr &elements, const Mask &mask)
     : index_(0), name_(name), start_(start), stop_(stop), elements_(elements),
-      mask_(mask), prop_sum_(0) {
+      mask_(mask), prop_sum_(0) {}
+
+void Polymer::InitElements() {
   for (auto &element : elements_) {
-    element->cover_signal_.ConnectMember(this, &Polymer::CoverElement);
-    element->uncover_signal_.ConnectMember(this, &Polymer::UncoverElement);
+    element->cover_signal_.ConnectMember(shared_from_this(),
+                                         &Polymer::CoverElement);
+    element->uncover_signal_.ConnectMember(shared_from_this(),
+                                           &Polymer::UncoverElement);
     // Cover masked elements and set up signals for covered/uncovered
     // elements
     if (Intersect(*element, mask_)) {
@@ -345,7 +349,7 @@ void Genome::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
   // when to expose new elements
   // TODO: figure out if this could cause a memory leak
   // What happens if transcript gets deleted?
-  pol->move_signal_.ConnectMember(&(*transcript), &Transcript::ShiftMask);
+  pol->move_signal_.ConnectMember(transcript, &Transcript::ShiftMask);
   // Fire new transcript signal (adds transcript to Simulation)
   transcript_signal_.Emit(transcript);
 }

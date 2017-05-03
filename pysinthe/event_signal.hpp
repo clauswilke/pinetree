@@ -34,6 +34,18 @@ public:
     return Connect([=](Args... args) { (inst->*func)(args...); });
   }
 
+  // smart pointer support
+  template <typename T>
+  int ConnectMember(std::shared_ptr<T> inst, void (T::*func)(Args...)) {
+    return Connect([=](Args... args) { std::mem_fn(func)(inst, args...); });
+  }
+
+  // smart pointer support
+  template <typename T>
+  int ConnectMember(std::shared_ptr<T> inst, void (T::*func)(Args...) const) {
+    return Connect([=](Args... args) { std::mem_fn(func)(inst, args...); });
+  }
+
   // connects a std::function to the signal. The returned
   // value can be used to disconnect the function again
   int Connect(std::function<void(Args...)> const &slot) const {

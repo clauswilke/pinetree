@@ -1,4 +1,5 @@
 #include <cmath>
+#include <iostream>
 
 #include "choices.hpp"
 #include "polymer.hpp"
@@ -69,13 +70,20 @@ void Bind::Execute() {
 }
 
 Simulation::Simulation()
-    : time_(0), stop_time_(0), time_step_(0), alpha_sum_(0) {
-  auto &tracker = SpeciesTracker::Instance();
-  tracker.propensity_signal_.ConnectMember(this, &Simulation::UpdatePropensity);
-}
+    : time_(0), stop_time_(0), time_step_(0), alpha_sum_(0) {}
 
 void Simulation::Run() {
-  // coming soon
+  if (time_ == 0) {
+    auto &tracker = SpeciesTracker::Instance();
+    tracker.propensity_signal_.ConnectMember(shared_from_this(),
+                                             &Simulation::UpdatePropensity);
+    InitPropensity();
+  }
+  // Execute();
+  while (time_ < stop_time_) {
+    Execute();
+    std::cout << std::to_string(time_) << std::endl;
+  }
 }
 
 void Simulation::RegisterReaction(Reaction::Ptr reaction) {
@@ -90,9 +98,12 @@ void Simulation::RegisterReaction(Reaction::Ptr reaction) {
 }
 
 void Simulation::RegisterPolymer(Polymer::Ptr polymer) {
+  polymer->InitElements();
   for (auto &elem : polymer->elements()) {
-    elem->uncover_signal_.ConnectMember(this, &Simulation::FreePromoter);
-    elem->cover_signal_.ConnectMember(this, &Simulation::BlockPromoter);
+    elem->uncover_signal_.ConnectMember(shared_from_this(),
+                                        &Simulation::FreePromoter);
+    elem->cover_signal_.ConnectMember(shared_from_this(),
+                                      &Simulation::BlockPromoter);
     SpeciesTracker::Instance().Add(elem->name(), polymer);
   }
   // Encapsulate polymer in Bridge reaction and add to reaction list
@@ -104,15 +115,15 @@ void Simulation::RegisterPolymer(Polymer::Ptr polymer) {
 void Simulation::RegisterGenome(Genome::Ptr genome) {
   RegisterPolymer(genome);
   genome->termination_signal_.ConnectMember(
-      this, &Simulation::TerminateTranscription);
-  genome->transcript_signal_.ConnectMember(this,
+      shared_from_this(), &Simulation::TerminateTranscription);
+  genome->transcript_signal_.ConnectMember(shared_from_this(),
                                            &Simulation::RegisterTranscript);
 }
 
 void Simulation::RegisterTranscript(Transcript::Ptr transcript) {
   RegisterPolymer(transcript);
   transcript->termination_signal_.ConnectMember(
-      this, &Simulation::TerminateTranslation);
+      shared_from_this(), &Simulation::TerminateTranslation);
 }
 
 void Simulation::InitPropensity() {

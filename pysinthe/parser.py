@@ -5,9 +5,9 @@ import random
 import yaml
 from voluptuous import Schema, Optional, Any, All, Range, Length, Coerce
 
-from .core import Promoter, Terminator
+from .core import Promoter, Terminator, Polymerase
 from .core import Genome, Mask
-from .core import Reaction, Simulation, SpeciesReaction, Bind
+from .core import Reaction, Simulation, SpeciesReaction, Bind, SpeciesTracker
 from .core import seed
 
 class Parser:
@@ -21,6 +21,7 @@ class Parser:
         """
         self.params = yaml.safe_load(myfile)
         self.simulation = Simulation()
+        self.tracker = SpeciesTracker.get_instance()
         self.construct_simulation()
 
     def construct_simulation(self):
@@ -45,46 +46,44 @@ class Parser:
         if "reactions" in self.params:
             self._parse_reactions(self.params["reactions"])
 
-        genome = self._construct_genome(self.params["genome"],
+        genome, elements, mask = self._construct_genome(self.params["genome"],
                                         self.params["elements"])
 
-        # # Add species-level polymerase counts and construct list of partners
-        # # that this polymerase interacts with (promoters, terminators, etc.)
-        # self._parse_polymerases(self.params["polymerases"])
+        # Add species-level polymerase counts and construct list of partners
+        # that this polymerase interacts with (promoters, terminators, etc.)
+        self._parse_polymerases(self.params["polymerases"])
 
-        # # Add binding reaction for each promoter-polymerase interaction pair
-        # self._parse_binding_reactions(self.params["elements"],
-        #                               self.params["polymerases"])
+        # Add binding reaction for each promoter-polymerase interaction pair
+        self._parse_binding_reactions(self.params["elements"],
+                                      self.params["polymerases"])
 
-        # # Add species level reactants for elements that are not masked
-        # for element in genome.elements:
-        #     if element.type == "promoter" and element.stop < genome.mask.start:
-        #         self.simulation.tracker.increment_species(element.name, 1)
-        #     elif element.type == "promoter":
-        #         self.simulation.tracker.increment_species(element.name, 0)
+        # Add species level reactants for elements that are not masked
+        for element in elements:
+            if element.type == "promoter" and element.stop < mask.start:
+                self.tracker.increment(element.name, 1)
+            elif element.type == "promoter":
+                self.tracker.increment(element.name, 0)
 
-        # # Register genome
-        # self.simulation.register_genome(genome)
+        # Register genome
+        self.simulation.register_genome(genome)
 
-        # self.simulation.tracker.increment_species("rbs", 0)
-        # self.simulation.tracker.increment_species(
-        #     self.params["ribosomes"][0]["name"],
-        #     int(self.params["ribosomes"][0]["copy_number"])
-        # )
-        # ribo_args = [self.params["ribosomes"][0]["name"],
-        #              self.params["ribosomes"][0]["footprint"], # (10) footprint
-        #              self.params["ribosomes"][0]["speed"]] # (30) speed
-        # # Transcript-ribosome binding reaction
-        # reaction = Bind(self.simulation.tracker,
-        #                 self.params["ribosomes"][0]["binding_constant"],
-        #                 "rbs",
-        #                 ribo_args)
-        # self.simulation.register_reaction(reaction)
+        self.tracker.increment("rbs", 0)
+        self.tracker.increment(
+            self.params["ribosomes"][0]["name"],
+            int(self.params["ribosomes"][0]["copy_number"])
+        )
+        new_ribo = Polymerase(self.params["ribosomes"][0]["name"],
+                     self.params["ribosomes"][0]["footprint"], # (10) footprint
+                     self.params["ribosomes"][0]["speed"]) # (30) speed
+        # Transcript-ribosome binding reaction
+        reaction = Bind(float(self.params["ribosomes"][0]["binding_constant"]),
+                        "rbs",
+                        new_ribo)
+        self.simulation.register_reaction(reaction)
 
-        # if "species" in self.params:
-        #     self._parse_species(self.params["species"])
+        if "species" in self.params:
+            self._parse_species(self.params["species"])
 
-        # self.simulation.initialize_propensity()
 
     def _validate_schema(self, params):
         """
@@ -130,15 +129,14 @@ class Parser:
 
     def _parse_species(self, species_params):
         for species in species_params:
-            self.simulation.tracker.increment_species(
+            self.tracker.increment(
                 species["name"],
                 int(species["copy_number"])
             )
 
     def _parse_reactions(self, reaction_params):
         for reaction in reaction_params:
-            new_reaction = SpeciesReaction(self.simulation.tracker,
-                                           reaction["propensity"],
+            new_reaction = SpeciesReaction(reaction["propensity"],
                                            reaction["reactants"],
                                            reaction["products"])
             self.simulation.register_reaction(new_reaction)
@@ -204,14 +202,37 @@ class Parser:
                                genome_params["mask_interactions"])
         else:
             genome_mask = Mask("mask", genome_length + 1, genome_length, [])
+        
+        transcript_elems = self._build_transcript_template(transcript_template)
 
         genome = Genome(self.params["genome"]["name"],
                         genome_length,
                         dna_elements,
-                        transcript_template,
+                        transcript_elems,
                         genome_mask)
 
-        return genome
+        return genome, dna_elements, genome_mask
+    
+    def _build_transcript_template(self, template):
+        elements = []
+        for element in template:
+            # Is this element within the start and stop sites?
+            rbs = Promoter("rbs",
+                            element["start"]+element["rbs"],
+                            element["start"],
+                            ["ribosome"])
+            elements.append(rbs)
+            stop_site = Terminator("tstop",
+                                    element["stop"]-1,
+                                    element["stop"],
+                                    ["ribosome"],
+                                    {"ribosome": 1.0})
+            stop_site.reading_frame = element["start"] % 3
+            stop_site.gene = element["name"]
+            elements.append(stop_site)
+        # Sort elements according to start position
+        elements.sort(key=lambda x: x.start)
+        return elements
 
     def _parse_polymerases(self, pol_params):
         """
@@ -221,7 +242,7 @@ class Parser:
         """
         for pol in pol_params:
             # add polymerase as a reactant
-            self.simulation.tracker.increment_species(pol["name"],
+            self.tracker.increment(pol["name"],
                                                       pol["copy_number"])
 
     def _parse_binding_reactions(self, element_params, pol_params):
@@ -234,17 +255,15 @@ class Parser:
         # Add binding reaction for each promoter-polymerase interaction pair
         for element in element_params:
             if element["type"] == "promoter":
-                self.simulation.tracker.increment_species(element["name"], 0)
+                self.tracker.increment(element["name"], 0)
                 for partner, constant in element["interactions"].items():
                     binding_constant = constant["binding_constant"]
                     for pol in pol_params:
                         if pol["name"] == partner:
-                            pol_args = [partner,
+                            new_pol = Polymerase(partner,
                                         pol["footprint"],  # (10) footprint
-                                        pol["speed"]
-                                        ]
-                            reaction = Bind(self.simulation.tracker,
-                                            float(binding_constant),
+                                        pol["speed"])
+                            reaction = Bind(float(binding_constant),
                                             element["name"],
-                                            pol_args)
+                                            new_pol)
                             self.simulation.register_reaction(reaction)

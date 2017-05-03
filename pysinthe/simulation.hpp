@@ -179,7 +179,7 @@ private:
 /**
  * Coordinate polymers and species-level reactions.
  */
-class Simulation {
+class Simulation : public std::enable_shared_from_this<Simulation> {
 public:
   Simulation();
   /**

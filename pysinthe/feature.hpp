@@ -13,7 +13,7 @@
  *
  * TODO: make abstract?
  */
-class Feature {
+class Feature : public std::enable_shared_from_this<Feature> {
 public:
   /**
    * Default constructor of Feature
@@ -291,6 +291,7 @@ public:
     return efficiency_[pol_name];
   }
   const std::string &gene() const { return gene_; }
+  void gene(const std::string &gene) { gene_ = gene; }
 
 private:
   /**

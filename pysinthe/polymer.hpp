@@ -27,7 +27,7 @@
  * * terminator: terminator, stop codon, any site on polymer that ends
  *      polymerization
  */
-class Polymer {
+class Polymer : public std::enable_shared_from_this<Polymer> {
 public:
   /**
     * The only constructor for Polymer.
@@ -47,6 +47,7 @@ public:
    */
   typedef std::shared_ptr<Polymer> Ptr;
   typedef std::vector<std::shared_ptr<Polymer>> VecPtr;
+  void InitElements();
   /**
    * Bind a polymerase object to the polymer. Randomly select an open
    * promoter with which to bind and update the polymerases position to the

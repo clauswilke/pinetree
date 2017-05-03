@@ -13,5 +13,7 @@ tracker = pysinthe.SpeciesTracker.get_instance()
 
 from pysinthe.parser import Parser
 
-with open("old_tests/params/three_genes.yml", "r") as f:
+with open("old_tests/params/lotka_voltera.yml", "r") as f:
     parse = Parser(f)
+
+parse.simulation.run()
