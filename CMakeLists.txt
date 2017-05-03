@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.8.0)
 
 project(pysinthe)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/src/cmake.modules/")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/pysinthe/cmake.modules/")
 
 # For VSCode debugger support
 include(CMakeToolsHelpers OPTIONAL)
@@ -17,10 +17,10 @@ enable_testing()
 set(CMAKE_CXX_STANDARD 11)
 
 # Tell Cmake that headers are also in source directory
-include_directories(src)
+include_directories(pysinthe)
 
 # Pull in source and test files
-set(SOURCE_DIR "${CMAKE_SOURCE_DIR}/src")
+set(SOURCE_DIR "${CMAKE_SOURCE_DIR}/pysinthe")
 set(TEST_DIR "${SOURCE_DIR}/tests")
 set(SOURCES 
     "${SOURCE_DIR}/feature.cpp"
@@ -41,5 +41,5 @@ add_executable("${PROJECT_NAME}_test" ${TESTS})
 ParseAndAddCatchTests("${PROJECT_NAME}_test")
 
 # Python bindings!
-add_subdirectory(src/pybind11)
-pybind11_add_module(pysinthe "${SOURCE_DIR}/python_bindings.cpp" ${SOURCES})
+add_subdirectory(pysinthe/pybind11)
+pybind11_add_module(core "${SOURCE_DIR}/python_bindings.cpp" ${SOURCES})

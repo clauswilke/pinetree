@@ -1,4 +1,4 @@
-import build.pysinthe as pysinthe
+from pysinthe import core as pysinthe
 
 sim = pysinthe.Simulation()
 test = pysinthe.SpeciesReaction(1.5, ["reactant"], ["product"])
@@ -10,3 +10,8 @@ prom.start = 3
 print(prom.start)
 
 tracker = pysinthe.SpeciesTracker.get_instance()
+
+from pysinthe.parser import Parser
+
+with open("old_tests/params/three_genes.yml", "r") as f:
+    parse = Parser(f)
