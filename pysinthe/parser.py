@@ -175,12 +175,6 @@ class Parser:
                                          list(element["interactions"].keys()), 
                                          interactions)
             elif element["type"] == "transcript":
-                # if old_transcript_stop > element["stop"]:
-                #     raise RuntimeError("Transcript '{0}' falls entirely within "
-                #                        "the previous gene. This can cause "
-                #                        "unexpected behavior. Please delete "
-                #                        "transcript or change its coordinates."
-                #                        .format(element["name"]))
                 old_transcript_stop = element["stop"]
                 element["reading_frame"] = element["start"] % 3
                 transcript_template.append(element)
