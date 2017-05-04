@@ -25,6 +25,7 @@ TEST_CASE("Signal connection and firing", "[Signals]") {
   auto message = std::make_shared<Message>();
 
   button->on_click.ConnectMember(message, &Message::display);
-  button->on_click.Emit();
+  auto button2 = button;
+  button2->on_click.Emit();
   REQUIRE(message->fired == true);
 }

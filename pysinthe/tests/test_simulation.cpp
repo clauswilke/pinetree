@@ -65,6 +65,7 @@ TEST_CASE("Bind methods", "[Reaction]") {
 
   auto polymer =
       std::make_shared<Polymer>("test_polymer", 1, 100, elements, mask);
+  polymer->InitElements();
   // Set up a polymerase
   auto polymerase = Polymerase("ecolipol", 10, 30);
   auto reaction = Bind(1000, "p1", polymerase);
@@ -116,7 +117,7 @@ TEST_CASE("SpeciesTracker methods", "[SpeciesTracker]") {
 }
 
 TEST_CASE("Simulation methods", "[Simulation]") {
-  auto sim = Simulation();
+  auto sim = std::make_shared<Simulation>();
   auto &tracker = SpeciesTracker::Instance();
   tracker.Clear();
   tracker.Increment("reactant1", 1);
@@ -125,15 +126,15 @@ TEST_CASE("Simulation methods", "[Simulation]") {
     auto reaction1 = std::make_shared<SpeciesReaction>(
         1.5, std::vector<std::string>{"reactant1"},
         std::vector<std::string>{"product1"});
-    sim.RegisterReaction(reaction1);
-    sim.InitPropensity();
-    REQUIRE(sim.alpha_sum() == 1.5);
+    sim->RegisterReaction(reaction1);
+    sim->InitPropensity();
+    REQUIRE(sim->alpha_sum() == 1.5);
     auto reaction2 = std::make_shared<SpeciesReaction>(
         1.5, std::vector<std::string>{"reactant1"},
         std::vector<std::string>{"product1"});
-    sim.RegisterReaction(reaction2);
-    sim.InitPropensity();
-    REQUIRE(sim.alpha_sum() == 3);
+    sim->RegisterReaction(reaction2);
+    sim->InitPropensity();
+    REQUIRE(sim->alpha_sum() == 3);
   }
 
   SECTION("Register polymer and execute") {
@@ -156,7 +157,7 @@ TEST_CASE("Simulation methods", "[Simulation]") {
     auto polymer =
         std::make_shared<Polymer>("test_polymer", 1, 100, elements, mask);
 
-    sim.RegisterPolymer(polymer);
+    sim->RegisterPolymer(polymer);
     REQUIRE(tracker.FindPolymers("p1")[0] == polymer);
     // bind polymerase and make sure alpha list is updated appropriately
     auto polymerase = Polymerase("ecolipol", 10, 30);
@@ -167,17 +168,19 @@ TEST_CASE("Simulation methods", "[Simulation]") {
     tracker.Add("p1", reaction);
     tracker.Add("ecolipol", reaction);
     tracker.Add("p1", polymer);
-    sim.RegisterReaction(reaction);
-    sim.InitPropensity();
-    sim.Execute();
-    REQUIRE(sim.alpha_sum() == 30);
-    sim.Execute();
-    REQUIRE(sim.alpha_sum() == 30);
+    sim->RegisterReaction(reaction);
+    sim->InitPropensity();
+    tracker.propensity_signal_.ConnectMember(sim,
+                                             &Simulation::UpdatePropensity);
+    sim->Execute();
+    REQUIRE(sim->alpha_sum() == 30);
+    sim->Execute();
+    REQUIRE(sim->alpha_sum() == 30);
     for (int i = 0; i < 20; i++) {
-      sim.Execute();
+      sim->Execute();
     }
     // Alpha_sum should be slightly greather than 30 now that promoter is
     // re-exposed
-    REQUIRE(sim.alpha_sum() > 30);
+    REQUIRE(sim->alpha_sum() > 30);
   }
 }

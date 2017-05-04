@@ -14,12 +14,12 @@ namespace Helper {
 bool termination_fired = false;
 bool transcript_fired = false;
 Transcript::Ptr my_transcript;
-void ShiftMaskN(Polymer *polymer, int n) {
+void ShiftMaskN(Polymer::Ptr polymer, int n) {
   for (int i = 0; i < n; i++) {
     polymer->ShiftMask();
   }
 }
-void MovePolymeraseN(Polymer *polymer, Polymerase::Ptr pol, int n) {
+void MovePolymeraseN(Polymer::Ptr polymer, Polymerase::Ptr pol, int n) {
   for (int i = 0; i < n; i++) {
     polymer->Move(pol);
   }
@@ -50,110 +50,112 @@ TEST_CASE("Polymer methods", "[Polymer]") {
   std::vector<std::string> mask_interactions = {"ecolipol"};
   Mask mask = Mask("test_mask", 10, 100, mask_interactions);
 
-  Polymer polymer = Polymer("test_polymer", 1, 100, elements, mask);
-  polymer.termination_signal_.Connect(Helper::EmitTermination);
+  auto polymer =
+      std::make_shared<Polymer>("test_polymer", 1, 100, elements, mask);
+  polymer->termination_signal_.Connect(Helper::EmitTermination);
+  polymer->InitElements();
 
   auto pol = std::make_shared<Polymerase>("ecolipol", 10, 30);
   auto pol2 = std::make_shared<Polymerase>("rnapol", 10, 30);
   auto pol3 = std::make_shared<Polymerase>("rnapol", 10, 30);
 
   SECTION("Construction") {
-    REQUIRE(polymer.index() == 0);
+    REQUIRE(polymer->index() == 0);
     REQUIRE(term->IsCovered());
     REQUIRE(!term->WasCovered());
     REQUIRE(!term->WasUncovered());
     REQUIRE(prom->IsCovered());
     REQUIRE(!prom->WasCovered());
     REQUIRE(!prom->WasUncovered());
-    REQUIRE(polymer.uncovered("p1") == 0);
-    REQUIRE(polymer.uncovered("t1") == 0);
+    REQUIRE(polymer->uncovered("p1") == 0);
+    REQUIRE(polymer->uncovered("t1") == 0);
   }
 
   SECTION("Polymerase binding") {
     Random::seed(22);
     // Promoter should be covered an inaccessible
-    REQUIRE_THROWS(polymer.Bind(pol, "p1"));
-    Helper::ShiftMaskN(&polymer, 10);
-    polymer.Bind(pol, "p1");
-    REQUIRE(polymer.uncovered("p1") == 0);
-    REQUIRE(polymer.prop_sum() == 30);
+    REQUIRE_THROWS(polymer->Bind(pol, "p1"));
+    Helper::ShiftMaskN(polymer, 10);
+    polymer->Bind(pol, "p1");
+    REQUIRE(polymer->uncovered("p1") == 0);
+    REQUIRE(polymer->prop_sum() == 30);
   }
 
   SECTION("Mask shifting") {
-    polymer.ShiftMask();
+    polymer->ShiftMask();
     REQUIRE(prom->IsCovered());
     REQUIRE(term->IsCovered());
     // Shift mask 10 spaces
-    Helper::ShiftMaskN(&polymer, 10);
+    Helper::ShiftMaskN(polymer, 10);
     REQUIRE(!prom->IsCovered());
     REQUIRE(term->IsCovered());
     // Make sure mask can't shift past end of polymer
-    Helper::ShiftMaskN(&polymer, 1000);
+    Helper::ShiftMaskN(polymer, 1000);
     REQUIRE(!term->IsCovered());
   }
 
   SECTION("Test termination") {
-    Helper::ShiftMaskN(&polymer, 10);
-    polymer.Bind(pol, "p1");
+    Helper::ShiftMaskN(polymer, 10);
+    polymer->Bind(pol, "p1");
     // Record old propensity
-    double old_prop_sum = polymer.prop_sum();
-    polymer.Terminate(pol, "gene1");
+    double old_prop_sum = polymer->prop_sum();
+    polymer->Terminate(pol, "gene1");
     // Make sure propensity has changed and termination signal fired
-    REQUIRE(polymer.prop_sum() != old_prop_sum);
+    REQUIRE(polymer->prop_sum() != old_prop_sum);
     REQUIRE(Helper::termination_fired);
   }
 
   SECTION("Test coverings") {
-    polymer.UncoverElement("p1");
-    REQUIRE(polymer.uncovered("p1") == 1);
-    polymer.CoverElement("p1");
-    REQUIRE(polymer.uncovered("p1") == 0);
+    polymer->UncoverElement("p1");
+    REQUIRE(polymer->uncovered("p1") == 1);
+    polymer->CoverElement("p1");
+    REQUIRE(polymer->uncovered("p1") == 0);
   }
 
   SECTION("Moving polymerase") {
     // Shift mask back to expose promoter
-    Helper::ShiftMaskN(&polymer, 10);
-    polymer.Bind(pol, "p1");
+    Helper::ShiftMaskN(polymer, 10);
+    polymer->Bind(pol, "p1");
     // Make sure promoter is recorded as covered
-    REQUIRE(polymer.uncovered("p1") == 0);
+    REQUIRE(polymer->uncovered("p1") == 0);
     REQUIRE(prom->IsCovered());
     // Move polymerase 10 spaces and re-expose promoter
-    Helper::MovePolymeraseN(&polymer, pol, 11);
-    REQUIRE(polymer.uncovered("p1") == 1);
+    Helper::MovePolymeraseN(polymer, pol, 11);
+    REQUIRE(polymer->uncovered("p1") == 1);
     REQUIRE(!prom->IsCovered());
     // Check for collisions between polymerases
-    polymer.Bind(pol2, "p1");
-    Helper::MovePolymeraseN(&polymer, pol2, 15);
+    polymer->Bind(pol2, "p1");
+    Helper::MovePolymeraseN(polymer, pol2, 15);
     REQUIRE(pol2->stop() + 1 == pol->start());
     // Remove pol and make sure pol2 can't shift mask'
-    polymer.Terminate(pol, "gene1");
+    polymer->Terminate(pol, "gene1");
     int old_stop = pol2->stop();
-    Helper::MovePolymeraseN(&polymer, pol2, 20);
+    Helper::MovePolymeraseN(polymer, pol2, 20);
     // Pol should only be able to move 10 spaces
     REQUIRE(pol2->stop() == old_stop + 10);
     // Expose terminator
-    REQUIRE(polymer.uncovered("t1") == 0);
-    Helper::ShiftMaskN(&polymer, 60);
-    REQUIRE(polymer.uncovered("t1") == 1);
+    REQUIRE(polymer->uncovered("t1") == 0);
+    Helper::ShiftMaskN(polymer, 60);
+    REQUIRE(polymer->uncovered("t1") == 1);
     // Test termination, pol should detach as soon as it hits terminator
-    Helper::MovePolymeraseN(&polymer, pol2, 25);
-    REQUIRE_THROWS(polymer.Move(pol2));
+    Helper::MovePolymeraseN(polymer, pol2, 25);
+    REQUIRE_THROWS(polymer->Move(pol2));
 
     // Now check for readthrough
-    polymer.Bind(pol, "p1");
+    polymer->Bind(pol, "p1");
     Random::seed(55);
-    Helper::MovePolymeraseN(&polymer, pol, 42);
+    Helper::MovePolymeraseN(polymer, pol, 42);
     REQUIRE(term->readthrough());
-    Helper::MovePolymeraseN(&polymer, pol, 10);
+    Helper::MovePolymeraseN(polymer, pol, 10);
     // Now run polymerase off of the end of the transcript
-    Helper::MovePolymeraseN(&polymer, pol, 35);
-    REQUIRE_THROWS(polymer.Move(pol));
+    Helper::MovePolymeraseN(polymer, pol, 35);
+    REQUIRE_THROWS(polymer->Move(pol));
     // Run polymerase through terminator again, this time it should terminate
     Random::seed(19);
-    polymer.Bind(pol, "p1");
-    Helper::MovePolymeraseN(&polymer, pol, 36);
+    polymer->Bind(pol, "p1");
+    Helper::MovePolymeraseN(polymer, pol, 36);
     REQUIRE(!term->readthrough());
-    REQUIRE_THROWS(polymer.Move(pol));
+    REQUIRE_THROWS(polymer->Move(pol));
   }
 }
 
@@ -176,21 +178,23 @@ TEST_CASE("Polymer methods with multipromoter", "[Polymer]") {
   std::vector<std::string> mask_interactions = {"ecolipol"};
   Mask mask = Mask("test_mask", 100, 100, mask_interactions);
 
-  Polymer polymer = Polymer("test_polymer", 1, 100, elements, mask);
-  polymer.termination_signal_.Connect(Helper::EmitTermination);
+  auto polymer =
+      std::make_shared<Polymer>("test_polymer", 1, 100, elements, mask);
+  polymer->termination_signal_.Connect(Helper::EmitTermination);
+  polymer->InitElements();
 
   auto pol = std::make_shared<Polymerase>("ecolipol", 10, 30);
   auto pol2 = std::make_shared<Polymerase>("rnapol", 10, 30);
   auto pol3 = std::make_shared<Polymerase>("rnapol", 10, 30);
 
   SECTION("Moving polymerase") {
-    polymer.Bind(pol, "p1");
-    Helper::MovePolymeraseN(&polymer, pol, 7);
+    polymer->Bind(pol, "p1");
+    Helper::MovePolymeraseN(polymer, pol, 7);
     REQUIRE(prom1->IsCovered());
     REQUIRE(prom2->IsCovered());
     REQUIRE(prom3->IsCovered());
 
-    Helper::MovePolymeraseN(&polymer, pol, 4);
+    Helper::MovePolymeraseN(polymer, pol, 4);
     REQUIRE(!prom1->IsCovered());
     REQUIRE(prom2->IsCovered());
     REQUIRE(prom3->IsCovered());
@@ -227,28 +231,30 @@ TEST_CASE("Genome methods", "[Polymer]") {
   elements.push_back(term);
   std::vector<std::string> mask_interactions = {"ecolipol"};
   Mask mask = Mask("test_mask", 10, 700, mask_interactions);
-  Genome genome =
-      Genome("test_genome", 700, elements, transcript_template, mask);
-  genome.termination_signal_.Connect(Helper::EmitTermination);
-  genome.transcript_signal_.Connect(Helper::EmitTranscript);
+  auto genome = std::make_shared<Genome>("test_genome", 700, elements,
+                                         transcript_template, mask);
+  genome->termination_signal_.Connect(Helper::EmitTermination);
+  genome->transcript_signal_.Connect(Helper::EmitTranscript);
+
+  genome->InitElements();
 
   auto pol = std::make_shared<Polymerase>("ecolipol", 10, 30);
 
   SECTION("Bind polymerase to genome") {
     REQUIRE(!Helper::transcript_fired);
-    Helper::ShiftMaskN(&genome, 20);
-    genome.Bind(pol, "p1");
+    Helper::ShiftMaskN(genome, 20);
+    genome->Bind(pol, "p1");
     REQUIRE(Helper::transcript_fired);
-    REQUIRE(Helper::my_transcript->stop() == genome.stop());
+    REQUIRE(Helper::my_transcript->stop() == genome->stop());
   }
 
   SECTION("Polymerase movement and transcript unmasking") {
-    Helper::ShiftMaskN(&genome, 20);
-    genome.Bind(pol, "p1");
-    Helper::MovePolymeraseN(&genome, pol, 500);
+    Helper::ShiftMaskN(genome, 20);
+    genome->Bind(pol, "p1");
+    Helper::MovePolymeraseN(genome, pol, 500);
     REQUIRE(Helper::my_transcript->uncovered("stop") == 2);
     REQUIRE(Helper::my_transcript->uncovered("rbs") == 2);
-    Helper::MovePolymeraseN(&genome, pol, 87);
+    Helper::MovePolymeraseN(genome, pol, 87);
     REQUIRE(Helper::my_transcript->uncovered("stop") == 3);
   }
 }

@@ -24,6 +24,18 @@ SpeciesReaction::SpeciesReaction(double rate_constant,
   }
 }
 
+void SpeciesReaction::InitCounts() {
+  auto &tracker = SpeciesTracker::Instance();
+  for (const auto &reactant : reactants_) {
+    tracker.Add(reactant, shared_from_this());
+    tracker.Increment(reactant, 0);
+  }
+  for (const auto &product : products_) {
+    tracker.Add(product, shared_from_this());
+    tracker.Increment(product, 0);
+  }
+}
+
 double SpeciesReaction::CalculatePropensity() {
   double propensity = rate_constant_;
   for (const auto &reactant : reactants_) {
@@ -46,6 +58,12 @@ Bind::Bind(double rate_constant, const std::string &promoter_name,
     : rate_constant_(rate_constant), promoter_name_(promoter_name),
       pol_name_(pol_template.name()), pol_template_(pol_template) {
   rate_constant_ = rate_constant_ / (AVAGADRO * CELL_VOLUME);
+}
+
+void Bind::InitCounts() {
+  auto &tracker = SpeciesTracker::Instance();
+  tracker.Add(promoter_name_, shared_from_this());
+  tracker.Add(pol_name_, shared_from_this());
 }
 
 double Bind::CalculatePropensity() {
@@ -73,8 +91,8 @@ Simulation::Simulation()
     : time_(0), stop_time_(0), time_step_(0), alpha_sum_(0) {}
 
 void Simulation::Run() {
+  auto &tracker = SpeciesTracker::Instance();
   if (time_ == 0) {
-    auto &tracker = SpeciesTracker::Instance();
     tracker.propensity_signal_.ConnectMember(shared_from_this(),
                                              &Simulation::UpdatePropensity);
     InitPropensity();
@@ -82,11 +100,16 @@ void Simulation::Run() {
   // Execute();
   while (time_ < stop_time_) {
     Execute();
-    std::cout << std::to_string(time_) << std::endl;
+    for (auto elem : tracker.species()) {
+      std::cout << std::to_string(time_) + " " + elem.first + " " +
+                       std::to_string(elem.second)
+                << std::endl;
+    }
   }
 }
 
 void Simulation::RegisterReaction(Reaction::Ptr reaction) {
+  reaction->InitCounts();
   auto it = std::find(reactions_.begin(), reactions_.end(), reaction);
   if (it == reactions_.end()) {
     reaction->index(reactions_.size());
@@ -100,11 +123,13 @@ void Simulation::RegisterReaction(Reaction::Ptr reaction) {
 void Simulation::RegisterPolymer(Polymer::Ptr polymer) {
   polymer->InitElements();
   for (auto &elem : polymer->elements()) {
-    elem->uncover_signal_.ConnectMember(shared_from_this(),
-                                        &Simulation::FreePromoter);
-    elem->cover_signal_.ConnectMember(shared_from_this(),
-                                      &Simulation::BlockPromoter);
-    SpeciesTracker::Instance().Add(elem->name(), polymer);
+    if (elem->type() == "promoter") {
+      elem->uncover_signal_.ConnectMember(shared_from_this(),
+                                          &Simulation::FreePromoter);
+      elem->cover_signal_.ConnectMember(shared_from_this(),
+                                        &Simulation::BlockPromoter);
+      SpeciesTracker::Instance().Add(elem->name(), polymer);
+    }
   }
   // Encapsulate polymer in Bridge reaction and add to reaction list
   auto bridge = std::make_shared<Bridge>(polymer);
@@ -131,10 +156,10 @@ void Simulation::InitPropensity() {
     UpdatePropensity(i);
   }
   // Make sure prop sum is starting from 0
-  alpha_sum_ = 0;
-  for (const auto &alpha : alpha_list_) {
-    alpha_sum_ += alpha;
-  }
+  // alpha_sum_ = 0;
+  // for (const auto &alpha : alpha_list_) {
+  //   alpha_sum_ += alpha;
+  // }
 }
 
 void Simulation::UpdatePropensity(int index) {
@@ -146,6 +171,9 @@ void Simulation::UpdatePropensity(int index) {
 
 void Simulation::Execute() {
   // Generate random number
+  if (alpha_sum_ == 0) {
+    throw std::runtime_error("Propensity of system is 0.");
+  }
   double random_num = Random::random();
   // Calculate tau, i.e. time until next reaction
   double tau = (1.0 / alpha_sum_) * std::log(1.0 / random_num);
@@ -217,18 +245,18 @@ void SpeciesTracker::Register(SpeciesReaction::Ptr reaction) {
 
 void SpeciesTracker::Increment(const std::string &species_name,
                                int copy_number) {
-  if (species_.count(species_name) != 0) {
-    species_[species_name] += copy_number;
-  } else {
+  if (species_.count(species_name) == 0) {
     species_[species_name] = copy_number;
+  } else {
+    species_[species_name] += copy_number;
   }
-  if (copy_number == 0) {
-    return;
-  }
-  if (species_map_.count(species_name) != 0) {
+  if (species_map_.count(species_name) > 0) {
     for (const auto &reaction : species_map_[species_name]) {
       propensity_signal_.Emit(reaction->index());
     }
+  }
+  if (species_[species_name] < 0) {
+    throw std::runtime_error("Species count less than 0." + species_name);
   }
 }
 

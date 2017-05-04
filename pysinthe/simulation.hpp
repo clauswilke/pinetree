@@ -12,7 +12,7 @@
  * the probability that this reaction will occur in the next time step. It is a
  * concept taken directly from the Gillepsie Algorithm.
  */
-class Reaction {
+class Reaction : public std::enable_shared_from_this<Reaction> {
 public:
   /**
    * Some convenience typedefs.
@@ -34,6 +34,7 @@ public:
    */
   int index() const { return index_; }
   void index(int index) { index_ = index; }
+  void virtual InitCounts() {}
 
 protected:
   /**
@@ -82,6 +83,7 @@ public:
    */
   const std::vector<std::string> &reactants() const { return reactants_; }
   const std::vector<std::string> &products() const { return products_; }
+  void InitCounts();
 
 private:
   /**
@@ -124,6 +126,7 @@ public:
    * and bind the polymerase to the polymer.
    */
   void Execute();
+  void InitCounts();
 
 private:
   /**
@@ -384,6 +387,10 @@ public:
    * Getters and setters
    */
   int species(const std::string &reactant);
+  /**
+   * Getters and setters
+   */
+  const std::map<std::string, int> &species() { return species_; }
   /**
    * Signal to fire when propensity needs to be updated.
    */

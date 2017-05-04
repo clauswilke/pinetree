@@ -3,6 +3,7 @@
 #ifndef SRC_FEATURE_HPP_ // header guard
 #define SRC_FEATURE_HPP_
 
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -186,8 +187,10 @@ public:
    * Uncover element.
    */
   void Uncover() {
-    if (covered_ > 0)
-      covered_--;
+    if (covered_ > 0) {
+      covered_ = covered_ - 1;
+      std::cout << "cover count: " + std::to_string(covered_);
+    }
   }
   /**
    * Is this element covered at all?

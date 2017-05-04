@@ -35,13 +35,13 @@ PYBIND11_PLUGIN(core) {
   // Binding for abtract Reaction so pybind11 doesn't complain when doing
   // conversions between Reaction and its child classes
   py::class_<Reaction, Reaction::Ptr>(m, "Reaction");
-  py::class_<SpeciesReaction, SpeciesReaction::Ptr, Reaction>(m,
+  py::class_<SpeciesReaction, Reaction, SpeciesReaction::Ptr>(m,
                                                               "SpeciesReaction")
       .def(py::init<double, const std::vector<std::string> &,
                     const std::vector<std::string> &>());
-  py::class_<Bind, std::shared_ptr<Bind>, Reaction>(m, "Bind").def(
+  py::class_<Bind, Reaction, std::shared_ptr<Bind>>(m, "Bind").def(
       py::init<double, const std::string &, const Polymerase &>());
-  py::class_<Bridge, std::shared_ptr<Bridge>, Reaction>(m, "Bridge")
+  py::class_<Bridge, Reaction, std::shared_ptr<Bridge>>(m, "Bridge")
       .def(py::init<Polymer::Ptr>());
 
   // Features and elements
