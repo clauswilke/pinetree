@@ -73,6 +73,8 @@ double Bind::CalculatePropensity() {
 }
 
 void Bind::Execute() {
+  // std::cout << "binding..." + std::to_string(CalculatePropensity())
+  //           << std::endl;
   auto &tracker = SpeciesTracker::Instance();
   auto weights = std::vector<double>();
   for (const auto &polymer : tracker.FindPolymers(promoter_name_)) {
@@ -160,14 +162,15 @@ void Simulation::InitPropensity() {
     UpdatePropensity(i);
   }
   // Make sure prop sum is starting from 0
-  // alpha_sum_ = 0;
-  // for (const auto &alpha : alpha_list_) {
-  //   alpha_sum_ += alpha;
-  // }
+  alpha_sum_ = 0;
+  for (const auto &alpha : alpha_list_) {
+    alpha_sum_ += alpha;
+  }
 }
 
 void Simulation::UpdatePropensity(int index) {
   double new_prop = reactions_[index]->CalculatePropensity();
+  // std::cout << "upating prop..." + std::to_string(new_prop) << std::endl;
   double diff = new_prop - alpha_list_[index];
   alpha_sum_ += diff;
   alpha_list_[index] = new_prop;
@@ -178,12 +181,19 @@ void Simulation::Execute() {
   if (alpha_sum_ == 0) {
     throw std::runtime_error("Propensity of system is 0.");
   }
+  // InitPropensity();
   double random_num = Random::random();
   // Calculate tau, i.e. time until next reaction
   double tau = (1.0 / alpha_sum_) * std::log(1.0 / random_num);
   time_ += tau;
+  // for (auto i : alpha_list_) {
+  //   std::cout << std::to_string(i) + " " << std::endl;
+  // }
   // Randomly select next reaction to execute, weighted by propensities
   auto next_reaction = Random::WeightedChoice(reactions_, alpha_list_);
+  // std::cout << "attempting to bind..." +
+  //                  std::to_string(alpha_list_[next_reaction->index()])
+  //           << std::endl;
   next_reaction->Execute();
   iteration_++;
 }
@@ -272,7 +282,7 @@ void SpeciesTracker::Add(const std::string &species_name,
     // TODO: Maybe use a better data type here like a set?
     auto it = std::find(species_map_[species_name].begin(),
                         species_map_[species_name].end(), reaction);
-    if (it != species_map_[species_name].end()) {
+    if (it == species_map_[species_name].end()) {
       species_map_[species_name].push_back(reaction);
     }
   }

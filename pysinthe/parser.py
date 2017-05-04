@@ -91,7 +91,7 @@ class Parser:
         """
         schema = Schema({
             'simulation': {Optional('seed'): All(int, Range(min=0)),
-                           'runtime': All(int, Range(min=0)),
+                           'runtime': All(Coerce(float), Range(min=0)),
                            'time_step': All(int, Range(min=0)),
                            'cell_volume': All(Coerce(float), Range(min=0)),
                            Optional('debug', default=False): bool},
@@ -253,6 +253,7 @@ class Parser:
         :param pol_params: polymerase parameters
         """
         # Add binding reaction for each promoter-polymerase interaction pair
+        seen = list()
         for element in element_params:
             if element["type"] == "promoter":
                 self.tracker.increment(element["name"], 0)
@@ -266,4 +267,6 @@ class Parser:
                             reaction = Bind(float(binding_constant),
                                             element["name"],
                                             new_pol)
+                            # if (partner, element["name"]) not in seen:
                             self.simulation.register_reaction(reaction)
+                            # seen.append((partner, element["name"]))

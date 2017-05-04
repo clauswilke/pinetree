@@ -1,0 +1,84 @@
+simulation:
+    seed: 34
+    runtime: 60.0
+    time_step: 1
+    cell_volume: 8e-16
+    debug: False
+# Genome parameters
+genome:
+    name: T7
+    copy_number: 1
+# Define polymerases
+polymerases:
+- name: rnapol
+  copy_number: 10
+  speed: 40
+  footprint: 10
+# Ribosomes
+ribosomes:
+- name: ribosome
+  copy_number: 100
+  speed: 30
+  footprint: 10
+  binding_constant: 1e7
+# Define promoters, transcripts, and terminators, in the order that they
+# are encoded in the genome.
+elements:
+- type: promoter
+  name: phi1
+  start: 1
+  stop: 10
+  # length: 10
+  interactions:
+      rnapol:
+          binding_constant: 2e8
+- type: promoter
+  name: phi1
+  start: 11
+  stop: 20
+  # length: 10
+  interactions:
+      rnapol:
+          binding_constant: 2e8
+- type: promoter
+  name: phi1
+  start: 21
+  stop: 30
+  # length: 10
+  interactions:
+      rnapol:
+          binding_constant: 2e8
+- type: transcript
+  name: rnapol
+  start: 46
+  stop: 245
+  # length: 200
+  rbs: -15
+- type: transcript
+  name: proteinX
+  start: 261
+  stop: 300
+  # length: 40
+  rbs: -15
+- type: promoter
+  name: phi10
+  start: 301
+  stop: 310
+  # length: 10
+  interactions:
+      rnapol:
+          binding_constant: 2e8
+- type: transcript
+  name: proteinY
+  start: 326
+  stop: 625
+  # length: 300
+  rbs: -15
+- type: terminator
+  name: t1
+  start: 634
+  stop: 635
+  # length: 10
+  interactions:
+    rnapol:
+        efficiency: 1.0
