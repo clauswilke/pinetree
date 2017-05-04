@@ -615,7 +615,7 @@ ribosomes:
 simulation:
   cell_volume: 1.1e-15
   debug: false
-  runtime: 1350
+  runtime: 200
   seed: 34
   time_step: 5
 species:

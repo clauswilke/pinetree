@@ -2,7 +2,7 @@
 
 import argparse
 
-from pysinthe.parser import Parser
+from old_python.parser import Parser
 
 
 def main(my_params_file=""):
