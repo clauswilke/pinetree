@@ -6,7 +6,7 @@
 #include "simulation.hpp"
 
 const static double AVAGADRO = double(6.0221409e+23);
-const static double CELL_VOLUME = double(8e-15);
+const static double CELL_VOLUME = double(1.1e-15);
 
 SpeciesReaction::SpeciesReaction(double rate_constant,
                                  const std::vector<std::string> &reactants,
@@ -98,12 +98,16 @@ void Simulation::Run() {
     InitPropensity();
   }
   // Execute();
+  int out_time = 0;
   while (time_ < stop_time_) {
     Execute();
-    for (auto elem : tracker.species()) {
-      std::cout << std::to_string(time_) + " " + elem.first + " " +
-                       std::to_string(elem.second)
-                << std::endl;
+    if ((out_time - time_) < 0.001) {
+      for (auto elem : tracker.species()) {
+        std::cout << std::to_string(time_) + " " + elem.first + " " +
+                         std::to_string(elem.second)
+                  << std::endl;
+      }
+      out_time += time_step_;
     }
   }
 }

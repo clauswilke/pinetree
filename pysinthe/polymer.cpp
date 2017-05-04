@@ -95,22 +95,11 @@ void Polymer::ShiftMask() {
   if (mask_.start() >= mask_.stop()) {
     return;
   }
-  std::cout << "shift mask! " + std::to_string(mask_.start()) + " ";
-  std::cout << std::to_string(uncovered("rbs")) + " ";
   int index = -1;
   for (size_t i = 0; i < elements_.size(); i++) {
-    std::cout << "! " + elements_[i]->name() + " " +
-                     std::to_string(elements_[i]->start()) + " ";
-    std::cout << " " + std::to_string(elements_[i]->IsCovered()) + " ";
     if (Intersect(mask_, *elements_[i])) {
-      std::cout << "intersection! " + elements_[i]->name() + " " +
-                       std::to_string(elements_[i]->start()) + " ";
       elements_[i]->SaveState();
-      std::cout << " Was uncovered 2:" +
-                       std::to_string(elements_[i]->IsCovered()) + " ";
       elements_[i]->Uncover();
-      std::cout << " Was uncovered 3:" +
-                       std::to_string(elements_[i]->IsCovered()) + " ";
       index = i;
       break;
     }
@@ -122,9 +111,6 @@ void Polymer::ShiftMask() {
   if (Intersect(mask_, *elements_[index])) {
     elements_[index]->Cover();
   }
-  std::cout << "mask shifted! " + std::to_string(mask_.start()) + " ";
-  std::cout << " Was uncovered:" +
-                   std::to_string(elements_[index]->WasUncovered()) + " ";
   elements_[index]->CheckState();
   elements_[index]->SaveState();
 }
@@ -360,7 +346,6 @@ void Genome::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
   Polymer::Bind(pol, promoter_name);
   // Construct a transcript starting from *end* of polymerase
   Transcript::Ptr transcript = BuildTranscript(pol->stop(), stop_);
-  transcript->InitElements();
   // Connect polymerase movement signal to transcript, so that transcript knows
   // when to expose new elements
   // TODO: figure out if this could cause a memory leak

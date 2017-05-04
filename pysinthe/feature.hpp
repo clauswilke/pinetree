@@ -189,7 +189,6 @@ public:
   void Uncover() {
     if (covered_ > 0) {
       covered_ = covered_ - 1;
-      std::cout << "cover count: " + std::to_string(covered_);
     }
   }
   /**

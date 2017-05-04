@@ -136,7 +136,7 @@ class Parser:
 
     def _parse_reactions(self, reaction_params):
         for reaction in reaction_params:
-            new_reaction = SpeciesReaction(reaction["propensity"],
+            new_reaction = SpeciesReaction(float(reaction["propensity"]),
                                            reaction["reactants"],
                                            reaction["products"])
             self.simulation.register_reaction(new_reaction)
