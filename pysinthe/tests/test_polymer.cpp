@@ -30,6 +30,7 @@ void EmitTermination(int index, const std::string &pol_name,
 }
 void EmitTranscript(const Transcript::Ptr &transcript) {
   transcript_fired = true;
+  transcript->InitElements();
   my_transcript = transcript;
 }
 }

@@ -8,6 +8,7 @@ import subprocess
 
 from setuptools import setup, find_packages, Extension
 from setuptools.command.build_ext import build_ext
+from setuptools.command.test import test as TestCommand
 from distutils.version import LooseVersion
 
 
@@ -58,6 +59,18 @@ class CMakeBuild(build_ext):
         subprocess.check_call(['cmake', ext.sourcedir] + cmake_args, cwd=self.build_temp, env=env)
         subprocess.check_call(['cmake', '--build', '.'] + build_args, cwd=self.build_temp)
 
+class CatchTestCommand(TestCommand):
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        # Run catch
+        subprocess.call(['make', 'test'], cwd='build')
+
 with open('README.md') as f:
     readme = f.read()
 
@@ -75,6 +88,7 @@ setup(
     license=license,
     packages=['pysinthe'],
     ext_modules=[CMakeExtension('pysinthe.core')],
-    cmdclass=dict(build_ext=CMakeBuild),
+    cmdclass=dict(build_ext=CMakeBuild,
+                  test=CatchTestCommand),
     zip_safe=False,
 )

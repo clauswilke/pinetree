@@ -6,7 +6,7 @@
 #include "simulation.hpp"
 
 const static double AVAGADRO = double(6.0221409e+23);
-const static double CELL_VOLUME = double(1.1e-15);
+const static double CELL_VOLUME = double(8e-15);
 
 SpeciesReaction::SpeciesReaction(double rate_constant,
                                  const std::vector<std::string> &reactants,
