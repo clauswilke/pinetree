@@ -13,6 +13,10 @@ runs
 # tabasco params
 tabasco_params.pdf
 
+# vscode stuff
+.vscode
+.clang-format
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
