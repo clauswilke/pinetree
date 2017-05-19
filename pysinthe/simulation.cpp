@@ -93,7 +93,10 @@ void Bind::Execute() {
 }
 
 Simulation::Simulation()
-    : time_(0), stop_time_(0), time_step_(0), alpha_sum_(0) {}
+    : time_(0), stop_time_(0), time_step_(0), alpha_sum_(0) {
+  auto &tracker = SpeciesTracker::Instance();
+  tracker.Clear();
+}
 
 void Simulation::Run() {
   auto &tracker = SpeciesTracker::Instance();
@@ -242,6 +245,7 @@ void SpeciesTracker::Clear() {
   species_.clear();
   promoter_map_.clear();
   species_map_.clear();
+  propensity_signal_ = Signal<int>();
 }
 
 void SpeciesTracker::Register(SpeciesReaction::Ptr reaction) {
