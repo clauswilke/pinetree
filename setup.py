@@ -3,6 +3,7 @@
 import os
 import re
 import sys
+import sysconfig
 import platform
 import subprocess
 
@@ -35,12 +36,13 @@ class CMakeBuild(build_ext):
             self.build_extension(ext)
 
     def build_extension(self, ext):
+        self.debug = True
         extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
         cmake_args = ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + extdir,
                       '-DPYTHON_EXECUTABLE=' + sys.executable]
 
         cfg = 'Debug' if self.debug else 'Release'
-        build_args = ['--config', cfg]
+        build_args = ['--config', cfg, '--target', 'all']
 
         if platform.system() == "Windows":
             cmake_args += ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}'.format(cfg.upper(), extdir)]
@@ -66,10 +68,23 @@ class CatchTestCommand(TestCommand):
 
     def finalize_options(self):
         pass
+    
+    def distutils_dir_name(self, dname):
+        """Returns the name of a distutils build directory"""
+        f = "{dirname}.{platform}-{version[0]}.{version[1]}"
+        return f.format(dirname=dname,
+                        platform=sysconfig.get_platform(),
+                        version=sys.version_info)
 
     def run(self):
-        # Run catch
-        subprocess.call(['make', 'test'], cwd='build')
+
+        # Run ctest
+        subprocess.call(['make', 'test'], cwd=os.path.join('build', self.distutils_dir_name('temp')))
+
+        print("\nC++ tests complete, now running Python tests...\n")
+
+        # Run python unittest tests
+        subprocess.call([sys.executable, '-m', 'unittest', 'discover', '--start-directory', 'tests'])
 
 with open('README.md') as f:
     readme = f.read()

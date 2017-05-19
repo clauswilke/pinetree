@@ -21,18 +21,16 @@ include_directories(pysinthe)
 
 # Pull in source and test files
 set(SOURCE_DIR "${CMAKE_SOURCE_DIR}/pysinthe")
-set(TEST_DIR "${SOURCE_DIR}/tests")
+set(TEST_DIR "${CMAKE_SOURCE_DIR}/tests")
 set(SOURCES 
     "${SOURCE_DIR}/feature.cpp"
     "${SOURCE_DIR}/polymer.cpp"
-    "${SOURCE_DIR}/choices.cpp"
-    "${SOURCE_DIR}/simulation.cpp")
+    "${SOURCE_DIR}/choices.cpp")
 set(TESTS ${SOURCES}
     "${TEST_DIR}/test_main.cpp"
     "${TEST_DIR}/test_feature.cpp"
     "${TEST_DIR}/test_polymer.cpp"
     "${TEST_DIR}/test_choices.cpp"
-    "${TEST_DIR}/test_simulation.cpp"
     "${TEST_DIR}/test_signals.cpp")
 
 # Generate a test executable
@@ -43,4 +41,4 @@ ParseAndAddCatchTests("${PROJECT_NAME}_test")
 
 # Python bindings!
 add_subdirectory(pysinthe/pybind11)
-pybind11_add_module(core "${SOURCE_DIR}/python_bindings.cpp" ${SOURCES})
+pybind11_add_module(core "${SOURCE_DIR}/python_bindings.cpp" "${SOURCE_DIR}/simulation.cpp" ${SOURCES})

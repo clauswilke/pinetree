@@ -1,9 +1,12 @@
 #include <cmath>
 #include <iostream>
+#include <pybind11/pybind11.h>
 
 #include "choices.hpp"
 #include "polymer.hpp"
 #include "simulation.hpp"
+
+namespace py = pybind11;
 
 const static double AVAGADRO = double(6.0221409e+23);
 const static double CELL_VOLUME = double(8e-15);
@@ -105,9 +108,8 @@ void Simulation::Run() {
     Execute();
     if ((out_time - time_) < 0.001) {
       for (auto elem : tracker.species()) {
-        std::cout << std::to_string(time_) + " " + elem.first + " " +
-                         std::to_string(elem.second)
-                  << std::endl;
+        py::print(std::to_string(time_) + " " + elem.first + " " +
+                  std::to_string(elem.second));
       }
       out_time += time_step_;
     }

@@ -2,8 +2,20 @@
 
 import argparse
 
-from old_python.parser import Parser
+from pysinthe.parser import Parser
 
+from io import StringIO
+import sys
+
+class Capturing(list):
+    def __enter__(self):
+        self._stdout = sys.stdout
+        sys.stdout = self._stringio = StringIO()
+        return self
+    def __exit__(self, *args):
+        self.extend(self._stringio.getvalue().splitlines())
+        del self._stringio    # free up some memory
+        sys.stdout = self._stdout
 
 def main(my_params_file=""):
     """
@@ -32,13 +44,13 @@ def main(my_params_file=""):
     if outfile:
         handle = open(args.outfile, "w")
 
-    for output in params_parser.simulation.run():
-        if outfile:
-            handle.write(output)
-            handle.write("\n")
-            handle.flush()
-        else:
-            print(output)
+    with Capturing() as output:
+        params_parser.simulation.run()
+    
+    if outfile:
+        handle.write(output)
+    else:
+        print('\n'.join(output))
 
     if outfile:
         handle.close()
