@@ -406,6 +406,14 @@ private:
    */
   std::map<std::string, int> species_;
   /**
+   * Transcript (gene) counts.
+   */
+  std::map<std::string, int> transcripts_;
+  /**
+   * Number of ribosomes on each transcript (gene).
+   */
+  std::map<std::string, int> ribo_per_transcript_;
+  /**
    * Promoter-to-polymer map.
    */
   std::map<std::string, Polymer::VecPtr> promoter_map_;
