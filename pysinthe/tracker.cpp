@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "tracker.hpp"
 
 SpeciesTracker &SpeciesTracker::Instance() {
