@@ -213,12 +213,18 @@ public:
   const std::string &gene() const { return gene_; }
   void gene(const std::string &gene) { gene_ = gene; }
 
-private:
+protected:
   /**
    * Name of gene that this terminator terminates on. This is the value that
    * will get reported to the species tracker.
    */
   std::string gene_;
+  /**
+   * Has the site been exposed before?
+   */
+  bool first_exposure_;
+
+private:
   /**
    * Count of how many features are currently covering this element.
    */

@@ -52,6 +52,13 @@ public:
    */
   void IncrementRibo(const std::string &transcript_name, int copy_number);
   /**
+    * Update count of a given transcript (gene-specific).
+    *
+    * @param transcript_name name of transcript (usually a gene)
+    * @param copy_number number to add to current copy number count
+    */
+  void IncrementTranscript(const std::string &transcript_name, int copy_number);
+  /**
    * Add a species-reaction pair to species-reaction map.
    *
    * @param species_name name of species
@@ -85,6 +92,7 @@ public:
    * Getters and setters
    */
   int species(const std::string &reactant);
+  int transcripts(const std::string &transcript_name);
   const std::map<std::string, int> &species() { return species_; }
   const std::map<std::string, int> &ribo_per_transcript() {
     return ribo_per_transcript_;

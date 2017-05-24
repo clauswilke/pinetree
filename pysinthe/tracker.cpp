@@ -56,6 +56,18 @@ void SpeciesTracker::IncrementRibo(const std::string &transcript_name,
   }
 }
 
+void SpeciesTracker::IncrementTranscript(const std::string &transcript_name,
+                                         int copy_number) {
+  if (transcripts_.count(transcript_name) == 0) {
+    transcripts_[transcript_name] = copy_number;
+  } else {
+    transcripts_[transcript_name] += copy_number;
+  }
+  if (transcripts_[transcript_name] < 0) {
+    throw std::runtime_error("Transcript count less than 0." + transcript_name);
+  }
+}
+
 void SpeciesTracker::Add(const std::string &species_name,
                          Reaction::Ptr reaction) {
   if (species_map_.count(species_name) == 0) {
@@ -91,4 +103,8 @@ SpeciesTracker::FindPolymers(const std::string &promoter_name) {
 
 int SpeciesTracker::species(const std::string &reactant) {
   return species_[reactant];
+}
+
+int SpeciesTracker::transcripts(const std::string &transcript_name) {
+  return transcripts_[transcript_name];
 }

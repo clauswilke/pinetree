@@ -118,8 +118,12 @@ void Simulation::Run(const std::string &output_name) {
       }
       countfile.flush();
       for (auto elem : tracker.ribo_per_transcript()) {
+        double density =
+            double(elem.second) / double(tracker.transcripts(elem.first));
         ribofile << (std::to_string(time_) + "\t" + elem.first + "\t" +
-                     std::to_string(elem.second))
+                     std::to_string(elem.second) + "\t" +
+                     std::to_string(tracker.transcripts(elem.first)) + "\t" +
+                     std::to_string(density))
                  << std::endl;
       }
       ribofile.flush();

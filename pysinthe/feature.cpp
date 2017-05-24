@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "feature.hpp"
+#include "tracker.hpp"
 
 Feature::Feature(const std::string &name, int start, int stop,
                  const std::vector<std::string> &interactions)
@@ -40,7 +41,9 @@ Mask::Mask(const std::string &name, int start, int stop,
 
 Element::Element(const std::string &name, int start, int stop,
                  const std::vector<std::string> &interactions)
-    : Feature(name, start, stop, interactions), covered_(0), old_covered_(0) {}
+    : Feature(name, start, stop, interactions), covered_(0), old_covered_(0) {
+  first_exposure_ = false;
+}
 
 Promoter::Promoter(const std::string &name, int start, int stop,
                    const std::vector<std::string> &interactions)
@@ -53,6 +56,10 @@ void Promoter::CheckState() {
     cover_signal_.Emit(name_);
   } else if (WasUncovered()) {
     uncover_signal_.Emit(name_);
+    if (!first_exposure_ && name_ == "rbs") {
+      SpeciesTracker::Instance().IncrementTranscript(gene_, 1);
+      first_exposure_ = true;
+    }
   }
 }
 
