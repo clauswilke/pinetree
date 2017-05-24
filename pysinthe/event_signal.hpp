@@ -8,6 +8,7 @@
 
 #include <functional>
 #include <map>
+#include <memory>
 
 // A signal object may call multiple slots with the
 // same signature. You can connect functions to the signal
