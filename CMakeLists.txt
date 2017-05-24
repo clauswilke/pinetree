@@ -18,6 +18,7 @@ set(CMAKE_CXX_STANDARD 11)
 
 # Tell Cmake that headers are also in source directory
 include_directories(pysinthe)
+include_directories(tests)
 
 # Pull in source and test files
 set(SOURCE_DIR "${CMAKE_SOURCE_DIR}/pysinthe")
