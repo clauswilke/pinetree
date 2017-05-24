@@ -25,7 +25,9 @@ set(TEST_DIR "${CMAKE_SOURCE_DIR}/tests")
 set(SOURCES 
     "${SOURCE_DIR}/feature.cpp"
     "${SOURCE_DIR}/polymer.cpp"
-    "${SOURCE_DIR}/choices.cpp")
+    "${SOURCE_DIR}/choices.cpp"
+    "${SOURCE_DIR}/tracker.cpp"
+    "${SOURCE_DIR}/simulation.cpp")
 set(TESTS ${SOURCES}
     "${TEST_DIR}/test_main.cpp"
     "${TEST_DIR}/test_feature.cpp"

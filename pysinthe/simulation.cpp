@@ -1,13 +1,11 @@
 #include <cmath>
 #include <fstream>
 #include <iostream>
-#include <pybind11/pybind11.h>
 
 #include "choices.hpp"
 #include "polymer.hpp"
 #include "simulation.hpp"
-
-namespace py = pybind11;
+#include "tracker.hpp"
 
 const static double AVAGADRO = double(6.0221409e+23);
 const static double CELL_VOLUME = double(8e-15);
@@ -108,6 +106,7 @@ void Simulation::Run(const std::string &output_name) {
   }
   // Set up file output streams
   std::ofstream countfile(output_name + "_counts.tsv", std::ios::trunc);
+  std::ofstream ribofile(output_name + "_density.tsv", std::ios::trunc);
   int out_time = 0;
   while (time_ < stop_time_) {
     Execute();
@@ -118,10 +117,17 @@ void Simulation::Run(const std::string &output_name) {
                   << std::endl;
       }
       countfile.flush();
+      for (auto elem : tracker.ribo_per_transcript()) {
+        ribofile << (std::to_string(time_) + "\t" + elem.first + "\t" +
+                     std::to_string(elem.second))
+                 << std::endl;
+      }
+      ribofile.flush();
       out_time += time_step_;
     }
   }
   countfile.close();
+  ribofile.close();
 }
 
 void Simulation::RegisterReaction(Reaction::Ptr reaction) {
@@ -228,6 +234,7 @@ void Simulation::TerminateTranslation(int polymer_index,
                                       const std::string &gene_name) {
   SpeciesTracker::Instance().Increment(pol_name, 1);
   SpeciesTracker::Instance().Increment(gene_name, 1);
+  SpeciesTracker::Instance().IncrementRibo(gene_name, -1);
   UpdatePropensity(polymer_index);
   CountTermination(gene_name);
 }
@@ -239,85 +246,4 @@ void Simulation::CountTermination(const std::string &name) {
   } else {
     terminations_[new_name]++;
   }
-}
-
-SpeciesTracker &SpeciesTracker::Instance() {
-  static SpeciesTracker instance;
-  return instance;
-}
-
-void SpeciesTracker::Clear() {
-  species_.clear();
-  promoter_map_.clear();
-  species_map_.clear();
-  propensity_signal_ = Signal<int>();
-}
-
-void SpeciesTracker::Register(SpeciesReaction::Ptr reaction) {
-  // Add this reaction to SpeciesTracker
-  for (const auto &reactant : reaction->reactants()) {
-    Add(reactant, reaction);
-    // Initialize reactant counts (this usually gets set to some non-zero
-    // value later)
-    Increment(reactant, 0);
-  }
-  // Do the same for products
-  for (const auto &product : reaction->products()) {
-    Add(product, reaction);
-    Increment(product, 0);
-  }
-}
-
-void SpeciesTracker::Increment(const std::string &species_name,
-                               int copy_number) {
-  if (species_.count(species_name) == 0) {
-    species_[species_name] = copy_number;
-  } else {
-    species_[species_name] += copy_number;
-  }
-  if (species_map_.count(species_name) > 0) {
-    for (const auto &reaction : species_map_[species_name]) {
-      propensity_signal_.Emit(reaction->index());
-    }
-  }
-  if (species_[species_name] < 0) {
-    throw std::runtime_error("Species count less than 0." + species_name);
-  }
-}
-
-void SpeciesTracker::Add(const std::string &species_name,
-                         Reaction::Ptr reaction) {
-  if (species_map_.count(species_name) == 0) {
-    species_map_[species_name] = Reaction::VecPtr{reaction};
-  } else {
-    // TODO: Maybe use a better data type here like a set?
-    auto it = std::find(species_map_[species_name].begin(),
-                        species_map_[species_name].end(), reaction);
-    if (it == species_map_[species_name].end()) {
-      species_map_[species_name].push_back(reaction);
-    }
-  }
-}
-
-void SpeciesTracker::Add(const std::string &promoter_name,
-                         Polymer::Ptr polymer) {
-  if (promoter_map_.count(promoter_name) == 0) {
-    promoter_map_[promoter_name] = Polymer::VecPtr{polymer};
-  } else {
-    promoter_map_[promoter_name].push_back(polymer);
-  }
-}
-
-const Reaction::VecPtr &
-SpeciesTracker::FindReactions(const std::string &species_name) {
-  return species_map_[species_name];
-}
-
-const Polymer::VecPtr &
-SpeciesTracker::FindPolymers(const std::string &promoter_name) {
-  return promoter_map_[promoter_name];
-}
-
-int SpeciesTracker::species(const std::string &reactant) {
-  return species_[reactant];
 }

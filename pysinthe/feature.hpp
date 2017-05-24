@@ -210,8 +210,15 @@ public:
    */
   Signal<const std::string &> uncover_signal_;
   virtual Element::Ptr Clone() const = 0;
+  const std::string &gene() const { return gene_; }
+  void gene(const std::string &gene) { gene_ = gene; }
 
 private:
+  /**
+   * Name of gene that this terminator terminates on. This is the value that
+   * will get reported to the species tracker.
+   */
+  std::string gene_;
   /**
    * Count of how many features are currently covering this element.
    */
@@ -292,8 +299,6 @@ public:
   double efficiency(const std::string &pol_name) {
     return efficiency_[pol_name];
   }
-  const std::string &gene() const { return gene_; }
-  void gene(const std::string &gene) { gene_ = gene; }
 
 private:
   /**

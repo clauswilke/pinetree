@@ -2,6 +2,7 @@
 #include "feature.hpp"
 #include "polymer.hpp"
 #include "simulation.hpp"
+#include "tracker.hpp"
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
@@ -57,7 +58,10 @@ PYBIND11_PLUGIN(core) {
   py::class_<Mask, Feature, std::shared_ptr<Mask>>(m, "Mask").def(
       py::init<const std::string &, int, int,
                const std::vector<std::string> &>());
-  py::class_<Element, Feature, Element::Ptr>(m, "Element");
+  py::class_<Element, Feature, Element::Ptr>(m, "Element")
+      .def_property("gene",
+                    (const std::string &(Element::*)() const) & Element::gene,
+                    (void (Element::*)(const std::string &)) & Element::gene);
   py::class_<Promoter, Element, Promoter::Ptr>(m, "Promoter")
       .def(py::init<const std::string &, int, int,
                     const std::vector<std::string> &>());
@@ -65,13 +69,9 @@ PYBIND11_PLUGIN(core) {
       .def(py::init<const std::string &, int, int,
                     const std::vector<std::string> &,
                     const std::map<std::string, double> &>())
-      .def_property("reading_frame",
-                    (int (Terminator::*)()) & Terminator::reading_frame,
-                    (void (Terminator::*)(int)) & Terminator::set_reading_frame)
       .def_property(
-          "gene",
-          (const std::string &(Terminator::*)() const) & Terminator::gene,
-          (void (Terminator::*)(const std::string &)) & Terminator::gene);
+          "reading_frame", (int (Terminator::*)()) & Terminator::reading_frame,
+          (void (Terminator::*)(int)) & Terminator::set_reading_frame);
   py::class_<Polymerase, Feature, Polymerase::Ptr>(m, "Polymerase")
       .def(py::init<const std::string &, int, int>());
 

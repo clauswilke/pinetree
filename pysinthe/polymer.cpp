@@ -1,5 +1,6 @@
 #include "polymer.hpp"
 #include "choices.hpp"
+#include "tracker.hpp"
 
 #include <iostream>
 
@@ -80,6 +81,12 @@ void Polymer::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
   Insert(pol);
   // // Update total move propensity of this polymer
   prop_sum_ += pol->speed();
+
+  // Report some data to tracker
+  if (elem->name() == "rbs") {
+    auto &tracker = SpeciesTracker::Instance();
+    tracker.IncrementRibo(elem->gene(), 1);
+  }
 }
 
 void Polymer::Execute() {
@@ -303,10 +310,11 @@ bool Polymer::ResolveCollisions(Polymerase::Ptr pol) {
   if (Intersect(*pol, *polymerases_[index + 1])) {
     if (pol->stop() > polymerases_[index + 1]->start()) {
       std::string err =
-          "Polymerase " + pol->name() + " (start: " +
-          std::to_string(pol->start()) + ", stop: " +
-          std::to_string(pol->stop()) + ", index: " + std::to_string(index) +
-          ") is overlapping polymerase " + polymerases_[index + 1]->name() +
+          "Polymerase " + pol->name() +
+          " (start: " + std::to_string(pol->start()) +
+          ", stop: " + std::to_string(pol->stop()) +
+          ", index: " + std::to_string(index) + ") is overlapping polymerase " +
+          polymerases_[index + 1]->name() +
           " (start: " + std::to_string(polymerases_[index + 1]->start()) +
           ", stop: " + std::to_string(polymerases_[index + 1]->stop()) +
           ", index: " + std::to_string(index + 1) +

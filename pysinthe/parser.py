@@ -221,6 +221,7 @@ class Parser:
                             element["start"]+element["rbs"],
                             element["start"],
                             ["ribosome"])
+            rbs.gene = element["name"]
             elements.append(rbs)
             stop_site = Terminator("tstop",
                                     element["stop"]-1,
