@@ -1,4 +1,5 @@
 #include <cmath>
+#include <fstream>
 #include <iostream>
 #include <pybind11/pybind11.h>
 
@@ -98,25 +99,29 @@ Simulation::Simulation()
   tracker.Clear();
 }
 
-void Simulation::Run() {
+void Simulation::Run(const std::string &output_name) {
   auto &tracker = SpeciesTracker::Instance();
   if (time_ == 0) {
     tracker.propensity_signal_.ConnectMember(shared_from_this(),
                                              &Simulation::UpdatePropensity);
     InitPropensity();
   }
-  // Execute();
+  // Set up file output streams
+  std::ofstream countfile(output_name + "_counts.tsv", std::ios::trunc);
   int out_time = 0;
   while (time_ < stop_time_) {
     Execute();
     if ((out_time - time_) < 0.001) {
       for (auto elem : tracker.species()) {
-        py::print(std::to_string(time_) + " " + elem.first + " " +
-                  std::to_string(elem.second));
+        countfile << (std::to_string(time_) + "\t" + elem.first + "\t" +
+                      std::to_string(elem.second))
+                  << std::endl;
       }
+      countfile.flush();
       out_time += time_step_;
     }
   }
+  countfile.close();
 }
 
 void Simulation::RegisterReaction(Reaction::Ptr reaction) {

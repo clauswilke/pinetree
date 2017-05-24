@@ -187,8 +187,10 @@ public:
   Simulation();
   /**
    * Run the simulation until the given time point and write output to a file.
+   *
+   * @param prefix for output files
    */
-  void Run();
+  void Run(const std::string &output_name);
   /**
    * Add a SpeciesReaction object to the list of reactions.
    *

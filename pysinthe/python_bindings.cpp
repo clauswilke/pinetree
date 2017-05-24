@@ -50,10 +50,10 @@ PYBIND11_PLUGIN(core) {
                     (void (Feature::*)(int)) & Feature::start)
       .def_property("stop", (int (Feature::*)()) & Feature::stop,
                     (void (Feature::*)(int)) & Feature::stop)
-      .def_property_readonly("type", (const std::string &(Feature::*)() const) &
-                                         Feature::type)
-      .def_property_readonly("name", (const std::string &(Feature::*)() const) &
-                                         Feature::name);
+      .def_property_readonly(
+          "type", (const std::string &(Feature::*)() const) & Feature::type)
+      .def_property_readonly(
+          "name", (const std::string &(Feature::*)() const) & Feature::name);
   py::class_<Mask, Feature, std::shared_ptr<Mask>>(m, "Mask").def(
       py::init<const std::string &, int, int,
                const std::vector<std::string> &>());
