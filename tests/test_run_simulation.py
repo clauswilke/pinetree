@@ -45,41 +45,14 @@ class MainTest(unittest.TestCase):
     def test_lotka_voltera(self):
         self.run_test('lotka_voltera')
 
-    # def test_promoter_gene_overlap(self):
-    #     stdout = sys.stdout  # keep a handle on the real standard output
-    #     results = io.StringIO()
-    #     sys.stdout = results  # Choose a file-like object to write to
-    #     simulation.main("tests/params/promoter_gene_overlap.yml")
-    #     sys.stdout = stdout
+    def test_promoter_gene_overlap(self):
+        self.run_test('promoter_gene_overlap')
 
-    #     with open('tests/output/promoter_gene_overlap_out.csv') as f:
-    #         text = f.read()
+    def test_three_genes_runoff(self):
+        self.run_test('three_genes_runoff')
 
-    #     self.assertEqual(results.getvalue(), text)
-
-    # def test_three_genes_runoff(self):
-    #     stdout = sys.stdout  # keep a handle on the real standard output
-    #     results = io.StringIO()
-    #     sys.stdout = results  # Choose a file-like object to write to
-    #     simulation.main("tests/params/three_genes_runoff.yml")
-    #     sys.stdout = stdout
-
-    #     with open('tests/output/three_genes_runoff_out.csv') as f:
-    #         text = f.read()
-
-    #     self.assertEqual(results.getvalue(), text)
-
-    # def test_overlapping_genes(self):
-    #     stdout = sys.stdout  # keep a handle on the real standard output
-    #     results = io.StringIO()
-    #     sys.stdout = results  # Choose a file-like object to write to
-    #     simulation.main("tests/params/overlapping_genes.yml")
-    #     sys.stdout = stdout
-
-    #     with open('tests/output/overlapping_genes_out.csv') as f:
-    #         text = f.read()
-
-    #     self.assertEqual(results.getvalue(), text)
+    def test_overlapping_genes(self):
+        self.run_test('overlapping_genes')
 
 
 if __name__ == '__main__':

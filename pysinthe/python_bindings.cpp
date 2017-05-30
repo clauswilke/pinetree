@@ -16,7 +16,12 @@ PYBIND11_PLUGIN(core) {
   py::class_<SpeciesTracker>(m, "SpeciesTracker")
       .def("get_instance", SpeciesTracker::Instance,
            py::return_value_policy::reference)
-      .def("increment", &SpeciesTracker::Increment);
+      .def("increment", &SpeciesTracker::Increment)
+      .def_property(
+          "cell_volume",
+          (double (SpeciesTracker::*)()) & SpeciesTracker::cell_volume,
+          (void (SpeciesTracker::*)(double)) & SpeciesTracker::cell_volume,
+          "reaction volume of the system");
 
   py::class_<Simulation, std::shared_ptr<Simulation>>(m, "Simulation")
       .def(py::init<>())

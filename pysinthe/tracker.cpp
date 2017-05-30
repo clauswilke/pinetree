@@ -12,6 +12,7 @@ void SpeciesTracker::Clear() {
   promoter_map_.clear();
   species_map_.clear();
   propensity_signal_ = Signal<int>();
+  cell_volume_ = 0;
 }
 
 void SpeciesTracker::Register(SpeciesReaction::Ptr reaction) {

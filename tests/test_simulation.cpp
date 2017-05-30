@@ -1,6 +1,7 @@
 #include <catch.hpp>
 
 #include "simulation.hpp"
+#include "tracker.hpp"
 
 TEST_CASE("SpeciesReaction methods", "[Reaction]") {
   auto reaction = std::make_shared<SpeciesReaction>(
@@ -8,6 +9,7 @@ TEST_CASE("SpeciesReaction methods", "[Reaction]") {
       std::vector<std::string>{"product1", "product2"});
   auto &tracker = SpeciesTracker::Instance();
   tracker.Clear();
+  tracker.cell_volume(double(8e-15));
   tracker.Register(reaction);
   tracker.Increment("reactant1", 2);
   tracker.Increment("reactant2", 3);
@@ -48,6 +50,7 @@ TEST_CASE("SpeciesReaction methods", "[Reaction]") {
 TEST_CASE("Bind methods", "[Reaction]") {
   auto &tracker = SpeciesTracker::Instance();
   tracker.Clear();
+  tracker.cell_volume(double(8e-15));
   // Set up a polymer
   std::vector<std::string> interactions = {"ecolipol"};
   Promoter::Ptr prom;
@@ -93,6 +96,7 @@ TEST_CASE("Bind methods", "[Reaction]") {
 TEST_CASE("SpeciesTracker methods", "[SpeciesTracker]") {
   auto &tracker = SpeciesTracker::Instance();
   tracker.Clear();
+  tracker.cell_volume(double(8e-15));
 
   SECTION("Increment species") {
     tracker.Increment("reactant1", 1);
@@ -120,6 +124,7 @@ TEST_CASE("Simulation methods", "[Simulation]") {
   auto sim = std::make_shared<Simulation>();
   auto &tracker = SpeciesTracker::Instance();
   tracker.Clear();
+  tracker.cell_volume(double(8e-15));
   tracker.Increment("reactant1", 1);
 
   SECTION("Register reaction") {
@@ -139,6 +144,7 @@ TEST_CASE("Simulation methods", "[Simulation]") {
 
   SECTION("Register polymer and execute") {
     tracker.Clear();
+    tracker.cell_volume(double(8e-15));
     // Set up a polymer
     std::vector<std::string> interactions = {"ecolipol"};
     Promoter::Ptr prom;

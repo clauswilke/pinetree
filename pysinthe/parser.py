@@ -34,9 +34,9 @@ class Parser:
         self.simulation.stop_time = self.params["simulation"]["runtime"]
         self.simulation.time_step = self.params["simulation"]["time_step"]
         # self.simulation.debug = self.params["simulation"]["debug"]
-        # Reaction._CELL_VOLUME = float(
-        #     self.params["simulation"]["cell_volume"]
-        # )
+        self.tracker.cell_volume = float(
+            self.params["simulation"]["cell_volume"]
+        )
 
         # Set seed
         if "seed" in self.params["simulation"]:

@@ -21,8 +21,9 @@ SpeciesReaction::SpeciesReaction(double rate_constant,
                              "more than two reactant species.");
   }
   // Rate constant has to be transformed from macroscopic to mesoscopic
+  auto &tracker = SpeciesTracker::Instance();
   if (reactants_.size() == 2) {
-    rate_constant_ = rate_constant_ / (AVAGADRO * CELL_VOLUME);
+    rate_constant_ = rate_constant_ / (AVAGADRO * tracker.cell_volume());
   }
 }
 
@@ -59,7 +60,8 @@ Bind::Bind(double rate_constant, const std::string &promoter_name,
            const Polymerase &pol_template)
     : rate_constant_(rate_constant), promoter_name_(promoter_name),
       pol_name_(pol_template.name()), pol_template_(pol_template) {
-  rate_constant_ = rate_constant_ / (AVAGADRO * CELL_VOLUME);
+  auto &tracker = SpeciesTracker::Instance();
+  rate_constant_ = rate_constant_ / (AVAGADRO * tracker.cell_volume());
 }
 
 void Bind::InitCounts() {
