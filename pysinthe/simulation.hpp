@@ -60,7 +60,7 @@ public:
    * TODO: Change SpeciesTracker be a static class instead of passing it to
    * constructor?
    */
-  SpeciesReaction(double rate_constant,
+  SpeciesReaction(double rate_constant, double volume,
                   const std::vector<std::string> &reactants,
                   const std::vector<std::string> &products);
   /**
@@ -112,7 +112,7 @@ public:
    * @param pol_template Polymerase object that will get copied and bound to
    *  Polymer upon execution of this reaction
    */
-  Bind(double rate_constant, const std::string &promoter_name,
+  Bind(double rate_constant, double volume, const std::string &promoter_name,
        const Polymerase &pol_template);
   /**
    * Calculate propensity of binding reaction.

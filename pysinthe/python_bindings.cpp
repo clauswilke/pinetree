@@ -43,10 +43,10 @@ PYBIND11_PLUGIN(core) {
   py::class_<Reaction, Reaction::Ptr>(m, "Reaction");
   py::class_<SpeciesReaction, Reaction, SpeciesReaction::Ptr>(m,
                                                               "SpeciesReaction")
-      .def(py::init<double, const std::vector<std::string> &,
+      .def(py::init<double, double, const std::vector<std::string> &,
                     const std::vector<std::string> &>());
   py::class_<Bind, Reaction, std::shared_ptr<Bind>>(m, "Bind").def(
-      py::init<double, const std::string &, const Polymerase &>());
+      py::init<double, double, const std::string &, const Polymerase &>());
   py::class_<Bridge, Reaction, std::shared_ptr<Bridge>>(m, "Bridge")
       .def(py::init<Polymer::Ptr>());
 

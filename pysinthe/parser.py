@@ -34,7 +34,7 @@ class Parser:
         self.simulation.stop_time = self.params["simulation"]["runtime"]
         self.simulation.time_step = self.params["simulation"]["time_step"]
         # self.simulation.debug = self.params["simulation"]["debug"]
-        self.tracker.cell_volume = float(
+        self.cell_volume = float(
             self.params["simulation"]["cell_volume"]
         )
 
@@ -77,6 +77,7 @@ class Parser:
                      self.params["ribosomes"][0]["speed"]) # (30) speed
         # Transcript-ribosome binding reaction
         reaction = Bind(float(self.params["ribosomes"][0]["binding_constant"]),
+                        self.cell_volume,
                         "rbs",
                         new_ribo)
         self.simulation.register_reaction(reaction)
@@ -137,6 +138,7 @@ class Parser:
     def _parse_reactions(self, reaction_params):
         for reaction in reaction_params:
             new_reaction = SpeciesReaction(float(reaction["propensity"]),
+                                           self.cell_volume,
                                            reaction["reactants"],
                                            reaction["products"])
             self.simulation.register_reaction(new_reaction)
@@ -266,6 +268,7 @@ class Parser:
                                         pol["footprint"],  # (10) footprint
                                         pol["speed"])
                             reaction = Bind(float(binding_constant),
+                                            self.cell_volume,
                                             element["name"],
                                             new_pol)
                             # if (partner, element["name"]) not in seen:
