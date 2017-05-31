@@ -347,7 +347,18 @@ Genome::Genome(const std::string &name, int length,
                const Element::VecPtr &elements,
                const Element::VecPtr &transcript_template, const Mask &mask)
     : Polymer(name, 1, length, elements, mask),
-      transcript_template_(transcript_template) {}
+      transcript_template_(transcript_template) {
+  // Sort transcript template
+  std::sort(transcript_template_.begin(), transcript_template_.end(),
+            [](Element::Ptr elem1, Element::Ptr elem2) {
+              return elem1->start() < elem2->start();
+            });
+  // Sort genomic elements
+  std::sort(elements_.begin(), elements_.end(),
+            [](Element::Ptr elem1, Element::Ptr elem2) {
+              return elem1->start() < elem2->start();
+            });
+}
 
 void Genome::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
   // Bind polymerase

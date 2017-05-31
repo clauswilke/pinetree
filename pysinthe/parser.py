@@ -33,7 +33,7 @@ class Parser:
 
         self.simulation.stop_time = self.params["simulation"]["runtime"]
         self.simulation.time_step = self.params["simulation"]["time_step"]
-        # self.simulation.debug = self.params["simulation"]["debug"]
+
         self.cell_volume = float(
             self.params["simulation"]["cell_volume"]
         )
@@ -67,7 +67,6 @@ class Parser:
         # Register genome
         self.simulation.register_genome(genome)
 
-        self.tracker.increment("rbs", 0)
         self.tracker.increment(
             self.params["ribosomes"][0]["name"],
             int(self.params["ribosomes"][0]["copy_number"])
@@ -183,9 +182,6 @@ class Parser:
                 dna_elements.append(new_element)
             last_position = element["stop"]
 
-        # sort elements based on start position
-        dna_elements.sort(key=lambda x: x.start)
-
         if "length" in genome_params:
             genome_length = genome_params["length"]
         else:
@@ -233,8 +229,7 @@ class Parser:
             stop_site.reading_frame = element["start"] % 3
             stop_site.gene = element["name"]
             elements.append(stop_site)
-        # Sort elements according to start position
-        elements.sort(key=lambda x: x.start)
+
         return elements
 
     def _parse_polymerases(self, pol_params):
@@ -259,7 +254,6 @@ class Parser:
         seen = list()
         for element in element_params:
             if element["type"] == "promoter":
-                self.tracker.increment(element["name"], 0)
                 for partner, constant in element["interactions"].items():
                     binding_constant = constant["binding_constant"]
                     for pol in pol_params:
@@ -271,6 +265,4 @@ class Parser:
                                             self.cell_volume,
                                             element["name"],
                                             new_pol)
-                            # if (partner, element["name"]) not in seen:
                             self.simulation.register_reaction(reaction)
-                            # seen.append((partner, element["name"]))
