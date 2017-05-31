@@ -97,8 +97,6 @@ public:
   const std::map<std::string, int> &ribo_per_transcript() {
     return ribo_per_transcript_;
   }
-  void cell_volume(double volume) { cell_volume_ = volume; }
-  double cell_volume() { return cell_volume_; }
   /**
    * Signal to fire when propensity needs to be updated.
    */
@@ -109,10 +107,6 @@ private:
    * Private constructor for singleton
    */
   SpeciesTracker() {}
-  /**
-   * Cell volume
-   */
-  double cell_volume_;
   /**
    * Species counts.
    */
