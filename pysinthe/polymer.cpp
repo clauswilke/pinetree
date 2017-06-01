@@ -7,7 +7,19 @@
 Polymer::Polymer(const std::string &name, int start, int stop,
                  const Element::VecPtr &elements, const Mask &mask)
     : index_(0), name_(name), start_(start), stop_(stop), elements_(elements),
-      mask_(mask), prop_sum_(0) {}
+      mask_(mask), prop_sum_(0) {
+  weights_ = std::vector<double>(stop - start, 1.0);
+}
+
+Polymer::Polymer(const std::string &name, int start, int stop,
+                 const Element::VecPtr &elements, const Mask &mask,
+                 const std::vector<double> &weights)
+    : index_(0), name_(name), start_(start), stop_(stop), elements_(elements),
+      mask_(mask), weights_(weights), prop_sum_(0) {
+  if (weights_.size() != (start_ - stop_)) {
+    throw std::length_error("Weights vector is not the correct size.");
+  }
+}
 
 void Polymer::InitElements() {
   for (auto &element : elements_) {
@@ -94,8 +106,8 @@ void Polymer::Execute() {
     throw std::runtime_error(
         "Attempting to execute polymer with reaction propensity of 0.");
   }
-  auto pol = Choose();
-  Move(pol);
+  int pol_index = Choose();
+  Move(pol_index);
 }
 
 void Polymer::ShiftMask() {
@@ -122,6 +134,12 @@ void Polymer::ShiftMask() {
   elements_[index]->SaveState();
 }
 
+int Polymer::PolymeraseIndex(Polymerase::Ptr pol) {
+  auto it = std::find(polymerases_.begin(), polymerases_.end(), pol);
+  int index = it - polymerases_.begin();
+  return index;
+}
+
 void Polymer::Terminate(Polymerase::Ptr pol, const std::string &last_gene) {
   prop_sum_ -= pol->speed();
   auto it = std::find(polymerases_.begin(), polymerases_.end(), pol);
@@ -145,7 +163,7 @@ void Polymer::UncoverElement(const std::string &species_name) {
 }
 
 void Polymer::Insert(Polymerase::Ptr pol) {
-  // Find where in vector polymerase should insert; use a lambada function
+  // Find where in vector polymerase should insert; use a lambda function
   // to make comparison between polymerase pointers
   auto it = std::upper_bound(polymerases_.begin(), polymerases_.end(), pol,
                              [](Polymerase::Ptr a, Polymerase::Ptr b) {
@@ -158,27 +176,28 @@ void Polymer::Insert(Polymerase::Ptr pol) {
   // Add polymerase to this polymer
   polymerases_.insert(it, pol);
   // Cache polymerase speed
-  prop_list_.insert(prop_it, pol->speed());
+  double weight = weights_[pol->stop() - start_];
+  prop_list_.insert(prop_it, weight * pol->speed());
 }
 
-Polymerase::Ptr Polymer::Choose() {
+int Polymer::Choose() {
   if (prop_list_.size() == 0) {
     std::string err = "There are no active polymerases on polymer " + name_;
     throw std::runtime_error(err);
   }
-  return Random::WeightedChoice(polymerases_, prop_list_);
+  return Random::WeightedChoiceIndex(polymerases_, prop_list_);
 }
 
-void Polymer::Move(Polymerase::Ptr pol) {
+void Polymer::Move(int pol_index) {
   // Error checking to make sure that pol is in vector
-  auto it = std::find(polymerases_.begin(), polymerases_.end(), pol);
-  if (it == polymerases_.end()) {
-    std::string err = "Attempting to move unbound polymerase " + pol->name() +
-                      " on polymer " + name_;
+  if (pol_index >= polymerases_.size()) {
+    std::string err = "Attempting to move unbound polymerase with index " +
+                      std::to_string(pol_index) + " on polymer " + name_;
     throw std::runtime_error(err);
   }
   // Find which elements this polymerase is covering and temporarily uncover
   // them
+  auto pol = polymerases_[pol_index];
   UncoverElements(pol);
   // Move polymerase
   pol->Move();
@@ -188,6 +207,12 @@ void Polymer::Move(Polymerase::Ptr pol) {
   // Check to see if it's safe to broadcast that this polymerase has moved
   if (!pol_collision && !mask_collision) {
     pol->move_signal_.Emit();
+    // Update propensity for new codon
+    double weight = weights_[pol->stop() - start_];
+    double new_speed = weight * pol->speed();
+    double diff = new_speed - prop_list_[pol_index];
+    prop_sum_ += diff;
+    prop_list_[pol_index] = new_speed;
   }
   // Check for uncoverings
   RecoverElements(pol);

@@ -20,8 +20,9 @@ void ShiftMaskN(Polymer::Ptr polymer, int n) {
   }
 }
 void MovePolymeraseN(Polymer::Ptr polymer, Polymerase::Ptr pol, int n) {
+  int index = polymer->PolymeraseIndex(pol);
   for (int i = 0; i < n; i++) {
-    polymer->Move(pol);
+    polymer->Move(index);
   }
 }
 void EmitTermination(int index, const std::string &pol_name,
@@ -140,7 +141,7 @@ TEST_CASE("Polymer methods", "[Polymer]") {
     REQUIRE(polymer->uncovered("t1") == 1);
     // Test termination, pol should detach as soon as it hits terminator
     Helper::MovePolymeraseN(polymer, pol2, 25);
-    REQUIRE_THROWS(polymer->Move(pol2));
+    REQUIRE_THROWS(polymer->Move(polymer->PolymeraseIndex(pol2)));
 
     // Now check for readthrough
     polymer->Bind(pol, "p1");
@@ -150,13 +151,13 @@ TEST_CASE("Polymer methods", "[Polymer]") {
     Helper::MovePolymeraseN(polymer, pol, 10);
     // Now run polymerase off of the end of the transcript
     Helper::MovePolymeraseN(polymer, pol, 35);
-    REQUIRE_THROWS(polymer->Move(pol));
+    REQUIRE_THROWS(polymer->Move(polymer->PolymeraseIndex(pol)));
     // Run polymerase through terminator again, this time it should terminate
     Random::seed(19);
     polymer->Bind(pol, "p1");
     Helper::MovePolymeraseN(polymer, pol, 36);
     REQUIRE(!term->readthrough());
-    REQUIRE_THROWS(polymer->Move(pol));
+    REQUIRE_THROWS(polymer->Move(polymer->PolymeraseIndex(pol)));
   }
 }
 

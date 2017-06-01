@@ -30,7 +30,7 @@
 class Polymer : public std::enable_shared_from_this<Polymer> {
 public:
   /**
-    * The only constructor for Polymer.
+    * The most used constructor for Polymer.
     *
     * @param name name of this polymer (should it be unique?)
     * @param length length of polymer (used purely for debugging, may not be
@@ -42,6 +42,12 @@ public:
     */
   Polymer(const std::string &name, int start, int stop,
           const Element::VecPtr &elements, const Mask &mask);
+  /**
+   * Constructor to optionally provide position-based weights.
+   */
+  Polymer(const std::string &name, int start, int stop,
+          const Element::VecPtr &elements, const Mask &mask,
+          const std::vector<double> &weights);
   /**
    * Some convenience typedefs.
    */
@@ -75,7 +81,8 @@ public:
    *
    * @param pol polymerase to move
    */
-  void Move(Polymerase::Ptr pol);
+  void Move(int pol_index);
+  int PolymeraseIndex(Polymerase::Ptr pol);
   /**
    * Shift mask by 1 base-pair and check for uncovered elements.
    */
@@ -163,6 +170,13 @@ protected:
    */
   std::map<std::string, int> uncovered_;
   /**
+   * Vector of the same length as this polymer, containing weights for different
+   * positions along the polymer. When a polymerase passes over a given position
+   * in the genome, the weight * speed of polymerase will determine the
+   * propensity for the next movement of that polymerase.
+   */
+  std::vector<double> weights_;
+  /**
    * Add a polymerase to polymerase list, while maintaining the
    * order in which polymerases currently on the polymer. Higher
    * indices correspond to downstream polymerases, and lower
@@ -177,7 +191,7 @@ protected:
    *
    * @return pointer to selected polymerase object
    */
-  Polymerase::Ptr Choose();
+  int Choose();
   /**
    * Temporarily uncover all elements covered by a given polymerase.
    *
