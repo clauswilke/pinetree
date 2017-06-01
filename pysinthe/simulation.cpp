@@ -213,8 +213,9 @@ void Simulation::Execute() {
   double tau = (1.0 / alpha_sum_) * std::log(1.0 / random_num);
   time_ += tau;
   // Randomly select next reaction to execute, weighted by propensities
-  auto next_reaction = Random::WeightedChoice(reactions_, alpha_list_);
-  next_reaction->Execute();
+  auto next_reaction = Random::WeightedChoiceIndex(reactions_, alpha_list_);
+  reactions_[next_reaction]->Execute();
+  UpdatePropensity(next_reaction);
   iteration_++;
 }
 

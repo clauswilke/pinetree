@@ -8,7 +8,7 @@ Polymer::Polymer(const std::string &name, int start, int stop,
                  const Element::VecPtr &elements, const Mask &mask)
     : index_(0), name_(name), start_(start), stop_(stop), elements_(elements),
       mask_(mask), prop_sum_(0) {
-  weights_ = std::vector<double>(stop - start, 1.0);
+  weights_ = std::vector<double>(stop - start + 1, 1.0);
 }
 
 Polymer::Polymer(const std::string &name, int start, int stop,
@@ -16,7 +16,7 @@ Polymer::Polymer(const std::string &name, int start, int stop,
                  const std::vector<double> &weights)
     : index_(0), name_(name), start_(start), stop_(stop), elements_(elements),
       mask_(mask), weights_(weights), prop_sum_(0) {
-  if (weights_.size() != (start_ - stop_)) {
+  if (weights_.size() != (start_ - stop_ + 1)) {
     throw std::length_error("Weights vector is not the correct size.");
   }
 }
@@ -91,8 +91,6 @@ void Polymer::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
   CoverElement(elem->name());
   // Add polymerase to this polymer
   Insert(pol);
-  // // Update total move propensity of this polymer
-  prop_sum_ += pol->speed();
 
   // Report some data to tracker
   if (elem->name() == "rbs") {
@@ -141,9 +139,9 @@ int Polymer::PolymeraseIndex(Polymerase::Ptr pol) {
 }
 
 void Polymer::Terminate(Polymerase::Ptr pol, const std::string &last_gene) {
-  prop_sum_ -= pol->speed();
   auto it = std::find(polymerases_.begin(), polymerases_.end(), pol);
   int index = it - polymerases_.begin();
+  prop_sum_ -= prop_list_[index];
   termination_signal_.Emit(index_, pol->name(), last_gene);
   polymerases_.erase(it);
   prop_list_.erase(prop_list_.begin() + index);
@@ -177,6 +175,8 @@ void Polymer::Insert(Polymerase::Ptr pol) {
   polymerases_.insert(it, pol);
   // Cache polymerase speed
   double weight = weights_[pol->stop() - start_];
+  // Update total move propensity of this polymer
+  prop_sum_ += weight * pol->speed();
   prop_list_.insert(prop_it, weight * pol->speed());
 }
 
@@ -204,22 +204,28 @@ void Polymer::Move(int pol_index) {
   // Resolve any collisions between polymerases or with mask
   bool pol_collision = ResolveCollisions(pol);
   bool mask_collision = ResolveMaskCollisions(pol);
-  // Check to see if it's safe to broadcast that this polymerase has moved
-  if (!pol_collision && !mask_collision) {
-    pol->move_signal_.Emit();
-    // Update propensity for new codon
-    double weight = weights_[pol->stop() - start_];
-    double new_speed = weight * pol->speed();
-    double diff = new_speed - prop_list_[pol_index];
-    prop_sum_ += diff;
-    prop_list_[pol_index] = new_speed;
-  }
+
   // Check for uncoverings
   RecoverElements(pol);
-  // Terminate polymerase if it's run off the end of the polymer
-  if (pol->stop() > stop_) {
-    // TODO: Why are we sending the stop position of the polymer ?
-    Terminate(pol, std::to_string(stop_));
+
+  // Check to see if it's safe to broadcast that this polymerase has moved
+  if (!pol_collision && !mask_collision) {
+    // Terminate polymerase if it's run off the end of the polymer
+    if (pol->stop() > stop_) {
+      // TODO: Why are we sending the stop position of the polymer ?
+      Terminate(pol, std::to_string(stop_));
+    } else {
+      // Update propensity for new codon
+      if ((pol->stop() - start_) >= weights_.size()) {
+        throw std::runtime_error("Weight is missing for this position.");
+      }
+      double weight = weights_[pol->stop() - start_];
+      double new_speed = weight * pol->speed();
+      double diff = new_speed - prop_list_[pol_index];
+      prop_sum_ += diff;
+      prop_list_[pol_index] = new_speed;
+      pol->move_signal_.Emit();
+    }
   }
 }
 
