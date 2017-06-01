@@ -277,9 +277,9 @@ TEST_CASE("Variable translation rates", "[Polymer]") {
   std::vector<std::string> mask_interactions = {"ecolipol"};
   Mask mask = Mask("test_mask", 10, 100, mask_interactions);
 
-  std::vector<double> weights(101, 2.0);
+  std::vector<double> weights(101, 0.1);
   for (int i = 0; i < 50; i++) {
-    weights[i] = 0.1;
+    weights[i] = 2.0;
   }
   auto polymer = std::make_shared<Polymer>("test_polymer", 1, 100, elements,
                                            mask, weights);
@@ -303,7 +303,7 @@ TEST_CASE("Variable translation rates", "[Polymer]") {
     REQUIRE(!prom->IsCovered());
     // Check for collisions between polymerases
     polymer->Bind(pol2, "p1");
-    for (int i = 0; i < 50; i++) {
+    for (int i = 0; i < 100; i++) {
       polymer->Execute();
     }
   }
