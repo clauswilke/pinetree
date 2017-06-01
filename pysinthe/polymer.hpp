@@ -262,7 +262,8 @@ public:
    *  of the transcript
    */
   Transcript(const std::string &name, int start, int stop,
-             const Element::VecPtr &elements, const Mask &mask);
+             const Element::VecPtr &elements, const Mask &mask,
+             const std::vector<double> &weights);
   /**
    * Convenience typdefs.
    */
@@ -302,6 +303,9 @@ public:
    */
   Genome(const std::string &name, int length, const Element::VecPtr &elements,
          const Element::VecPtr &transcript_template, const Mask &mask);
+  Genome(const std::string &name, int length, const Element::VecPtr &elements,
+         const Element::VecPtr &transcript_template, const Mask &mask,
+         const std::vector<double> &transcript_weights);
   /**
    * Convenience typedefs
    */
@@ -317,6 +321,7 @@ public:
 
 private:
   Element::VecPtr transcript_template_;
+  std::vector<double> transcript_weights_;
   /**
    * Build a transcript object corresponding to start and stop positions within
    * this genome.

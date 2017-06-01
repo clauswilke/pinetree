@@ -8,7 +8,7 @@ Polymer::Polymer(const std::string &name, int start, int stop,
                  const Element::VecPtr &elements, const Mask &mask)
     : index_(0), name_(name), start_(start), stop_(stop), elements_(elements),
       mask_(mask), prop_sum_(0) {
-  weights_ = std::vector<double>(stop - start + 1, 1.0);
+  weights_ = std::vector<double>(stop - start + 2, 1.0);
 }
 
 Polymer::Polymer(const std::string &name, int start, int stop,
@@ -16,8 +16,10 @@ Polymer::Polymer(const std::string &name, int start, int stop,
                  const std::vector<double> &weights)
     : index_(0), name_(name), start_(start), stop_(stop), elements_(elements),
       mask_(mask), weights_(weights), prop_sum_(0) {
-  if (weights_.size() != (start_ - stop_ + 1)) {
-    throw std::length_error("Weights vector is not the correct size.");
+  if (weights_.size() != (stop_ - start_ + 2)) {
+    throw std::length_error("Weights vector is not the correct size. " +
+                            std::to_string(weights.size()) + " " +
+                            std::to_string(stop_ - start_));
   }
 }
 
@@ -363,8 +365,9 @@ bool Polymer::Intersect(const Feature &elem1, const Feature &elem2) {
 }
 
 Transcript::Transcript(const std::string &name, int start, int stop,
-                       const Element::VecPtr &elements, const Mask &mask)
-    : Polymer(name, start, stop, elements, mask) {}
+                       const Element::VecPtr &elements, const Mask &mask,
+                       const std::vector<double> &weights)
+    : Polymer(name, start, stop, elements, mask, weights) {}
 
 void Transcript::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
   // Bind polymerase just like in parent Polymer
@@ -379,6 +382,26 @@ Genome::Genome(const std::string &name, int length,
                const Element::VecPtr &transcript_template, const Mask &mask)
     : Polymer(name, 1, length, elements, mask),
       transcript_template_(transcript_template) {
+  transcript_weights_ = std::vector<double>(length + 1, 1.0);
+  // Sort transcript template
+  std::sort(transcript_template_.begin(), transcript_template_.end(),
+            [](Element::Ptr elem1, Element::Ptr elem2) {
+              return elem1->start() < elem2->start();
+            });
+  // Sort genomic elements
+  std::sort(elements_.begin(), elements_.end(),
+            [](Element::Ptr elem1, Element::Ptr elem2) {
+              return elem1->start() < elem2->start();
+            });
+}
+
+Genome::Genome(const std::string &name, int length,
+               const Element::VecPtr &elements,
+               const Element::VecPtr &transcript_template, const Mask &mask,
+               const std::vector<double> &transcript_weights)
+    : Polymer(name, 1, length, elements, mask),
+      transcript_template_(transcript_template),
+      transcript_weights_(transcript_weights) {
   // Sort transcript template
   std::sort(transcript_template_.begin(), transcript_template_.end(),
             [](Element::Ptr elem1, Element::Ptr elem2) {
@@ -418,7 +441,7 @@ Transcript::Ptr Genome::BuildTranscript(int start, int stop) {
   // We need to used the standard shared_ptr constructor here because the
   // constructor of Transcript needs to know its address in memory to wire
   // signals appropriately.
-  transcript =
-      std::make_shared<Transcript>("rna", start_, stop_, elements, mask);
+  transcript = std::make_shared<Transcript>("rna", start_, stop_, elements,
+                                            mask, transcript_weights_);
   return transcript;
 }
