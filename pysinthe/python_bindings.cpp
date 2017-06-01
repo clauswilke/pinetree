@@ -77,9 +77,6 @@ PYBIND11_PLUGIN(core) {
 
   // Polymers, genomes, and transcripts
   py::class_<Polymer, Polymer::Ptr>(m, "Polymer");
-  //   py::class_<Transcript, Polymer, Transcript::Ptr>(m, "Transcript")
-  //       .def(py::init<const std::string &, int, int, const Element::VecPtr &,
-  //                     const Mask &>());
   py::class_<Genome, Polymer, Genome::Ptr>(m, "Genome")
       .def(py::init<const std::string &, int, const Element::VecPtr &,
                     const Element::VecPtr &, const Mask &>());
