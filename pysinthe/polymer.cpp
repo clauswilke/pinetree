@@ -19,7 +19,7 @@ Polymer::Polymer(const std::string &name, int start, int stop,
   if (weights_.size() != (stop_ - start_ + 2)) {
     throw std::length_error("Weights vector is not the correct size. " +
                             std::to_string(weights.size()) + " " +
-                            std::to_string(stop_ - start_));
+                            std::to_string(stop_ - start_ + 2));
   }
 }
 

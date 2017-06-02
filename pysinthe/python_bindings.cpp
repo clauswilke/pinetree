@@ -79,7 +79,10 @@ PYBIND11_PLUGIN(core) {
   py::class_<Polymer, Polymer::Ptr>(m, "Polymer");
   py::class_<Genome, Polymer, Genome::Ptr>(m, "Genome")
       .def(py::init<const std::string &, int, const Element::VecPtr &,
-                    const Element::VecPtr &, const Mask &>());
+                    const Element::VecPtr &, const Mask &>())
+      .def(py::init<const std::string &, int, const Element::VecPtr &,
+                    const Element::VecPtr &, const Mask &,
+                    const std::vector<double> &>());
 
   return m.ptr();
 }

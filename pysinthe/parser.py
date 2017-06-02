@@ -99,7 +99,8 @@ class Parser:
                        'copy_number': All(int, Range(min=1)),
                        Optional('length'): All(int, Range(min=1)),
                        Optional('entered'): All(int, Range(min=1)),
-                       Optional('mask_interactions'): list},
+                       Optional('mask_interactions'): list,
+                       Optional('translation_weights'): list},
             'polymerases': All([{'name': All(str, Length(min=1)),
                                  'copy_number': All(int, Range(min=0)),
                                  'speed': All(int, Range(min=0)),
@@ -203,11 +204,18 @@ class Parser:
         
         transcript_elems = self._build_transcript_template(transcript_template)
 
-        genome = Genome(self.params["genome"]["name"],
-                        genome_length,
-                        dna_elements,
-                        transcript_elems,
-                        genome_mask)
+        if "translation_weights" in genome_params:
+            genome = Genome(self.params["genome"]["name"],
+                genome_length,
+                dna_elements,
+                transcript_elems,
+                genome_mask, genome_params["translation_weights"])
+        else:
+            genome = Genome(self.params["genome"]["name"],
+                            genome_length,
+                            dna_elements,
+                            transcript_elems,
+                            genome_mask)
 
         return genome, dna_elements, genome_mask
     
