@@ -1,10 +1,11 @@
 #include <catch.hpp>
 
 #include "simulation.hpp"
+#include "tracker.hpp"
 
 TEST_CASE("SpeciesReaction methods", "[Reaction]") {
   auto reaction = std::make_shared<SpeciesReaction>(
-      1000, std::vector<std::string>{"reactant1", "reactant2"},
+      1000, double(8e-15), std::vector<std::string>{"reactant1", "reactant2"},
       std::vector<std::string>{"product1", "product2"});
   auto &tracker = SpeciesTracker::Instance();
   tracker.Clear();
@@ -14,7 +15,8 @@ TEST_CASE("SpeciesReaction methods", "[Reaction]") {
 
   SECTION("Initialization and registration") {
     REQUIRE_THROWS(SpeciesReaction(
-        1000, std::vector<std::string>{"reactant1", "reactant2", "reactant3"},
+        1000, double(8e-15),
+        std::vector<std::string>{"reactant1", "reactant2", "reactant3"},
         std::vector<std::string>{"product1", "product2"}));
     // Make sure that maps have been set up appropriately
     auto reactions = tracker.FindReactions("reactant1");
@@ -68,7 +70,7 @@ TEST_CASE("Bind methods", "[Reaction]") {
   polymer->InitElements();
   // Set up a polymerase
   auto polymerase = Polymerase("ecolipol", 10, 30);
-  auto reaction = Bind(1000, "p1", polymerase);
+  auto reaction = Bind(1000, double(8e-15), "p1", polymerase);
 
   SECTION("Calculate propensity") {
     tracker.Increment("p1", 2);
@@ -124,13 +126,13 @@ TEST_CASE("Simulation methods", "[Simulation]") {
 
   SECTION("Register reaction") {
     auto reaction1 = std::make_shared<SpeciesReaction>(
-        1.5, std::vector<std::string>{"reactant1"},
+        1.5, double(8e-15), std::vector<std::string>{"reactant1"},
         std::vector<std::string>{"product1"});
     sim->RegisterReaction(reaction1);
     sim->InitPropensity();
     REQUIRE(sim->alpha_sum() == 1.5);
     auto reaction2 = std::make_shared<SpeciesReaction>(
-        1.5, std::vector<std::string>{"reactant1"},
+        1.5, double(8e-15), std::vector<std::string>{"reactant1"},
         std::vector<std::string>{"product1"});
     sim->RegisterReaction(reaction2);
     sim->InitPropensity();
@@ -164,7 +166,8 @@ TEST_CASE("Simulation methods", "[Simulation]") {
     // Wire up reaction with tracker (TODO: clean this up)
     tracker.Increment("ecolipol", 2);
     tracker.Increment("p1", 1);
-    auto reaction = std::make_shared<Bind>(1000, "p1", polymerase);
+    auto reaction =
+        std::make_shared<Bind>(1000, double(8e-15), "p1", polymerase);
     tracker.Add("p1", reaction);
     tracker.Add("ecolipol", reaction);
     tracker.Add("p1", polymer);

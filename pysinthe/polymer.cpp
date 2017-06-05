@@ -7,7 +7,21 @@
 Polymer::Polymer(const std::string &name, int start, int stop,
                  const Element::VecPtr &elements, const Mask &mask)
     : index_(0), name_(name), start_(start), stop_(stop), elements_(elements),
-      mask_(mask), prop_sum_(0) {}
+      mask_(mask), prop_sum_(0) {
+  weights_ = std::vector<double>(stop - start + 2, 1.0);
+}
+
+Polymer::Polymer(const std::string &name, int start, int stop,
+                 const Element::VecPtr &elements, const Mask &mask,
+                 const std::vector<double> &weights)
+    : index_(0), name_(name), start_(start), stop_(stop), elements_(elements),
+      mask_(mask), weights_(weights), prop_sum_(0) {
+  if (weights_.size() != (stop_ - start_ + 2)) {
+    throw std::length_error("Weights vector is not the correct size. " +
+                            std::to_string(weights.size()) + " " +
+                            std::to_string(stop_ - start_ + 2));
+  }
+}
 
 void Polymer::InitElements() {
   for (auto &element : elements_) {
@@ -79,8 +93,6 @@ void Polymer::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
   CoverElement(elem->name());
   // Add polymerase to this polymer
   Insert(pol);
-  // // Update total move propensity of this polymer
-  prop_sum_ += pol->speed();
 
   // Report some data to tracker
   if (elem->name() == "rbs") {
@@ -94,8 +106,8 @@ void Polymer::Execute() {
     throw std::runtime_error(
         "Attempting to execute polymer with reaction propensity of 0.");
   }
-  auto pol = Choose();
-  Move(pol);
+  int pol_index = Choose();
+  Move(pol_index);
 }
 
 void Polymer::ShiftMask() {
@@ -122,10 +134,16 @@ void Polymer::ShiftMask() {
   elements_[index]->SaveState();
 }
 
-void Polymer::Terminate(Polymerase::Ptr pol, const std::string &last_gene) {
-  prop_sum_ -= pol->speed();
+int Polymer::PolymeraseIndex(Polymerase::Ptr pol) {
   auto it = std::find(polymerases_.begin(), polymerases_.end(), pol);
   int index = it - polymerases_.begin();
+  return index;
+}
+
+void Polymer::Terminate(Polymerase::Ptr pol, const std::string &last_gene) {
+  auto it = std::find(polymerases_.begin(), polymerases_.end(), pol);
+  int index = it - polymerases_.begin();
+  prop_sum_ -= prop_list_[index];
   termination_signal_.Emit(index_, pol->name(), last_gene);
   polymerases_.erase(it);
   prop_list_.erase(prop_list_.begin() + index);
@@ -145,7 +163,7 @@ void Polymer::UncoverElement(const std::string &species_name) {
 }
 
 void Polymer::Insert(Polymerase::Ptr pol) {
-  // Find where in vector polymerase should insert; use a lambada function
+  // Find where in vector polymerase should insert; use a lambda function
   // to make comparison between polymerase pointers
   auto it = std::upper_bound(polymerases_.begin(), polymerases_.end(), pol,
                              [](Polymerase::Ptr a, Polymerase::Ptr b) {
@@ -158,43 +176,58 @@ void Polymer::Insert(Polymerase::Ptr pol) {
   // Add polymerase to this polymer
   polymerases_.insert(it, pol);
   // Cache polymerase speed
-  prop_list_.insert(prop_it, pol->speed());
+  double weight = weights_[pol->stop() - start_];
+  // Update total move propensity of this polymer
+  prop_sum_ += weight * pol->speed();
+  prop_list_.insert(prop_it, weight * pol->speed());
 }
 
-Polymerase::Ptr Polymer::Choose() {
+int Polymer::Choose() {
   if (prop_list_.size() == 0) {
     std::string err = "There are no active polymerases on polymer " + name_;
     throw std::runtime_error(err);
   }
-  return Random::WeightedChoice(polymerases_, prop_list_);
+  return Random::WeightedChoiceIndex(polymerases_, prop_list_);
 }
 
-void Polymer::Move(Polymerase::Ptr pol) {
+void Polymer::Move(int pol_index) {
   // Error checking to make sure that pol is in vector
-  auto it = std::find(polymerases_.begin(), polymerases_.end(), pol);
-  if (it == polymerases_.end()) {
-    std::string err = "Attempting to move unbound polymerase " + pol->name() +
-                      " on polymer " + name_;
+  if (pol_index >= polymerases_.size()) {
+    std::string err = "Attempting to move unbound polymerase with index " +
+                      std::to_string(pol_index) + " on polymer " + name_;
     throw std::runtime_error(err);
   }
   // Find which elements this polymerase is covering and temporarily uncover
   // them
+  auto pol = polymerases_[pol_index];
   UncoverElements(pol);
   // Move polymerase
   pol->Move();
   // Resolve any collisions between polymerases or with mask
   bool pol_collision = ResolveCollisions(pol);
   bool mask_collision = ResolveMaskCollisions(pol);
-  // Check to see if it's safe to broadcast that this polymerase has moved
-  if (!pol_collision && !mask_collision) {
-    pol->move_signal_.Emit();
-  }
+
   // Check for uncoverings
   RecoverElements(pol);
-  // Terminate polymerase if it's run off the end of the polymer
-  if (pol->stop() > stop_) {
-    // TODO: Why are we sending the stop position of the polymer ?
-    Terminate(pol, std::to_string(stop_));
+
+  // Check to see if it's safe to broadcast that this polymerase has moved
+  if (!pol_collision && !mask_collision) {
+    // Terminate polymerase if it's run off the end of the polymer
+    if (pol->stop() > stop_) {
+      // TODO: Why are we sending the stop position of the polymer ?
+      Terminate(pol, std::to_string(stop_));
+    } else {
+      // Update propensity for new codon
+      if ((pol->stop() - start_) >= weights_.size()) {
+        throw std::runtime_error("Weight is missing for this position.");
+      }
+      double weight = weights_[pol->stop() - start_];
+      double new_speed = weight * pol->speed();
+      double diff = new_speed - prop_list_[pol_index];
+      prop_sum_ += diff;
+      prop_list_[pol_index] = new_speed;
+      pol->move_signal_.Emit();
+    }
   }
 }
 
@@ -332,8 +365,9 @@ bool Polymer::Intersect(const Feature &elem1, const Feature &elem2) {
 }
 
 Transcript::Transcript(const std::string &name, int start, int stop,
-                       const Element::VecPtr &elements, const Mask &mask)
-    : Polymer(name, start, stop, elements, mask) {}
+                       const Element::VecPtr &elements, const Mask &mask,
+                       const std::vector<double> &weights)
+    : Polymer(name, start, stop, elements, mask, weights) {}
 
 void Transcript::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
   // Bind polymerase just like in parent Polymer
@@ -347,7 +381,38 @@ Genome::Genome(const std::string &name, int length,
                const Element::VecPtr &elements,
                const Element::VecPtr &transcript_template, const Mask &mask)
     : Polymer(name, 1, length, elements, mask),
-      transcript_template_(transcript_template) {}
+      transcript_template_(transcript_template) {
+  transcript_weights_ = std::vector<double>(length + 1, 1.0);
+  // Sort transcript template
+  std::sort(transcript_template_.begin(), transcript_template_.end(),
+            [](Element::Ptr elem1, Element::Ptr elem2) {
+              return elem1->start() < elem2->start();
+            });
+  // Sort genomic elements
+  std::sort(elements_.begin(), elements_.end(),
+            [](Element::Ptr elem1, Element::Ptr elem2) {
+              return elem1->start() < elem2->start();
+            });
+}
+
+Genome::Genome(const std::string &name, int length,
+               const Element::VecPtr &elements,
+               const Element::VecPtr &transcript_template, const Mask &mask,
+               const std::vector<double> &transcript_weights)
+    : Polymer(name, 1, length, elements, mask),
+      transcript_template_(transcript_template),
+      transcript_weights_(transcript_weights) {
+  // Sort transcript template
+  std::sort(transcript_template_.begin(), transcript_template_.end(),
+            [](Element::Ptr elem1, Element::Ptr elem2) {
+              return elem1->start() < elem2->start();
+            });
+  // Sort genomic elements
+  std::sort(elements_.begin(), elements_.end(),
+            [](Element::Ptr elem1, Element::Ptr elem2) {
+              return elem1->start() < elem2->start();
+            });
+}
 
 void Genome::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
   // Bind polymerase
@@ -376,7 +441,7 @@ Transcript::Ptr Genome::BuildTranscript(int start, int stop) {
   // We need to used the standard shared_ptr constructor here because the
   // constructor of Transcript needs to know its address in memory to wire
   // signals appropriately.
-  transcript =
-      std::make_shared<Transcript>("rna", start_, stop_, elements, mask);
+  transcript = std::make_shared<Transcript>("rna", start_, stop_, elements,
+                                            mask, transcript_weights_);
   return transcript;
 }

@@ -8,9 +8,8 @@
 #include "tracker.hpp"
 
 const static double AVAGADRO = double(6.0221409e+23);
-const static double CELL_VOLUME = double(1.1e-15);
 
-SpeciesReaction::SpeciesReaction(double rate_constant,
+SpeciesReaction::SpeciesReaction(double rate_constant, double volume,
                                  const std::vector<std::string> &reactants,
                                  const std::vector<std::string> &products)
     : rate_constant_(rate_constant), reactants_(reactants),
@@ -20,9 +19,14 @@ SpeciesReaction::SpeciesReaction(double rate_constant,
     throw std::runtime_error("Simulation does not support reactions with "
                              "more than two reactant species.");
   }
+  if (volume <= 0) {
+    throw std::runtime_error("Reaction volume cannot be zero.");
+  }
   // Rate constant has to be transformed from macroscopic to mesoscopic
+  // TODO: make more sophisticated and support different stoichiometries
+  auto &tracker = SpeciesTracker::Instance();
   if (reactants_.size() == 2) {
-    rate_constant_ = rate_constant_ / (AVAGADRO * CELL_VOLUME);
+    rate_constant_ = rate_constant_ / (AVAGADRO * volume);
   }
 }
 
@@ -55,11 +59,16 @@ void SpeciesReaction::Execute() {
   }
 }
 
-Bind::Bind(double rate_constant, const std::string &promoter_name,
-           const Polymerase &pol_template)
+Bind::Bind(double rate_constant, double volume,
+           const std::string &promoter_name, const Polymerase &pol_template)
     : rate_constant_(rate_constant), promoter_name_(promoter_name),
       pol_name_(pol_template.name()), pol_template_(pol_template) {
-  rate_constant_ = rate_constant_ / (AVAGADRO * CELL_VOLUME);
+  // Check volume
+  if (volume <= 0) {
+    throw std::runtime_error("Reaction volume cannot be zero.");
+  }
+  auto &tracker = SpeciesTracker::Instance();
+  rate_constant_ = rate_constant_ / (AVAGADRO * volume);
 }
 
 void Bind::InitCounts() {
@@ -75,8 +84,6 @@ double Bind::CalculatePropensity() {
 }
 
 void Bind::Execute() {
-  // std::cout << "binding..." + std::to_string(CalculatePropensity())
-  //           << std::endl;
   auto &tracker = SpeciesTracker::Instance();
   auto weights = std::vector<double>();
   for (const auto &polymer : tracker.FindPolymers(promoter_name_)) {
@@ -190,7 +197,6 @@ void Simulation::InitPropensity() {
 
 void Simulation::UpdatePropensity(int index) {
   double new_prop = reactions_[index]->CalculatePropensity();
-  // std::cout << "upating prop..." + std::to_string(new_prop) << std::endl;
   double diff = new_prop - alpha_list_[index];
   alpha_sum_ += diff;
   alpha_list_[index] = new_prop;
@@ -206,15 +212,10 @@ void Simulation::Execute() {
   // Calculate tau, i.e. time until next reaction
   double tau = (1.0 / alpha_sum_) * std::log(1.0 / random_num);
   time_ += tau;
-  // for (auto i : alpha_list_) {
-  //   std::cout << std::to_string(i) + " " << std::endl;
-  // }
   // Randomly select next reaction to execute, weighted by propensities
-  auto next_reaction = Random::WeightedChoice(reactions_, alpha_list_);
-  // std::cout << "attempting to bind..." +
-  //                  std::to_string(alpha_list_[next_reaction->index()])
-  //           << std::endl;
-  next_reaction->Execute();
+  auto next_reaction = Random::WeightedChoiceIndex(reactions_, alpha_list_);
+  reactions_[next_reaction]->Execute();
+  UpdatePropensity(next_reaction);
   iteration_++;
 }
 

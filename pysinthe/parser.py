@@ -33,10 +33,10 @@ class Parser:
 
         self.simulation.stop_time = self.params["simulation"]["runtime"]
         self.simulation.time_step = self.params["simulation"]["time_step"]
-        # self.simulation.debug = self.params["simulation"]["debug"]
-        # Reaction._CELL_VOLUME = float(
-        #     self.params["simulation"]["cell_volume"]
-        # )
+
+        self.cell_volume = float(
+            self.params["simulation"]["cell_volume"]
+        )
 
         # Set seed
         if "seed" in self.params["simulation"]:
@@ -67,7 +67,6 @@ class Parser:
         # Register genome
         self.simulation.register_genome(genome)
 
-        self.tracker.increment("rbs", 0)
         self.tracker.increment(
             self.params["ribosomes"][0]["name"],
             int(self.params["ribosomes"][0]["copy_number"])
@@ -77,6 +76,7 @@ class Parser:
                      self.params["ribosomes"][0]["speed"]) # (30) speed
         # Transcript-ribosome binding reaction
         reaction = Bind(float(self.params["ribosomes"][0]["binding_constant"]),
+                        self.cell_volume,
                         "rbs",
                         new_ribo)
         self.simulation.register_reaction(reaction)
@@ -99,7 +99,8 @@ class Parser:
                        'copy_number': All(int, Range(min=1)),
                        Optional('length'): All(int, Range(min=1)),
                        Optional('entered'): All(int, Range(min=1)),
-                       Optional('mask_interactions'): list},
+                       Optional('mask_interactions'): list,
+                       Optional('translation_weights'): list},
             'polymerases': All([{'name': All(str, Length(min=1)),
                                  'copy_number': All(int, Range(min=0)),
                                  'speed': All(int, Range(min=0)),
@@ -137,6 +138,7 @@ class Parser:
     def _parse_reactions(self, reaction_params):
         for reaction in reaction_params:
             new_reaction = SpeciesReaction(float(reaction["propensity"]),
+                                           self.cell_volume,
                                            reaction["reactants"],
                                            reaction["products"])
             self.simulation.register_reaction(new_reaction)
@@ -181,9 +183,6 @@ class Parser:
                 dna_elements.append(new_element)
             last_position = element["stop"]
 
-        # sort elements based on start position
-        dna_elements.sort(key=lambda x: x.start)
-
         if "length" in genome_params:
             genome_length = genome_params["length"]
         else:
@@ -205,11 +204,18 @@ class Parser:
         
         transcript_elems = self._build_transcript_template(transcript_template)
 
-        genome = Genome(self.params["genome"]["name"],
-                        genome_length,
-                        dna_elements,
-                        transcript_elems,
-                        genome_mask)
+        if "translation_weights" in genome_params:
+            genome = Genome(self.params["genome"]["name"],
+                genome_length,
+                dna_elements,
+                transcript_elems,
+                genome_mask, genome_params["translation_weights"])
+        else:
+            genome = Genome(self.params["genome"]["name"],
+                            genome_length,
+                            dna_elements,
+                            transcript_elems,
+                            genome_mask)
 
         return genome, dna_elements, genome_mask
     
@@ -231,8 +237,7 @@ class Parser:
             stop_site.reading_frame = element["start"] % 3
             stop_site.gene = element["name"]
             elements.append(stop_site)
-        # Sort elements according to start position
-        elements.sort(key=lambda x: x.start)
+
         return elements
 
     def _parse_polymerases(self, pol_params):
@@ -257,7 +262,6 @@ class Parser:
         seen = list()
         for element in element_params:
             if element["type"] == "promoter":
-                self.tracker.increment(element["name"], 0)
                 for partner, constant in element["interactions"].items():
                     binding_constant = constant["binding_constant"]
                     for pol in pol_params:
@@ -266,8 +270,7 @@ class Parser:
                                         pol["footprint"],  # (10) footprint
                                         pol["speed"])
                             reaction = Bind(float(binding_constant),
+                                            self.cell_volume,
                                             element["name"],
                                             new_pol)
-                            # if (partner, element["name"]) not in seen:
                             self.simulation.register_reaction(reaction)
-                            # seen.append((partner, element["name"]))

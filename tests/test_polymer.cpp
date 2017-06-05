@@ -20,8 +20,9 @@ void ShiftMaskN(Polymer::Ptr polymer, int n) {
   }
 }
 void MovePolymeraseN(Polymer::Ptr polymer, Polymerase::Ptr pol, int n) {
+  int index = polymer->PolymeraseIndex(pol);
   for (int i = 0; i < n; i++) {
-    polymer->Move(pol);
+    polymer->Move(index);
   }
 }
 void EmitTermination(int index, const std::string &pol_name,
@@ -140,7 +141,7 @@ TEST_CASE("Polymer methods", "[Polymer]") {
     REQUIRE(polymer->uncovered("t1") == 1);
     // Test termination, pol should detach as soon as it hits terminator
     Helper::MovePolymeraseN(polymer, pol2, 25);
-    REQUIRE_THROWS(polymer->Move(pol2));
+    REQUIRE_THROWS(polymer->Move(polymer->PolymeraseIndex(pol2)));
 
     // Now check for readthrough
     polymer->Bind(pol, "p1");
@@ -150,13 +151,13 @@ TEST_CASE("Polymer methods", "[Polymer]") {
     Helper::MovePolymeraseN(polymer, pol, 10);
     // Now run polymerase off of the end of the transcript
     Helper::MovePolymeraseN(polymer, pol, 35);
-    REQUIRE_THROWS(polymer->Move(pol));
+    REQUIRE_THROWS(polymer->Move(polymer->PolymeraseIndex(pol)));
     // Run polymerase through terminator again, this time it should terminate
     Random::seed(19);
     polymer->Bind(pol, "p1");
     Helper::MovePolymeraseN(polymer, pol, 36);
     REQUIRE(!term->readthrough());
-    REQUIRE_THROWS(polymer->Move(pol));
+    REQUIRE_THROWS(polymer->Move(polymer->PolymeraseIndex(pol)));
   }
 }
 
@@ -257,5 +258,53 @@ TEST_CASE("Genome methods", "[Polymer]") {
     REQUIRE(Helper::my_transcript->uncovered("rbs") == 2);
     Helper::MovePolymeraseN(genome, pol, 87);
     REQUIRE(Helper::my_transcript->uncovered("stop") == 3);
+  }
+}
+
+TEST_CASE("Variable translation rates", "[Polymer]") {
+  std::vector<std::string> interactions = {"ecolipol", "rnapol"};
+  Promoter::Ptr prom;
+  Terminator::Ptr term;
+  prom = std::make_shared<Promoter>("p1", 5, 15, interactions);
+  std::map<std::string, double> efficiency;
+  efficiency["ecolipol"] = 0.6;
+  efficiency["rnapol"] = 1.0;
+  term = std::make_shared<Terminator>("t1", 50, 55, interactions, efficiency);
+
+  std::vector<Element::Ptr> elements;
+  elements.push_back(prom);
+  elements.push_back(term);
+  std::vector<std::string> mask_interactions = {"ecolipol"};
+  Mask mask = Mask("test_mask", 10, 100, mask_interactions);
+
+  std::vector<double> weights(101, 0.1);
+  for (int i = 0; i < 50; i++) {
+    weights[i] = 2.0;
+  }
+  auto polymer = std::make_shared<Polymer>("test_polymer", 1, 100, elements,
+                                           mask, weights);
+  polymer->termination_signal_.Connect(Helper::EmitTermination);
+  polymer->InitElements();
+
+  auto pol = std::make_shared<Polymerase>("ecolipol", 10, 30);
+  auto pol2 = std::make_shared<Polymerase>("rnapol", 10, 30);
+  auto pol3 = std::make_shared<Polymerase>("rnapol", 10, 30);
+
+  SECTION("Execution") {
+    // Shift mask back to expose promoter
+    Helper::ShiftMaskN(polymer, 10);
+    polymer->Bind(pol, "p1");
+    // Make sure promoter is recorded as covered
+    REQUIRE(polymer->uncovered("p1") == 0);
+    REQUIRE(prom->IsCovered());
+    // Move polymerase 10 spaces and re-expose promoter
+    Helper::MovePolymeraseN(polymer, pol, 11);
+    REQUIRE(polymer->uncovered("p1") == 1);
+    REQUIRE(!prom->IsCovered());
+    // Check for collisions between polymerases
+    polymer->Bind(pol2, "p1");
+    for (int i = 0; i < 100; i++) {
+      polymer->Execute();
+    }
   }
 }

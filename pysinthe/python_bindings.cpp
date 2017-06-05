@@ -38,10 +38,10 @@ PYBIND11_PLUGIN(core) {
   py::class_<Reaction, Reaction::Ptr>(m, "Reaction");
   py::class_<SpeciesReaction, Reaction, SpeciesReaction::Ptr>(m,
                                                               "SpeciesReaction")
-      .def(py::init<double, const std::vector<std::string> &,
+      .def(py::init<double, double, const std::vector<std::string> &,
                     const std::vector<std::string> &>());
   py::class_<Bind, Reaction, std::shared_ptr<Bind>>(m, "Bind").def(
-      py::init<double, const std::string &, const Polymerase &>());
+      py::init<double, double, const std::string &, const Polymerase &>());
   py::class_<Bridge, Reaction, std::shared_ptr<Bridge>>(m, "Bridge")
       .def(py::init<Polymer::Ptr>());
 
@@ -77,12 +77,12 @@ PYBIND11_PLUGIN(core) {
 
   // Polymers, genomes, and transcripts
   py::class_<Polymer, Polymer::Ptr>(m, "Polymer");
-  py::class_<Transcript, Polymer, Transcript::Ptr>(m, "Transcript")
-      .def(py::init<const std::string &, int, int, const Element::VecPtr &,
-                    const Mask &>());
   py::class_<Genome, Polymer, Genome::Ptr>(m, "Genome")
       .def(py::init<const std::string &, int, const Element::VecPtr &,
-                    const Element::VecPtr &, const Mask &>());
+                    const Element::VecPtr &, const Mask &>())
+      .def(py::init<const std::string &, int, const Element::VecPtr &,
+                    const Element::VecPtr &, const Mask &,
+                    const std::vector<double> &>());
 
   return m.ptr();
 }
