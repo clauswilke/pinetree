@@ -5,7 +5,7 @@ def set_up():
     data = """
     simulation:
         seed: 34
-        runtime: 1200
+        runtime: 1800
         time_step: 5
         cell_volume: 1.1e-15
         debug: False
@@ -202,14 +202,14 @@ def get_promoter_interactions(name):
     phi13 = ["T7 promoter phi13",
              "T7 promoter phi17"]
 
-    phi10_bind = 1.82e7 # Binding constant for phi10
+    phi10_bind = 1.82e5 # Binding constant for phi10
 
     if name in ecoli_strong:
-        return {'ecolipol': {'binding_constant': 10e6},
-                'ecolipol-p': {'binding_constant': 3e6}}
+        return {'ecolipol': {'binding_constant': 10e4},
+                'ecolipol-p': {'binding_constant': 3e4}}
     elif name in ecoli_weak:
-        return {'ecolipol': {'binding_constant': 1e6},
-                'ecolipol-p': {'binding_constant': 0.3e6}}
+        return {'ecolipol': {'binding_constant': 1e4},
+                'ecolipol-p': {'binding_constant': 0.3e4}}
     elif name in phi1_3:
         return {'rnapol-1': {'binding_constant': phi10_bind*0.01},
                 'rnapol-3.5': {'binding_constant': phi10_bind*0.01*0.5}}
