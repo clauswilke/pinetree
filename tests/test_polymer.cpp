@@ -291,6 +291,7 @@ TEST_CASE("Variable translation rates", "[Polymer]") {
   auto pol3 = std::make_shared<Polymerase>("rnapol", 10, 30);
 
   SECTION("Execution") {
+    Random::seed(22);
     // Shift mask back to expose promoter
     Helper::ShiftMaskN(polymer, 10);
     polymer->Bind(pol, "p1");

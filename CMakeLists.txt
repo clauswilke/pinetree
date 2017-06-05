@@ -45,4 +45,4 @@ ParseAndAddCatchTests("${PROJECT_NAME}_test")
 
 # Python bindings!
 add_subdirectory(pysinthe/pybind11)
-pybind11_add_module(core "${SOURCE_DIR}/python_bindings.cpp" "${SOURCE_DIR}/simulation.cpp" ${SOURCES})
+pybind11_add_module(core "${SOURCE_DIR}/python_bindings.cpp" ${SOURCES})
