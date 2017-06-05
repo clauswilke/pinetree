@@ -88,5 +88,23 @@ plot4 <- ggplot(counts, aes(x = time, y = count, group = species, color = specie
 save_plot("./runs/dual_polymerases.pdf", plot4, base_aspect_ratio = 1.4)
 
 
+counts <- read_tsv("/Users/ben/Box Sync/scratch/pysinthe_tests/recoded_test_counts.tsv", col_names = F)
+colnames(counts) <- c("time", "species", "count")
+counts <- filter(counts, species %in% c("ribosome", "proteinX", "proteinY", "rnapol"))
 
+plot5 <- ggplot(counts, aes(x = time, y = count, group = species, color = species)) + 
+  geom_line(size = 0.8) +
+  geom_label_repel(
+    data = filter(counts, time == max(time)),
+    aes(label = species, fill = species),
+    size = 4,
+    color = 'white',
+    nudge_x = 5,
+    point.padding = unit(0.2, "lines"),
+    segment.color = 'grey80',
+    force = 5
+  ) +
+  coord_cartesian(xlim = c(0, max(counts$time) + 10), ylim=c(0, 310)) +
+  theme(legend.position = "none")
 
+save_plot("~/Desktop/recoded.pdf", plot5, base_aspect_ratio = 1.4)
