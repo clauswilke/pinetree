@@ -1,7 +1,5 @@
 #! /usr/bin/env python3
 
-import random
-
 import yaml
 from voluptuous import Schema, Optional, Any, All, Range, Length, Coerce
 
@@ -84,6 +82,11 @@ class Parser:
         if "species" in self.params:
             self._parse_species(self.params["species"])
 
+    def set_seed(self, random_seed):
+        """
+        Set random seed.
+        """
+        seed(random_seed)
 
     def _validate_schema(self, params):
         """
