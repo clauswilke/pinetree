@@ -31,6 +31,10 @@ def main():
 
     params_parser.simulation.run(outfile)
 
+    with open(outfile + ".log", "w") as logfile:
+        logfile.write("seed, " + args.seed)
+
+
 
 if __name__ == "__main__":
     main()
