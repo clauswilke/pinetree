@@ -4,6 +4,22 @@ import argparse
 
 from pysinthe.parser import Parser
 
+def run(params_file, outfile, seed):
+    """
+    Run simulation.
+    """
+    with open(params_file, "r") as my_file:
+        params_parser = Parser(my_file)
+
+    if seed:
+        params_parser.set_seed(seed)
+
+    params_parser.simulation.run(outfile)
+
+    with open(outfile + ".log", "w") as logfile:
+        logfile.write("seed, " + str(seed))
+
+
 def main():
     """
     Parse input file and run simulation.
@@ -23,16 +39,7 @@ def main():
     my_params_file = args.params
     outfile = args.outfile
 
-    with open(my_params_file, "r") as my_file:
-        params_parser = Parser(my_file)
-
-    if args.seed:
-        params_parser.set_seed(args.seed)
-
-    params_parser.simulation.run(outfile)
-
-    with open(outfile + ".log", "w") as logfile:
-        logfile.write("seed, " + args.seed)
+    run(my_params_file, outfile, args.seed)
 
 
 
