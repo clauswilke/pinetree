@@ -106,5 +106,7 @@ setup(
     cmdclass=dict(build_ext=CMakeBuild,
                   test=CatchTestCommand),
     zip_safe=False,
-    scripts = ['bin/pysinthe_run.py', 'bin/pysinthe_batch.py']
+    scripts = ['bin/pysinthe_run.py', 
+               'bin/pysinthe_batch.py', 
+               'bin/parse_genbank.py']
 )
