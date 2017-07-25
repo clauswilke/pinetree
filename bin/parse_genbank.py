@@ -287,7 +287,7 @@ stop = 0
 
 for record in records:
 
-    translation_scale_factors = [1.0]*len(record.seq)
+    translation_scale_factors = [1.0]*(len(record.seq)+2)
 
     for feature in record.features:
         # print(feature)
@@ -358,5 +358,6 @@ for record in records:
                         else:
                             translation_scale_factors[genome_index] = 0.5
 output["genome"]["translation_weights"] = translation_scale_factors
+output["genome"]["length"] = len(record.seq) + 1
 
 print(dump(output, default_flow_style=False))
