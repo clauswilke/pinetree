@@ -1,6 +1,8 @@
 from Bio import Entrez, SeqIO
 from yaml import dump, safe_load
 
+opt_codons_E_coli = { 'A':['GCT'], 'R':['CGT', 'CGC'], 'N':['AAC'], 'D':['GAC'], 'C':['TGC'], 'Q':['CAG'], 'E':['GAA'], 'G':['GGT','GGC'], 'H':['CAC'], 'I':['ATC'], 'L':['CTG'], 'F':['TTC'], 'P':['CCG'], 'S':['TCT','TCC'], 'T':['ACT','ACC'], 'Y':['TAC'], 'V':['GTT','GTA'] }
+
 def set_up():
     data = """
     simulation:
@@ -202,7 +204,7 @@ def get_promoter_interactions(name):
     phi13 = ["T7 promoter phi13",
              "T7 promoter phi17"]
 
-    phi10_bind = 1.82e5 # Binding constant for phi10
+    phi10_bind = 1.82e7 # Binding constant for phi10
 
     if name in ecoli_strong:
         return {'ecolipol': {'binding_constant': 10e4},
@@ -281,7 +283,11 @@ old_stop = 0
 start = 0
 stop = 0
 
+
+
 for record in records:
+
+    translation_scale_factors = [1.0]*(len(record.seq)+2)
 
     for feature in record.features:
         # print(feature)
@@ -316,7 +322,6 @@ for record in records:
                 })
         # Grab genes/CDSes
         if feature.type == "gene":
-            # Grab the gene name
             temp_name = feature.qualifiers["note"][0]
             if temp_name in ignore_genes:
                 continue
@@ -337,5 +342,22 @@ for record in records:
                           "stop": stop,
                           "rbs": -30}
             output["elements"].append(transcript)
+        if feature.type == "CDS":
+            # Grab the gene name
+            nuc_seq = feature.location.extract(record).seq
+            aa_seq = feature.qualifiers["translation"][0]
+            for index, nuc in enumerate(nuc_seq):
+                aa_index = int(index / 3)
+                codon_start = aa_index * 3
+                codon = nuc_seq[codon_start:codon_start+3]
+                genome_index = feature.location.start + index
+                if aa_index < len(aa_seq):
+                    if aa_seq[aa_index] in opt_codons_E_coli:
+                        if codon in opt_codons_E_coli[aa_seq[aa_index]]:
+                            translation_scale_factors[genome_index] = 1.5
+                        else:
+                            translation_scale_factors[genome_index] = 0.5
+output["genome"]["translation_weights"] = translation_scale_factors
+output["genome"]["length"] = len(record.seq) + 1
 
 print(dump(output, default_flow_style=False))
