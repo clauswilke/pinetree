@@ -357,6 +357,9 @@ for record in records:
                             translation_scale_factors[genome_index] = 1.5
                         else:
                             translation_scale_factors[genome_index] = 0.5
+                if feature.qualifiers["protein_id"][0] == 'NP_041998.1':
+                    translation_scale_factors[genome_index] = 0.5
+
 output["genome"]["translation_weights"] = translation_scale_factors
 output["genome"]["length"] = len(record.seq) + 1
 
