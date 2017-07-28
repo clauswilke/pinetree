@@ -40442,7 +40442,7 @@ reactions:
 - name: ecoli_transcripts
   products:
   - bound_ribosome
-  propensity: 1e7
+  propensity: 1e6
   reactants:
   - ecoli_transcript
   - ribosome

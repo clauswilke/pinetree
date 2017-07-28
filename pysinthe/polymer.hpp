@@ -205,7 +205,7 @@ protected:
    *
    * @param pol pointer to polymerase object
    */
-  void RecoverElements(Polymerase::Ptr pol);
+  bool RecoverElements(Polymerase::Ptr pol);
   /**
    * Determine if polymerase should terminate upon interacting with a terminator
    * or if it should read through the terminator.

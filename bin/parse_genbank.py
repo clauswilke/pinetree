@@ -71,7 +71,7 @@ def set_up():
 
     reactions:
     - name: ecoli_transcripts # Assumes that each ribosome binds to one RBS
-      propensity: 1e7
+      propensity: 1e6
       reactants:
           - ecoli_transcript
           - ribosome

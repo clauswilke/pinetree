@@ -147,6 +147,9 @@ void Polymer::Terminate(Polymerase::Ptr pol, const std::string &last_gene) {
   termination_signal_.Emit(index_, pol->name(), last_gene);
   polymerases_.erase(it);
   prop_list_.erase(prop_list_.begin() + index);
+  if (prop_list_.size() != polymerases_.size()) {
+    throw std::runtime_error("Prop list not correct size.");
+  }
 }
 
 void Polymer::CoverElement(const std::string &species_name) {
@@ -180,11 +183,24 @@ void Polymer::Insert(Polymerase::Ptr pol) {
   // Update total move propensity of this polymer
   prop_sum_ += weight * pol->speed();
   prop_list_.insert(prop_it, weight * pol->speed());
+  if (prop_list_.size() != polymerases_.size()) {
+    throw std::runtime_error("Prop list not correct size.");
+  }
 }
 
 int Polymer::Choose() {
+  double prop_list_sum;
+  for (auto &n : prop_list_) {
+    prop_list_sum += n;
+  }
+  if (prop_list_sum != prop_sum_) {
+    throw std::runtime_error("Prop sum and list not equal " +
+                             std::to_string(prop_list_sum) + " " +
+                             std::to_string(prop_sum_));
+  }
   if (prop_list_.size() == 0) {
-    std::string err = "There are no active polymerases on polymer " + name_;
+    std::string err = "There are no active polymerases on polymer " + name_ +
+                      std::to_string(prop_sum_);
     throw std::runtime_error(err);
   }
   return Random::WeightedChoiceIndex(polymerases_, prop_list_);
@@ -197,6 +213,10 @@ void Polymer::Move(int pol_index) {
                       std::to_string(pol_index) + " on polymer " + name_;
     throw std::runtime_error(err);
   }
+  if (pol_index >= prop_list_.size()) {
+    throw std::runtime_error(
+        "Prop list vector index is invalid (before move).");
+  }
   // Find which elements this polymerase is covering and temporarily uncover
   // them
   auto pol = polymerases_[pol_index];
@@ -207,11 +227,20 @@ void Polymer::Move(int pol_index) {
   bool pol_collision = ResolveCollisions(pol);
   bool mask_collision = ResolveMaskCollisions(pol);
 
+  if (pol_index >= prop_list_.size()) {
+    throw std::runtime_error(
+        "Prop list vector index is invalid (before move 2).");
+  }
+
   // Check for uncoverings
-  RecoverElements(pol);
+  bool terminated = RecoverElements(pol);
 
   // Check to see if it's safe to broadcast that this polymerase has moved
-  if (!pol_collision && !mask_collision) {
+  if (!pol_collision && !mask_collision && !terminated) {
+    if (pol_index >= prop_list_.size()) {
+      throw std::runtime_error(
+          "Prop list vector index is invalid (before move 3).");
+    }
     // Terminate polymerase if it's run off the end of the polymer
     if (pol->stop() > stop_) {
       // TODO: Why are we sending the stop position of the polymer ?
@@ -221,12 +250,43 @@ void Polymer::Move(int pol_index) {
       if ((pol->stop() - start_) >= weights_.size()) {
         throw std::runtime_error("Weight is missing for this position.");
       }
+
+      double prop_list_sum = 0;
+      for (auto &n : prop_list_) {
+        prop_list_sum += n;
+      }
+
+      // std::cout << "Just moved! Prop sum and list not equal " +
+      //                  std::to_string(prop_list_sum) + " " +
+      //                  std::to_string(prop_sum_);
+      if (prop_list_.size() != polymerases_.size()) {
+        throw std::runtime_error("Prop list not correct size.");
+      }
+      if ((pol->stop() - start_) >= weights_.size()) {
+        throw std::runtime_error("Weights vector index is invalid.");
+      }
+      if (pol_index >= prop_list_.size()) {
+        throw std::runtime_error("Prop list vector index is invalid.");
+      }
+
       double weight = weights_[pol->stop() - start_];
       double new_speed = weight * pol->speed();
+      // std::cout << std::to_string(pol->speed());
       double diff = new_speed - prop_list_[pol_index];
       prop_sum_ += diff;
       prop_list_[pol_index] = new_speed;
       pol->move_signal_.Emit();
+      prop_list_sum = 0;
+      for (auto &n : prop_list_) {
+        prop_list_sum += n;
+      }
+      if (prop_list_sum != prop_sum_) {
+        throw std::runtime_error(
+            "Just moved! Prop sum and list not equal " +
+            std::to_string(prop_list_sum) + " " + std::to_string(prop_sum_) +
+            " " + std::to_string(diff) + " " + std::to_string(new_speed) + " " +
+            std::to_string(weight));
+      }
     }
   }
 }
@@ -250,7 +310,7 @@ void Polymer::UncoverElements(Polymerase::Ptr pol) {
   }
 }
 
-void Polymer::RecoverElements(Polymerase::Ptr pol) {
+bool Polymer::RecoverElements(Polymerase::Ptr pol) {
   int old_index = pol->left_most_element();
   if (old_index < 0) {
     std::string err = "`left_most_element` for polymerase " + pol->name() +
@@ -282,6 +342,7 @@ void Polymer::RecoverElements(Polymerase::Ptr pol) {
       break;
     }
   }
+  return terminating;
 }
 
 bool Polymer::ResolveTermination(Polymerase::Ptr pol, Element::Ptr element) {
@@ -301,6 +362,10 @@ bool Polymer::ResolveTermination(Polymerase::Ptr pol, Element::Ptr element) {
     }
     double random_num = Random::random();
     if (random_num <= term->efficiency(pol->name())) {
+      if (PolymeraseIndex(pol) >= prop_list_.size()) {
+        throw std::runtime_error(
+            "Prop list vector index is invalid (before termination).");
+      }
       Terminate(pol, term->gene());
       return true;
     } else {

@@ -99,7 +99,7 @@ elements:
 - name: gene 1.3
   rbs: -30
   start: 6448
-  stop: 7585
+  stop: 7588
   type: transcript
 - interactions:
     ecolipol:
@@ -40442,7 +40442,7 @@ reactions:
 - name: ecoli_transcripts
   products:
   - bound_ribosome
-  propensity: 1e7
+  propensity: 1e6
   reactants:
   - ecoli_transcript
   - ribosome
