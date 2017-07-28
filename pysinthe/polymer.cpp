@@ -367,6 +367,7 @@ bool Polymer::ResolveTermination(Polymerase::Ptr pol, Element::Ptr element) {
             "Prop list vector index is invalid (before termination).");
       }
       // Fire Emit signal until entire terminator is uncovered
+      // TODO: put more thought into these kinds of off-by-one problems
       int dist = term->stop() - pol->stop() + 1;
       for (int i = 0; i < dist; i++) {
         pol->move_signal_.Emit();
