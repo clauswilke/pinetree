@@ -9,7 +9,17 @@
 namespace py = pybind11;
 
 PYBIND11_PLUGIN(core) {
-  py::module m("core", "pybind11 example plugin");
+  py::module m("core", R"doc(
+    Python module
+    -----------------------
+    .. currentmodule:: pysinthe.core
+    .. autosummary::
+        :toctree: _generate
+
+        Simulation
+        Reaction
+        SpeciesReaction
+  )doc");
 
   m.def("seed", &Random::seed, "set a global seed for the simulation");
 

@@ -22,6 +22,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# documentation
+docs/_build
+docs/_generate
+
 # C extensions and build crap
 *.so
 .rendered.*

@@ -51,11 +51,11 @@ public:
   /**
    * The only constructor of SpeciesReaction.
    *
-   * @param tracker pointer to SpeciesTracker object
    * @param rate_constant mesoscopic rate constant (this is different, but
    *  similar in concept, to rate constants used in ODE models)
    * @param reactants vector of reactant names
    * @param products vector of product names
+   * @param volume the volume in which these reactions will occur
    *
    * TODO: Change SpeciesTracker be a static class instead of passing it to
    * constructor?
