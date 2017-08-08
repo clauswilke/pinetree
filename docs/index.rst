@@ -1,14 +1,25 @@
 Pysinthe: A gene expression simulator
-=====================================================
+=====================================
 
-Contents:
+Pysinthe is a stochastic gene expression simulator that tracks polymerases
+and ribosomes at the single-molecule level. It also supports codon-specific specific translation rates. 
+
+.. toctree:: 
+   :caption: User Documentation
+
+   intro
+   parameters
+   output
+   multiple_runs
+   faq
 
 .. toctree::
-   :maxdepth: 2
+   :caption: Developer Documentation
+   
+   python_ref
+   cpp_ref
 
-   python_code
 
-   cpp_code
 
 Indices and tables
 ==================

@@ -1,4 +1,4 @@
-C++ code
-===================
+C++ reference
+=============
 
 .. doxygenfile:: choices.hpp 

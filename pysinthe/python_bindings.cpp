@@ -13,22 +13,17 @@ PYBIND11_PLUGIN(core) {
     Python module
     -----------------------
     .. currentmodule:: pysinthe.core
-    .. autosummary::
-        :toctree: _generate
-
-        Simulation
-        Reaction
-        SpeciesReaction
   )doc");
 
-  m.def("seed", &Random::seed, "set a global seed for the simulation");
+  m.def("seed", &Random::seed, "Set a global seed for the simulation.");
 
   py::class_<SpeciesTracker>(m, "SpeciesTracker")
       .def("get_instance", SpeciesTracker::Instance,
            py::return_value_policy::reference)
       .def("increment", &SpeciesTracker::Increment);
 
-  py::class_<Simulation, std::shared_ptr<Simulation>>(m, "Simulation")
+  py::class_<Simulation, std::shared_ptr<Simulation>>(
+      m, "Simulation", "Set up and run a gene expression simulation.")
       .def(py::init<>())
       .def_property("stop_time",
                     (double (Simulation::*)()) & Simulation::stop_time,
@@ -45,9 +40,10 @@ PYBIND11_PLUGIN(core) {
 
   // Binding for abtract Reaction so pybind11 doesn't complain when doing
   // conversions between Reaction and its child classes
-  py::class_<Reaction, Reaction::Ptr>(m, "Reaction");
-  py::class_<SpeciesReaction, Reaction, SpeciesReaction::Ptr>(m,
-                                                              "SpeciesReaction")
+  py::class_<Reaction, Reaction::Ptr>(
+      m, "Reaction", "A generic Reaction designed to be extended.");
+  py::class_<SpeciesReaction, Reaction, SpeciesReaction::Ptr>(
+      m, "SpeciesReaction", "Define a species-level reaction.")
       .def(py::init<double, double, const std::vector<std::string> &,
                     const std::vector<std::string> &>());
   py::class_<Bind, Reaction, std::shared_ptr<Bind>>(m, "Bind").def(
