@@ -23,8 +23,7 @@ __pycache__/
 *$py.class
 
 # documentation
-docs/_build
-docs/_generate
+docs/_*
 
 # C extensions and build crap
 *.so

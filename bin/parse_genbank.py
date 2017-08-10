@@ -354,11 +354,11 @@ for record in records:
                 if aa_index < len(aa_seq):
                     if aa_seq[aa_index] in opt_codons_E_coli:
                         if codon in opt_codons_E_coli[aa_seq[aa_index]]:
-                            translation_scale_factors[genome_index] = 1.5
+                            translation_scale_factors[genome_index] = 2.0
                         else:
-                            translation_scale_factors[genome_index] = 0.5
+                            translation_scale_factors[genome_index] = 0.1
                 if feature.qualifiers["protein_id"][0] == 'NP_041998.1':
-                    translation_scale_factors[genome_index] = 0.5
+                    translation_scale_factors[genome_index] = 0.1
 
 output["genome"]["translation_weights"] = translation_scale_factors
 output["genome"]["length"] = len(record.seq) + 1
