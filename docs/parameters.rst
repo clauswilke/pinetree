@@ -11,13 +11,13 @@ simulation
 Defines basic global parameters for the simulation.
 
 ``seed``
-    seed for the random number generator
+    Seed for the random number generator
 ``runtime``
-    simulated runtime in seconds
+    Simulated runtime in seconds
 ``time_step``
-    time step, in seconds, in which to report output
+    Time step, in seconds, in which to report output
 ``cell_volume``
-    volume of cell, in liters, in which reactions will take place
+    Volume of cell, in liters, in which reactions will take place
 
 *Example* ::
 
@@ -33,13 +33,13 @@ polymerases
 Defines a list of different polymerases in the simulation. Each type of polymerase should define the following fields:
 
 ``name``
-    name of the polymerase which can be referred to in ``reactions`` and ``elements``
+    Name of the polymerase which can be referred to in ``reactions`` and ``elements``
 ``copy_number``
-    the initial number of copies of the polymerase
+    Initial number of copies of the polymerase
 ``speed``
-    the speed, in base pairs per second, at which the polymerase transcribes
+    Speed, in base pairs per second, at which the polymerase transcribes
 ``footprint`` 
-    the footprint, in base pairs, of the polymerase on the genome
+    Footprint, in base pairs, of the polymerase on the genome
 
 *Example* ::
 
@@ -60,15 +60,15 @@ ribosomes
 Defines the ribosomes in the simulation. Each type of ribosome should define the following fields:
 
 ``name``
-    name of ribosome which can be referred to in ``reactions``
+    Name of ribosome which can be referred to in ``reactions``
 ``copy_number``
-    the initial number of copies of the ribosome
+    Initial number of copies of the ribosome
 ``speed``
-    the default speed, in base pairs per second, at which the ribosome translates transcripts into proteins; this value may be scaled if codon-specific translation rates are provided
+    Default speed, in base pairs per second, at which the ribosome translates transcripts into proteins. This value may be scaled if codon-specific translation weights are provided (see genome section below).
 ``footprint``
-    the footprint, in base pairs, of the ribosome on a transcript
+    Footprint, in base pairs, of the ribosome on a transcript
 ``binding_constant``
-    the binding constant, in **units**, of all ribosome-to-ribosome-binding-site interactions
+    Binding constant, in **units**, of all ribosome-to-ribosome-binding-site interactions.
 
 *Example* ::
 
@@ -82,8 +82,37 @@ Defines the ribosomes in the simulation. Each type of ribosome should define the
 species
 -------
 
+Defines individual chemical species not specified by either ``ribosomes`` or ``polymerases``. Each species should define the following fields:
+
+``name``
+    Name of chemical species which can be referred to in ``reactions``
+``copy_number``
+    Initial number of copies of the chemical species
+
+*Example* ::
+
+    species:
+    - name: my_species
+      copy_number: 10000
+    - name: my_other_species
+      copy_number: 1800    
+
 reactions
 ---------
+
+Defines reactions between species, which may also include ribosomes and polymerases.
+
+``name``
+    Name of the reaction
+``propensity``
+    Macroscopic rate constant of the reaction. This will be converted into a stochastic mesoscopic rate constant automatically.
+``reactants``
+    List of reactants, which may be species, ribosomes, or polymerases
+``products``
+    List of products which may be species, ribosomes, or polymerases
+
+.. note::
+   Reaction rate constants should be given as macroscopic rate constants, the same constants used in differential equation-based models. The simulation will automatically convert these rate constants to mesoscopic constants required for a stochastic simulation.
 
 genome
 ------
@@ -91,15 +120,19 @@ genome
 Defines basic parameters of the genome.
 
 ``name``
-    name of genome
+    Name of genome
 ``copy_number``
-    initial number of copies of the genome (*values other than 1 are not currently supported*)
+    Initial number of copies of the genome (*values other than 1 are not currently supported*)
+``translation_weights``
+    List of weights specified *per nucleotide*. Each weight is multiplied by the ribosome speed (defined above) to determine how quickly the ribosome moves across a given base. These weights are used to simulated codon-specific translation rates.
 
 *Example* ::
 
     genome:
         name: my_plasmid
         copy_number: 1
+        translation_weights: [0.5, 0.5, 0.5, 1.2, 1.2, 1.2]
+
 
 elements
 --------
@@ -107,7 +140,7 @@ elements
 Defines all genomic elements in the simulation, including promoters, terminators, and transcripts. `elements` defines a list of these elements, and each element will include a `type`, `name`, `start`, and `stop` fields.
 
 ``name``
-    name of the genomic element
+    Name of the genomic element
 
 ``type``
     There are three supported types:
@@ -117,13 +150,13 @@ Defines all genomic elements in the simulation, including promoters, terminators
     - ``transcript``: a gene, which will be transcribed and translated into a protein
 
 ``start``
-    start position of element, in genomic coordinates
+    Start position of element, in genomic coordinates
 
 ``stop``
-    stop position of element, in genomic coordinates
+    Stop position of element, in genomic coordinates
 
 .. note::
-   All elements can overlap with one another, so define your elements carefully. For example, if you define two overlapping elements in the same reading frame (determined from the start position), the downstream element may not be transcribed completely.
+   All elements can overlap with one another, so define your elements carefully. For example, if you define two overlapping elements in the same reading frame (which is automatically determined from the start position), the downstream element may not be transcribed completely.
 
 
 Each of the three element types several additional required fields:
