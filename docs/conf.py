@@ -41,6 +41,7 @@ extensions = [
 ]
 
 autosummary_generate = True
+autoclass_content = "both"
 
 breathe_projects = { "pysinthe": "_build/doxygenxml/" }
 breathe_default_project = "pysinthe"
