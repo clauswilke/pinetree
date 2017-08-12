@@ -13,7 +13,7 @@ class MainTest(unittest.TestCase):
     
     def run_test(self, prefix):
         out_prefix = self.tempdir.name + "/" + prefix
-        subprocess.call(['bin/pysinthe-run', 
+        subprocess.call(['bin/pinetree_run.py', 
                          'tests/params/' + prefix + '.yml', 
                          '-o', out_prefix])
 

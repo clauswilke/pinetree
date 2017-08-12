@@ -2,7 +2,7 @@
 
 import argparse
 
-from pysinthe.parser import Parser
+from pinetree.parser import Parser
 
 def run(params_file, outfile, seed):
     """

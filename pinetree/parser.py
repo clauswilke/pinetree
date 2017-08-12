@@ -3,10 +3,7 @@
 import yaml
 from voluptuous import Schema, Optional, Any, All, Range, Length, Coerce
 
-from .core import Promoter, Terminator, Polymerase
-from .core import Genome, Mask
-from .core import Reaction, Simulation, SpeciesReaction, Bind, SpeciesTracker
-from .core import seed
+from .pinetree import Promoter, Terminator, Polymerase, Genome, Mask, Reaction, Simulation, SpeciesReaction, Bind, SpeciesTracker, seed
 
 class Parser:
     """

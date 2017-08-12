@@ -8,8 +8,8 @@
 
 namespace py = pybind11;
 
-PYBIND11_PLUGIN(core) {
-  py::module m("core", R"doc(
+PYBIND11_PLUGIN(pinetree) {
+  py::module m("pinetree", R"doc(
     Python module
     -----------------------
     .. currentmodule:: pysinthe.core

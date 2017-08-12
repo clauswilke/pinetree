@@ -1,3 +1,4 @@
+#! /usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import os
@@ -93,20 +94,20 @@ with open('LICENSE') as f:
     license = f.read()
 
 setup(
-    name='pysinthe',
-    version='0.1.0',
+    name='pinetree',
+    version='0.0.1',
     description='a stochastic simulation of gene expression',
     long_description=readme,
     author='Benjamin Jack',
     author_email='benjamin.r.jack@gmail.com',
     url='https://github.com/benjaminjack/pysinthe',
     license=license,
-    packages=['pysinthe'],
-    ext_modules=[CMakeExtension('pysinthe.core')],
+    packages=['pinetree'],
+    ext_modules=[CMakeExtension('pinetree/pinetree')],
     cmdclass=dict(build_ext=CMakeBuild,
                   test=CatchTestCommand),
     zip_safe=False,
-    scripts = ['bin/pysinthe_run.py', 
-               'bin/pysinthe_batch.py', 
+    scripts = ['bin/pinetree_run.py', 
+               'bin/pinetree_batch.py', 
                'bin/parse_genbank.py']
 )
