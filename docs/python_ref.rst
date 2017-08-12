@@ -5,7 +5,7 @@ Python reference
 
     This is an incomplete reference for the python pysinthe interface.
 
-.. currentmodule:: pysinthe.core
+.. currentmodule:: pinetree.pinetree
 
 .. autoclass:: Simulation
     :members:

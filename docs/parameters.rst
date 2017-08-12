@@ -156,6 +156,9 @@ Defines all genomic elements in the simulation, including promoters, terminators
     Stop position of element, in genomic coordinates
 
 .. note::
+   All genomic coordinates are *inclusive*.
+   
+.. warning::
    All elements can overlap with one another, so define your elements carefully. For example, if you define two overlapping elements in the same reading frame (which is automatically determined from the start position), the downstream element may not be transcribed completely.
 
 
