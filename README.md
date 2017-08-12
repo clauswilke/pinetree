@@ -1,2 +1,2 @@
-# pysinthe
-Hybrid agent-based simulation of transcription, translation, and any generic polymerization reaction.
+# pinetree
+A flexible gene expression simulator with codon-specific translation rates.
