@@ -230,7 +230,7 @@ class Parser:
             rbs.gene = element["name"]
             elements.append(rbs)
             stop_site = Terminator("tstop",
-                                    element["stop"]-1,
+                                    element["stop"],
                                     element["stop"],
                                     ["ribosome"],
                                     {"ribosome": 1.0})
