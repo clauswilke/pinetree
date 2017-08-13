@@ -189,7 +189,7 @@ void Polymer::Insert(Polymerase::Ptr pol) {
 }
 
 int Polymer::Choose() {
-  double prop_list_sum;
+  double prop_list_sum = 0;
   for (auto &n : prop_list_) {
     prop_list_sum += n;
   }
