@@ -1,6 +1,8 @@
 Pinetree -- a flexible gene expression simulator with codon-specific translation rates
 ==============================================================================
 
+.. image:: pinetree-logo.svg
+
 Pinetree is a stochastic gene expression simulator that tracks polymerases
 and ribosomes at the single-molecule level. It includes nucleotide-resolution transcription and translation rates. This granularity allows users to simulate the effects of codon-usage bias and dinucleotide bias on gene expression. 
 

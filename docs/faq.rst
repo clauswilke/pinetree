@@ -10,3 +10,8 @@ How do I specify transcript degradation rates?
 ----------------------------------------------
 
 Pinetree does not currently support transcript degradation. Any transcript produced during a simulation never degrades.
+
+Where did the name come from?
+-----------------------------
+
+The name Pinetree is a reference to the "Christmas tree-like" electron micrographs of transcription and translation. Strands of mRNA transcripts branch out from the DNA, and each transcript is studded with ribosomes. This pattern looks like a Christmas tree.
