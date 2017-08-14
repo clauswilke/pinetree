@@ -170,7 +170,7 @@ class Parser:
                 for key, value in element["interactions"].items():
                     interactions[key] = value["efficiency"]
                 new_element = Terminator(element["name"],
-                                         element["start"],
+                                         element["start"]-1,
                                          element["stop"],
                                          list(element["interactions"].keys()), 
                                          interactions)
