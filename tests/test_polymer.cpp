@@ -116,7 +116,7 @@ TEST_CASE("Polymer methods", "[Polymer]") {
 
   SECTION("Moving polymerase") {
     // Shift mask back to expose promoter
-    Helper::ShiftMaskN(polymer, 10);
+    Helper::ShiftMaskN(polymer, 11);
     polymer->Bind(pol, "p1");
     // Make sure promoter is recorded as covered
     REQUIRE(polymer->uncovered("p1") == 0);
@@ -277,7 +277,7 @@ TEST_CASE("Variable translation rates", "[Polymer]") {
   std::vector<std::string> mask_interactions = {"ecolipol"};
   Mask mask = Mask("test_mask", 10, 100, mask_interactions);
 
-  std::vector<double> weights(101, 0.1);
+  std::vector<double> weights(100, 0.1);
   for (int i = 0; i < 50; i++) {
     weights[i] = 2.0;
   }

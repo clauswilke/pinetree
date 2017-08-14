@@ -8,7 +8,7 @@ Polymer::Polymer(const std::string &name, int start, int stop,
                  const Element::VecPtr &elements, const Mask &mask)
     : index_(0), name_(name), start_(start), stop_(stop), elements_(elements),
       mask_(mask), prop_sum_(0) {
-  weights_ = std::vector<double>(stop - start + 2, 1.0);
+  weights_ = std::vector<double>(stop - start + 1, 1.0);
 }
 
 Polymer::Polymer(const std::string &name, int start, int stop,
@@ -16,10 +16,10 @@ Polymer::Polymer(const std::string &name, int start, int stop,
                  const std::vector<double> &weights)
     : index_(0), name_(name), start_(start), stop_(stop), elements_(elements),
       mask_(mask), weights_(weights), prop_sum_(0) {
-  if (weights_.size() != (stop_ - start_ + 2)) {
+  if (weights_.size() != (stop_ - start_ + 1)) {
     throw std::length_error("Weights vector is not the correct size. " +
                             std::to_string(weights.size()) + " " +
-                            std::to_string(stop_ - start_ + 2));
+                            std::to_string(stop_ - start_ + 1));
   }
 }
 
@@ -80,7 +80,7 @@ void Polymer::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
   auto it = std::find(elements_.begin(), elements_.end(), elem);
   pol->set_left_most_element(it - elements_.begin());
   // More error checking.
-  if (pol->stop() > mask_.start()) {
+  if (pol->stop() >= mask_.start()) {
     std::string err = "Polymerase " + pol->name() +
                       " will overlap with mask upon promoter binding. This may "
                       "cause the polymerase to stall and produce unexpected "
@@ -111,7 +111,7 @@ void Polymer::Execute() {
 }
 
 void Polymer::ShiftMask() {
-  if (mask_.start() >= mask_.stop()) {
+  if (mask_.start() > mask_.stop()) {
     return;
   }
   int index = -1;
@@ -179,7 +179,7 @@ void Polymer::Insert(Polymerase::Ptr pol) {
   // Add polymerase to this polymer
   polymerases_.insert(it, pol);
   // Cache polymerase speed
-  double weight = weights_[pol->stop() - start_];
+  double weight = weights_[pol->stop() - start_ - 1];
   // Update total move propensity of this polymer
   prop_sum_ += weight * pol->speed();
   prop_list_.insert(prop_it, weight * pol->speed());
@@ -247,7 +247,7 @@ void Polymer::Move(int pol_index) {
       Terminate(pol, std::to_string(stop_));
     } else {
       // Update propensity for new codon
-      if ((pol->stop() - start_) >= weights_.size()) {
+      if ((pol->stop() - start_ - 1) >= weights_.size()) {
         throw std::runtime_error("Weight is missing for this position.");
       }
 
@@ -269,7 +269,7 @@ void Polymer::Move(int pol_index) {
         throw std::runtime_error("Prop list vector index is invalid.");
       }
 
-      double weight = weights_[pol->stop() - start_];
+      double weight = weights_[pol->stop() - start_ - 1];
       double new_speed = weight * pol->speed();
       // std::cout << std::to_string(pol->speed());
       double diff = new_speed - prop_list_[pol_index];
@@ -367,7 +367,7 @@ bool Polymer::ResolveTermination(Polymerase::Ptr pol, Element::Ptr element) {
             "Prop list vector index is invalid (before termination).");
       }
       // Fire Emit signal until entire terminator is uncovered
-      // TODO: put more thought into these kinds of off-by-one problems
+      // Coordinates are inclusive, so must add 1 after calculating difference
       int dist = term->stop() - pol->stop() + 1;
       for (int i = 0; i < dist; i++) {
         pol->move_signal_.Emit();
@@ -387,7 +387,7 @@ bool Polymer::ResolveMaskCollisions(Polymerase::Ptr pol) {
     return false;
   }
   if (Intersect(*pol, mask_)) {
-    if (pol->stop() - mask_.start() > 1) {
+    if (pol->stop() - mask_.start() > 0) {
       std::string err =
           "Polymerase " + pol->name() +
           " is overlapping mask by more than one position on polymer";
@@ -407,7 +407,7 @@ bool Polymer::ResolveCollisions(Polymerase::Ptr pol) {
   bool collision = false;
   auto it = std::find(polymerases_.begin(), polymerases_.end(), pol);
   int index = it - polymerases_.begin();
-  if (index + 1 > polymerases_.size() - 1) {
+  if (index + 1 >= polymerases_.size()) {
     return collision;
   }
   // We only need to check the polymerase one position ahead of this polymerase
@@ -453,7 +453,7 @@ Genome::Genome(const std::string &name, int length,
                const Element::VecPtr &transcript_template, const Mask &mask)
     : Polymer(name, 1, length, elements, mask),
       transcript_template_(transcript_template) {
-  transcript_weights_ = std::vector<double>(length + 1, 1.0);
+  transcript_weights_ = std::vector<double>(length, 1.0);
   // Sort transcript template
   std::sort(transcript_template_.begin(), transcript_template_.end(),
             [](Element::Ptr elem1, Element::Ptr elem2) {
