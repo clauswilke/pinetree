@@ -19,6 +19,7 @@ set(CMAKE_CXX_STANDARD 11)
 # Tell Cmake that headers are also in source directory
 include_directories(${PROJECT_NAME})
 include_directories(tests)
+include_directories(lib/catch/include)
 
 # Pull in source and test files
 set(SOURCE_DIR "${CMAKE_SOURCE_DIR}/${PROJECT_NAME}")
