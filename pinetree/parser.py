@@ -170,7 +170,7 @@ class Parser:
                 for key, value in element["interactions"].items():
                     interactions[key] = value["efficiency"]
                 new_element = Terminator(element["name"],
-                                         element["start"]-1,
+                                         element["start"],
                                          element["stop"],
                                          list(element["interactions"].keys()), 
                                          interactions)
@@ -230,7 +230,7 @@ class Parser:
             rbs.gene = element["name"]
             elements.append(rbs)
             stop_site = Terminator("tstop",
-                                    element["stop"],
+                                    element["stop"]-1,
                                     element["stop"],
                                     ["ribosome"],
                                     {"ribosome": 1.0})
