@@ -189,15 +189,16 @@ void Polymer::Insert(Polymerase::Ptr pol) {
 }
 
 int Polymer::Choose() {
-  double prop_list_sum = 0;
-  for (auto &n : prop_list_) {
-    prop_list_sum += n;
-  }
-  if (prop_list_sum != prop_sum_) {
-    throw std::runtime_error("Prop sum and list not equal " +
-                             std::to_string(prop_list_sum) + " " +
-                             std::to_string(prop_sum_));
-  }
+  // Code to deal with propensity cache errors
+  // double prop_list_sum = 0;
+  // for (auto &n : prop_list_) {
+  //   prop_list_sum += n;
+  // }
+  // if (prop_list_sum != prop_sum_) {
+  //   throw std::runtime_error("Prop sum and list not equal " +
+  //                            std::to_string(prop_list_sum) + " " +
+  //                            std::to_string(prop_sum_));
+  // }
   if (prop_list_.size() == 0) {
     std::string err = "There are no active polymerases on polymer " + name_ +
                       std::to_string(prop_sum_);
@@ -251,23 +252,23 @@ void Polymer::Move(int pol_index) {
         throw std::runtime_error("Weight is missing for this position.");
       }
 
-      double prop_list_sum = 0;
-      for (auto &n : prop_list_) {
-        prop_list_sum += n;
-      }
-
+      // Code for debugging propensity cache problems
+      // double prop_list_sum = 0;
+      // for (auto &n : prop_list_) {
+      //   prop_list_sum += n;
+      // }
       // std::cout << "Just moved! Prop sum and list not equal " +
       //                  std::to_string(prop_list_sum) + " " +
       //                  std::to_string(prop_sum_);
-      if (prop_list_.size() != polymerases_.size()) {
-        throw std::runtime_error("Prop list not correct size.");
-      }
-      if ((pol->stop() - start_) >= weights_.size()) {
-        throw std::runtime_error("Weights vector index is invalid.");
-      }
-      if (pol_index >= prop_list_.size()) {
-        throw std::runtime_error("Prop list vector index is invalid.");
-      }
+      // if (prop_list_.size() != polymerases_.size()) {
+      //   throw std::runtime_error("Prop list not correct size.");
+      // }
+      // if ((pol->stop() - start_) >= weights_.size()) {
+      //   throw std::runtime_error("Weights vector index is invalid.");
+      // }
+      // if (pol_index >= prop_list_.size()) {
+      //   throw std::runtime_error("Prop list vector index is invalid.");
+      // }
 
       double weight = weights_[pol->stop() - start_ - 1];
       double new_speed = weight * pol->speed();
@@ -276,17 +277,19 @@ void Polymer::Move(int pol_index) {
       prop_sum_ += diff;
       prop_list_[pol_index] = new_speed;
       pol->move_signal_.Emit();
-      prop_list_sum = 0;
-      for (auto &n : prop_list_) {
-        prop_list_sum += n;
-      }
-      if (prop_list_sum != prop_sum_) {
-        throw std::runtime_error(
-            "Just moved! Prop sum and list not equal " +
-            std::to_string(prop_list_sum) + " " + std::to_string(prop_sum_) +
-            " " + std::to_string(diff) + " " + std::to_string(new_speed) + " " +
-            std::to_string(weight));
-      }
+      // Code for debugging propensity cache problems
+      // prop_list_sum = 0;
+      // for (auto &n : prop_list_) {
+      //   prop_list_sum += n;
+      // }
+      // if (prop_list_sum != prop_sum_) {
+      //   throw std::runtime_error(
+      //       "Just moved! Prop sum and list not equal " +
+      //       std::to_string(prop_list_sum) + " " + std::to_string(prop_sum_) +
+      //       " " + std::to_string(diff) + " " + std::to_string(new_speed) + "
+      //       " +
+      //       std::to_string(weight));
+      // }
     }
   }
 }
