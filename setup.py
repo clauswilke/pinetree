@@ -123,6 +123,7 @@ setup(
     url='https://github.com/benjaminjack/pysinthe',
     license=license,
     packages=['pinetree'],
+    install_requires=['pyaml'],
     ext_modules=[CMakeExtension('pinetree/pinetree')],
     cmdclass=dict(install_lib=CustomInstall,
                   build_ext=CMakeBuild,
