@@ -2,6 +2,6 @@ include README.md LICENSE
 global-include CMakeLists.txt *.cmake
 recursive-include pinetree *
 recursive-include tests *
-recursive-include lib/pybind11/include *.h
-recursive-include lib/catch/include *.hpp
+recursive-include lib/pybind11/include *
+recursive-include lib/catch/include *
 recursive-include lib/cmake.modules *
