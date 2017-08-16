@@ -82,7 +82,7 @@ class CatchTestCommand(TestCommand):
         # Run ctest
         # subprocess.call(['make', 'test'], cwd=os.path.join('build', self.distutils_dir_name('temp')))
 
-        subprocess.call(['build/pinetree_test'])
+        # subprocess.call(['build/pinetree_test'])
 
         print("\nC++ tests complete, now running Python tests...\n")
 
