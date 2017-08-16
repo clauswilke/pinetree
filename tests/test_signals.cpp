@@ -17,7 +17,7 @@ TEST_CASE("Signal connection and firing", "[Signals]") {
     bool fired = false;
     void display() {
       fired = true;
-      std::cout << "Hello World!" << std::endl;
+      // std::cout << "Hello World!" << std::endl;
     }
   };
 
