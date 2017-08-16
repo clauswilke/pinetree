@@ -10,6 +10,8 @@ import subprocess
 from setuptools import setup, find_packages, Extension
 from setuptools.command.build_ext import build_ext
 from setuptools.command.test import test as TestCommand
+from setuptools.command.install_lib import install_lib
+from setuptools.command.develop import develop
 from distutils.version import LooseVersion
 
 
@@ -60,7 +62,24 @@ class CMakeBuild(build_ext):
             os.makedirs(self.build_temp)
         subprocess.check_call(['cmake', ext.sourcedir] + cmake_args, cwd=self.build_temp, env=env)
         subprocess.check_call(['cmake', '--build', '.'] + build_args, cwd=self.build_temp)
-        subprocess.check_call(['mv',self.build_temp + '/pinetree_test','./build/'])
+        subprocess.check_call(['cp', './pinetree_test', '../pinetree_test'], cwd=self.build_temp)
+
+
+
+class CustomInstall(install_lib):
+    """Customized setuptools install command - prints a friendly greeting."""
+    def run(self):
+        print("Hello, developer, how are you? :)")
+        # print(self.get_inputs())
+        # print(self.install_scripts)
+        install_lib.run(self)
+
+class CustomDevelop(develop):
+    """Customized setuptools install command - prints a friendly greeting."""
+    def run(self):
+        print("Hello, developer, how are you? :)")
+        print(os.path.dirname(self.build_base))
+        develop.run(self)
 
 class CatchTestCommand(TestCommand):
 
@@ -82,12 +101,11 @@ class CatchTestCommand(TestCommand):
         # Run ctest
         # subprocess.call(['make', 'test'], cwd=os.path.join('build', self.distutils_dir_name('temp')))
 
-        # subprocess.call(['build/pinetree_test'])
-
+        subprocess.check_call(['pinetree_test'])
         print("\nC++ tests complete, now running Python tests...\n")
 
         # Run python unittest tests
-        subprocess.call([sys.executable, '-m', 'unittest', 'discover', '--start-directory', 'tests'])
+        subprocess.check_call([sys.executable, '-m', 'unittest', 'discover', '--start-directory', 'tests'])
 
 with open('README.md') as f:
     readme = f.read()
@@ -106,10 +124,12 @@ setup(
     license=license,
     packages=['pinetree'],
     ext_modules=[CMakeExtension('pinetree/pinetree')],
-    cmdclass=dict(build_ext=CMakeBuild,
+    cmdclass=dict(install_lib=CustomInstall,
+                  build_ext=CMakeBuild,
                   test=CatchTestCommand),
     zip_safe=False,
     scripts = ['bin/pinetree_run.py', 
                'bin/pinetree_batch.py', 
-               'bin/parse_genbank.py']
+               'bin/parse_genbank.py'],
+    data_files = [('bin', ['build/pinetree_test'])]
 )
