@@ -7,8 +7,8 @@
 # Clang format
 .clang-format
 
-# output from runs
-runs
+# test executable
+pinetree_test
 
 # tabasco params
 tabasco_params.pdf

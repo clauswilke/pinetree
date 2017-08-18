@@ -287,7 +287,7 @@ stop = 0
 
 for record in records:
 
-    translation_scale_factors = [1.0]*(len(record.seq)+2)
+    translation_scale_factors = [1.0]*len(record.seq)
 
     for feature in record.features:
         # print(feature)
@@ -354,13 +354,13 @@ for record in records:
                 if aa_index < len(aa_seq):
                     if aa_seq[aa_index] in opt_codons_E_coli:
                         if codon in opt_codons_E_coli[aa_seq[aa_index]]:
-                            translation_scale_factors[genome_index] = 2.0
+                            translation_scale_factors[genome_index] = 2.1
                         else:
-                            translation_scale_factors[genome_index] = 0.1
-                if feature.qualifiers["protein_id"][0] == 'NP_041998.1':
-                    translation_scale_factors[genome_index] = 0.1
+                            translation_scale_factors[genome_index] = 0.15
+                # if feature.qualifiers["protein_id"][0] == 'NP_041998.1':
+                #     translation_scale_factors[genome_index] = 0.15
 
-output["genome"]["translation_weights"] = translation_scale_factors
-output["genome"]["length"] = len(record.seq) + 1
+# output["genome"]["translation_weights"] = translation_scale_factors
+output["genome"]["length"] = len(record.seq)
 
 print(dump(output, default_flow_style=False))
