@@ -120,8 +120,7 @@ void Simulation::Run(const std::string &output_name) {
     if ((out_time - time_) < 0.001) {
       for (auto elem : tracker.species()) {
         countfile << (std::to_string(time_) + "\t" + elem.first + "\t" +
-                      std::to_string(elem.second))
-                  << std::endl;
+                      std::to_string(elem.second)) + "\n";
       }
       countfile.flush();
       for (auto elem : tracker.ribo_per_transcript()) {
@@ -130,8 +129,7 @@ void Simulation::Run(const std::string &output_name) {
         ribofile << (std::to_string(time_) + "\t" + elem.first + "\t" +
                      std::to_string(elem.second) + "\t" +
                      std::to_string(tracker.transcripts(elem.first)) + "\t" +
-                     std::to_string(density))
-                 << std::endl;
+                     std::to_string(density)) + "\n";
       }
       ribofile.flush();
       out_time += time_step_;
@@ -211,6 +209,9 @@ void Simulation::Execute() {
   double random_num = Random::random();
   // Calculate tau, i.e. time until next reaction
   double tau = (1.0 / alpha_sum_) * std::log(1.0 / random_num);
+  if (!std::isnormal(tau)) {
+    throw std::runtime_error("Underflow error.");
+  }
   time_ += tau;
   // Randomly select next reaction to execute, weighted by propensities
   auto next_reaction = Random::WeightedChoiceIndex(reactions_, alpha_list_);
