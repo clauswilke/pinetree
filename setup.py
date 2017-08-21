@@ -116,6 +116,5 @@ setup(
                   test=CatchTestCommand),
     zip_safe=False,
     scripts = ['bin/pinetree_run.py', 
-               'bin/pinetree_batch.py', 
-               'bin/parse_genbank.py']
+               'bin/pinetree_batch.py']
 )
