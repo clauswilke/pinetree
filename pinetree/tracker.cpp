@@ -11,6 +11,8 @@ void SpeciesTracker::Clear() {
   species_.clear();
   promoter_map_.clear();
   species_map_.clear();
+  transcripts_.clear();
+  ribo_per_transcript_.clear();
   propensity_signal_ = Signal<int>();
 }
 
@@ -110,3 +112,7 @@ int SpeciesTracker::species(const std::string &reactant) {
 int SpeciesTracker::transcripts(const std::string &transcript_name) {
   return transcripts_[transcript_name];
 }
+
+// int SpeciesTracker::ribo_per_transcript(const std::string &transcript_name) {
+//   return ribo_per_transcript_[transcript_name];
+// }

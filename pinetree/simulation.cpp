@@ -120,6 +120,24 @@ void Simulation::Run(const std::string &output_name) {
     Execute();
     if ((out_time - time_) < 0.001) {
       for (auto elem : tracker.species()) {
+        // std::string transcript_count = "NA";
+        // std::string ribo_count = "NA";
+        // std::string ribo_density = "NA";
+        // if (tracker.transcripts().find(elem.first) !=
+        //     tracker.transcripts().end()) {
+        //   transcript_count = std::to_string(tracker.transcripts(elem.first));
+        //   if (tracker.ribo_per_transcript().find(elem.first) !=
+        //       tracker.ribo_per_transcript().end()) {
+        //     // ribo_count =
+        //     //    std::to_string(tracker.ribo_per_transcript(elem.first));
+        //   } else {
+        //     ribo_count = "0";
+        //   }
+        // }
+
+        // countfile << (std::to_string(time_) + "\t" + elem.first + "\t" +
+        //               std::to_string(elem.second) + "\t" + transcript_count +
+        //               "\t" + ribo_count + "\n");
         countfile << (std::to_string(time_) + "\t" + elem.first + "\t" +
                       std::to_string(elem.second) + "\t" +
                       std::to_string(tracker.transcripts(elem.first)) + "\n");
