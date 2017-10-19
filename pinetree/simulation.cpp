@@ -113,6 +113,7 @@ void Simulation::Run(const std::string &output_name) {
   }
   // Set up file output streams
   std::ofstream countfile(output_name + "_counts.tsv", std::ios::trunc);
+  countfile << "time\tgene\tprotein\n";
   std::ofstream ribofile(output_name + "_density.tsv", std::ios::trunc);
   int out_time = 0;
   while (time_ < stop_time_) {
@@ -120,7 +121,8 @@ void Simulation::Run(const std::string &output_name) {
     if ((out_time - time_) < 0.001) {
       for (auto elem : tracker.species()) {
         countfile << (std::to_string(time_) + "\t" + elem.first + "\t" +
-                      std::to_string(elem.second)) + "\n";
+                      std::to_string(elem.second)) +
+                         "\n";
       }
       countfile.flush();
       for (auto elem : tracker.ribo_per_transcript()) {
@@ -129,7 +131,8 @@ void Simulation::Run(const std::string &output_name) {
         ribofile << (std::to_string(time_) + "\t" + elem.first + "\t" +
                      std::to_string(elem.second) + "\t" +
                      std::to_string(tracker.transcripts(elem.first)) + "\t" +
-                     std::to_string(density)) + "\n";
+                     std::to_string(density)) +
+                        "\n";
       }
       ribofile.flush();
       out_time += time_step_;
