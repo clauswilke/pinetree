@@ -207,7 +207,7 @@ void Simulation::UpdatePropensity(int index) {
 
 void Simulation::Execute() {
   // Generate random number
-  if (alpha_sum_ == 0) {
+  if (alpha_sum_ <= 0) {
     throw std::runtime_error("Propensity of system is 0.");
   }
   // InitPropensity();
