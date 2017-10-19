@@ -93,9 +93,9 @@ public:
    */
   int species(const std::string &reactant);
   int transcripts(const std::string &transcript_name);
-  // int ribo_per_transcript(const std::string &transcript_name);
+  int ribo_per_transcript(const std::string &transcript_name);
   const std::map<std::string, int> &species() { return species_; }
-  // const std::map<std::string, int> &transcripts() { return transcripts_; }
+  const std::map<std::string, int> &transcripts() { return transcripts_; }
   const std::map<std::string, int> &ribo_per_transcript() {
     return ribo_per_transcript_;
   }

@@ -13,7 +13,7 @@ void SpeciesTracker::Clear() {
   species_map_.clear();
   transcripts_.clear();
   ribo_per_transcript_.clear();
-  propensity_signal_ = Signal<int>();
+  propensity_signal_.DisconnectAll();
 }
 
 void SpeciesTracker::Register(SpeciesReaction::Ptr reaction) {
@@ -113,6 +113,6 @@ int SpeciesTracker::transcripts(const std::string &transcript_name) {
   return transcripts_[transcript_name];
 }
 
-// int SpeciesTracker::ribo_per_transcript(const std::string &transcript_name) {
-//   return ribo_per_transcript_[transcript_name];
-// }
+int SpeciesTracker::ribo_per_transcript(const std::string &transcript_name) {
+  return ribo_per_transcript_[transcript_name];
+}
