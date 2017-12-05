@@ -115,27 +115,51 @@ void Simulation::Run(const std::string &output_name) {
   std::ofstream countfile(output_name + "_counts.tsv", std::ios::trunc);
   countfile << "time\tspecies\tcount\ttranscript\tribo_density\n";
   int out_time = 0;
+  std::map<std::string, std::vector<double>> output;
   while (time_ < stop_time_) {
     if ((out_time - time_) < 0.001) {
       for (auto elem : tracker.species()) {
-        std::string transcript_count = "NA";
-        double ribo_count = 0;
-        std::string ribo_density = "NA";
-        if (tracker.transcripts().find(elem.first) !=
-            tracker.transcripts().end()) {
-          transcript_count = std::to_string(tracker.transcripts(elem.first));
-          if (tracker.ribo_per_transcript().find(elem.first) !=
-              tracker.ribo_per_transcript().end()) {
-            ribo_count = double(tracker.ribo_per_transcript(elem.first));
-          }
-          ribo_density = std::to_string(
-              double(ribo_count) / double(tracker.transcripts(elem.first)));
-        }
-
-        countfile << (std::to_string(time_) + "\t" + elem.first + "\t" +
-                      std::to_string(elem.second) + "\t" + transcript_count +
-                      "\t" + ribo_density + "\n");
+        output[elem.first].push_back(elem.second);
+        output[elem.first].push_back(0);
+        output[elem.first].push_back(0);
       }
+      for (auto transcript: tracker.transcripts()) {
+        if (output[transcript.first].size() == 3) {
+          output[transcript.first][1] = transcript.second;
+        } else {
+          output[transcript.first].push_back(0);
+          output[transcript.first].push_back(transcript.second);
+          output[transcript.first].push_back(0);
+        }
+        if (tracker.ribo_per_transcript().find(transcript.first) !=
+            tracker.ribo_per_transcript().end()) {
+          output[transcript.first][2] = double(tracker.ribo_per_transcript(transcript.first))/double(output[transcript.first][1]);
+        }
+      }
+      for (auto row : output) {
+        countfile << (std::to_string(time_) + "\t" + row.first + "\t" +
+                      std::to_string(row.second[0]) + "\t" + 
+                      std::to_string(row.second[1]) +
+                      "\t" + std::to_string(row.second[2]) + "\n");
+      }
+      output.clear();
+        // std::string transcript_count = "NA";
+        // double ribo_count = 0;
+        // std::string ribo_density = "NA";
+        // if (tracker.transcripts().find(elem.first) !=
+        //     tracker.transcripts().end()) {
+        //   transcript_count = std::to_string(tracker.transcripts(elem.first));
+        //   if (tracker.ribo_per_transcript().find(elem.first) !=
+        //       tracker.ribo_per_transcript().end()) {
+        //     ribo_count = double(tracker.ribo_per_transcript(elem.first));
+        //   }
+        //   ribo_density = std::to_string(
+        //       double(ribo_count) / double(tracker.transcripts(elem.first)));
+        // }
+
+        // countfile << (std::to_string(time_) + "\t" + elem.first + "\t" +
+        //               std::to_string(elem.second) + "\t" + transcript_count +
+        //               "\t" + ribo_density + "\n");
       countfile.flush();
       out_time += time_step_;
     }

@@ -57,8 +57,6 @@ public:
    * @param products vector of product names
    * @param volume the volume in which these reactions will occur
    *
-   * TODO: Change SpeciesTracker be a static class instead of passing it to
-   * constructor?
    */
   SpeciesReaction(double rate_constant, double volume,
                   const std::vector<std::string> &reactants,
