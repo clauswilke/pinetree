@@ -1,6 +1,6 @@
 /* Copyright (c) 2017 Benjamin Jack All Rights Reserved. */
 
-#ifndef SRC_SIMULATION_HPP // header guard
+#ifndef SRC_SIMULATION_HPP  // header guard
 #define SRC_SIMULATION_HPP
 
 #include <memory>
@@ -12,7 +12,7 @@
  * concept taken directly from the Gillepsie Algorithm.
  */
 class Reaction : public std::enable_shared_from_this<Reaction> {
-public:
+ public:
   /**
    * Some convenience typedefs.
    */
@@ -35,7 +35,7 @@ public:
   void index(int index) { index_ = index; }
   void virtual InitCounts() {}
 
-protected:
+ protected:
   /**
    * The index of this reaction in the reaction list maintained by Simulation.
    */
@@ -47,7 +47,7 @@ protected:
  * fewer reactants.
  */
 class SpeciesReaction : public Reaction {
-public:
+ public:
   /**
    * The only constructor of SpeciesReaction.
    *
@@ -82,7 +82,7 @@ public:
   const std::vector<std::string> &products() const { return products_; }
   void InitCounts();
 
-private:
+ private:
   /**
    * Rate constant of reaction.
    */
@@ -101,7 +101,7 @@ private:
  * Bind a polymerase to a polymer.
  */
 class Bind : public Reaction {
-public:
+ public:
   /**
    * The only constructor of Bind.
    *
@@ -125,7 +125,7 @@ public:
   void Execute();
   void InitCounts();
 
-private:
+ private:
   /**
    * Rate constant of this reaction.
    */
@@ -149,7 +149,7 @@ private:
  * processing.
  */
 class Bridge : public Reaction {
-public:
+ public:
   /**
    * Only constructor for Bridge.
    *
@@ -169,7 +169,7 @@ public:
    */
   void Execute() { polymer_->Execute(); }
 
-private:
+ private:
   /**
    * Pointer to polymer object that this reaction encapsulates.
    */
@@ -180,7 +180,7 @@ private:
  * Coordinate polymers and species-level reactions.
  */
 class Simulation : public std::enable_shared_from_this<Simulation> {
-public:
+ public:
   Simulation();
   /**
    * Run the simulation until the given time point and write output to a file.
@@ -196,11 +196,21 @@ public:
   void RegisterReaction(Reaction::Ptr reaction);
   /**
    * Add species to simulation.
-   * 
+   *
    * @param name species name
    * @param copy_number copy number of species
    */
   void AddSpecies(const std::string &name, int copy_number);
+  /**
+   * Add a genome to the list of reactions.
+   *
+   * @param genome pointer to Genome object
+   */
+  void AddGenome(const std::string &name, int genome_length,
+                 const Element::VecPtr &dna_elements,
+                 const Element::VecPtr &transcript_template,
+                 const std::tuple<int, int> &mask,
+                 const std::vector<std::string> &mask_interactions);
   /**
    * Add a generic polymer to the list of reactions.
    *
@@ -263,12 +273,12 @@ public:
   void TerminateTranscription(int polymer_index, const std::string &pol_name,
                               const std::string &gene_name);
   /**
-  * Update propensities and species counts after translation has terminated.
-  *
-  * @param polymer_index index of transcript in reaction list
-  * @param pol_name name of ribosome completing transcription
-  * @param protein_name name of newly-synthesized protein
-  */
+   * Update propensities and species counts after translation has terminated.
+   *
+   * @param polymer_index index of transcript in reaction list
+   * @param pol_name name of ribosome completing transcription
+   * @param protein_name name of newly-synthesized protein
+   */
   void TerminateTranslation(int polymer_index, const std::string &pol_name,
                             const std::string &protein_name);
   /**
@@ -287,7 +297,7 @@ public:
   double time_step() { return time_step_; }
   double alpha_sum() { return alpha_sum_; }
 
-private:
+ private:
   /**
    * Current simulation time.
    */
@@ -322,4 +332,4 @@ private:
   std::map<std::string, int> terminations_;
 };
 
-#endif // header guard
+#endif  // header guard

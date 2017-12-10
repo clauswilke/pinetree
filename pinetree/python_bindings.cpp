@@ -1,10 +1,10 @@
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 #include "choices.hpp"
 #include "feature.hpp"
 #include "polymer.hpp"
 #include "simulation.hpp"
 #include "tracker.hpp"
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
 
 namespace py = pybind11;
 
@@ -37,6 +37,7 @@ PYBIND11_PLUGIN(pinetree) {
            "register a species-level reaction")
       .def("register_genome", &Simulation::RegisterGenome, "register a genome")
       .def("add_species", &Simulation::AddSpecies, "add species")
+      .def("add_genome", &Simulation::AddGenome, "add a genome")
       .def("run", &Simulation::Run, "run the simulation");
 
   // Binding for abtract Reaction so pybind11 doesn't complain when doing

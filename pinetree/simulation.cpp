@@ -12,12 +12,14 @@ const static double AVAGADRO = double(6.0221409e+23);
 SpeciesReaction::SpeciesReaction(double rate_constant, double volume,
                                  const std::vector<std::string> &reactants,
                                  const std::vector<std::string> &products)
-    : rate_constant_(rate_constant), reactants_(reactants),
+    : rate_constant_(rate_constant),
+      reactants_(reactants),
       products_(products) {
   // Error checking
   if (reactants_.size() > 2) {
-    throw std::runtime_error("Simulation does not support reactions with "
-                             "more than two reactant species.");
+    throw std::runtime_error(
+        "Simulation does not support reactions with "
+        "more than two reactant species.");
   }
   if (volume <= 0) {
     throw std::runtime_error("Reaction volume cannot be zero.");
@@ -61,8 +63,10 @@ void SpeciesReaction::Execute() {
 
 Bind::Bind(double rate_constant, double volume,
            const std::string &promoter_name, const Polymerase &pol_template)
-    : rate_constant_(rate_constant), promoter_name_(promoter_name),
-      pol_name_(pol_template.name()), pol_template_(pol_template) {
+    : rate_constant_(rate_constant),
+      promoter_name_(promoter_name),
+      pol_name_(pol_template.name()),
+      pol_template_(pol_template) {
   // Check volume
   if (volume <= 0) {
     throw std::runtime_error("Reaction volume cannot be zero.");
@@ -123,7 +127,7 @@ void Simulation::Run(const std::string &output_name) {
         output[elem.first].push_back(0);
         output[elem.first].push_back(0);
       }
-      for (auto transcript: tracker.transcripts()) {
+      for (auto transcript : tracker.transcripts()) {
         if (output[transcript.first].size() == 3) {
           output[transcript.first][1] = transcript.second;
         } else {
@@ -133,14 +137,16 @@ void Simulation::Run(const std::string &output_name) {
         }
         if (tracker.ribo_per_transcript().find(transcript.first) !=
             tracker.ribo_per_transcript().end()) {
-          output[transcript.first][2] = double(tracker.ribo_per_transcript(transcript.first))/double(output[transcript.first][1]);
+          output[transcript.first][2] =
+              double(tracker.ribo_per_transcript(transcript.first)) /
+              double(output[transcript.first][1]);
         }
       }
       for (auto row : output) {
         countfile << (std::to_string(time_) + "\t" + row.first + "\t" +
-                      std::to_string(row.second[0]) + "\t" + 
-                      std::to_string(row.second[1]) +
-                      "\t" + std::to_string(row.second[2]) + "\n");
+                      std::to_string(row.second[0]) + "\t" +
+                      std::to_string(row.second[1]) + "\t" +
+                      std::to_string(row.second[2]) + "\n");
       }
       output.clear();
       countfile.flush();
@@ -166,6 +172,22 @@ void Simulation::RegisterReaction(Reaction::Ptr reaction) {
 void Simulation::AddSpecies(const std::string &name, int copy_number) {
   auto &tracker = SpeciesTracker::Instance();
   tracker.Increment(name, copy_number);
+}
+
+void Simulation::AddGenome(const std::string &name, int genome_length,
+                           const Element::VecPtr &dna_elements,
+                           const Element::VecPtr &transcript_template,
+                           const std::tuple<int, int> &mask_coords,
+                           const std::vector<std::string> &mask_interactions) {
+  std::map<std::string, double> interactions;
+  for (auto partner : mask_interactions) {
+    interactions[partner] = 1.0;
+  }
+  auto mask = Mask("mask", std::get<0>(mask_coords), std::get<1>(mask_coords),
+                   interactions);
+  auto genome = std::make_shared<Genome>(name, genome_length, dna_elements,
+                                         transcript_template, mask);
+  RegisterGenome(genome);
 }
 
 void Simulation::RegisterPolymer(Polymer::Ptr polymer) {
