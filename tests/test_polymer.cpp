@@ -37,19 +37,24 @@ void EmitTranscript(const Transcript::Ptr &transcript) {
 }
 
 TEST_CASE("Polymer methods", "[Polymer]") {
-  std::vector<std::string> interactions = {"ecolipol", "rnapol"};
+  std::map<std::string, double> interactions {
+    {"ecolipol", 1.0}, 
+    {"rnapol", 1.0},
+  };
   Promoter::Ptr prom;
   Terminator::Ptr term;
   prom = std::make_shared<Promoter>("p1", 5, 15, interactions);
   std::map<std::string, double> efficiency;
   efficiency["ecolipol"] = 0.6;
   efficiency["rnapol"] = 1.0;
-  term = std::make_shared<Terminator>("t1", 50, 55, interactions, efficiency);
+  term = std::make_shared<Terminator>("t1", 50, 55, efficiency);
 
   std::vector<Element::Ptr> elements;
   elements.push_back(prom);
   elements.push_back(term);
-  std::vector<std::string> mask_interactions = {"ecolipol"};
+  std::map<std::string, double> mask_interactions {
+    {"ecolipol", 1.0}, 
+  };
   Mask mask = Mask("test_mask", 10, 100, mask_interactions);
 
   auto polymer =
@@ -162,7 +167,9 @@ TEST_CASE("Polymer methods", "[Polymer]") {
 }
 
 TEST_CASE("Polymer methods with multipromoter", "[Polymer]") {
-  std::vector<std::string> interactions = {"ecolipol"};
+  std::map<std::string, double> interactions {
+    {"ecolipol", 1.0}
+  };
   Promoter::Ptr prom1, prom2, prom3;
   Terminator::Ptr term;
   prom1 = std::make_shared<Promoter>("p1", 5, 15, interactions);
@@ -170,14 +177,16 @@ TEST_CASE("Polymer methods with multipromoter", "[Polymer]") {
   prom3 = std::make_shared<Promoter>("p3", 21, 30, interactions);
   std::map<std::string, double> efficiency;
   efficiency["ecolipol"] = 1.0;
-  term = std::make_shared<Terminator>("t1", 31, 33, interactions, efficiency);
+  term = std::make_shared<Terminator>("t1", 31, 33, efficiency);
 
   std::vector<Element::Ptr> elements;
   elements.push_back(prom1);
   elements.push_back(prom2);
   elements.push_back(prom3);
   elements.push_back(term);
-  std::vector<std::string> mask_interactions = {"ecolipol"};
+  std::map<std::string, double> mask_interactions {
+    {"ecolipol", 1.0}, 
+  };
   Mask mask = Mask("test_mask", 100, 100, mask_interactions);
 
   auto polymer =
@@ -206,32 +215,39 @@ TEST_CASE("Polymer methods with multipromoter", "[Polymer]") {
 TEST_CASE("Genome methods", "[Polymer]") {
   // Set up transcript template
   Element::VecPtr transcript_template;
-  std::vector<std::string> interactions = {"ribosome"};
+  std::map<std::string, double> interactions {
+    {"ribosome", 1.0}, 
+  };
   std::map<std::string, double> efficiency;
   efficiency["ribosome"] = 1.0;
   transcript_template.push_back(
       std::make_shared<Promoter>("rbs", 0, 10, interactions));
   transcript_template.push_back(
-      std::make_shared<Terminator>("stop", 209, 210, interactions, efficiency));
+      std::make_shared<Terminator>("stop", 209, 210, efficiency));
   transcript_template.push_back(
       std::make_shared<Promoter>("rbs", 215, 230, interactions));
   transcript_template.push_back(
-      std::make_shared<Terminator>("stop", 269, 270, interactions, efficiency));
+      std::make_shared<Terminator>("stop", 269, 270, efficiency));
   transcript_template.push_back(
       std::make_shared<Promoter>("rbs", 285, 300, interactions));
   transcript_template.push_back(
-      std::make_shared<Terminator>("stop", 599, 600, interactions, efficiency));
+      std::make_shared<Terminator>("stop", 599, 600, efficiency));
   // Set up genome
-  interactions = {"ecolipol", "rnapol"};
+  interactions = {
+    {"ecolipol", 1.0}, 
+    {"rnapol", 1.0},
+  };
   Promoter::Ptr prom;
   Terminator::Ptr term;
   prom = std::make_shared<Promoter>("p1", 5, 15, interactions);
   efficiency["ecolipol"] = 1.0;
-  term = std::make_shared<Terminator>("t1", 601, 605, interactions, efficiency);
+  term = std::make_shared<Terminator>("t1", 601, 605, efficiency);
   Element::VecPtr elements;
   elements.push_back(prom);
   elements.push_back(term);
-  std::vector<std::string> mask_interactions = {"ecolipol"};
+ std::map<std::string, double> mask_interactions {
+    {"ecolipol", 1.0}, 
+  };
   Mask mask = Mask("test_mask", 10, 700, mask_interactions);
   auto genome = std::make_shared<Genome>("test_genome", 700, elements,
                                          transcript_template, mask);
@@ -262,19 +278,24 @@ TEST_CASE("Genome methods", "[Polymer]") {
 }
 
 TEST_CASE("Variable translation rates", "[Polymer]") {
-  std::vector<std::string> interactions = {"ecolipol", "rnapol"};
+  std::map<std::string, double> interactions {
+    {"ecolipol", 1.0}, 
+    {"rnapol", 1.0},
+  };
   Promoter::Ptr prom;
   Terminator::Ptr term;
   prom = std::make_shared<Promoter>("p1", 5, 15, interactions);
   std::map<std::string, double> efficiency;
   efficiency["ecolipol"] = 0.6;
   efficiency["rnapol"] = 1.0;
-  term = std::make_shared<Terminator>("t1", 50, 55, interactions, efficiency);
+  term = std::make_shared<Terminator>("t1", 50, 55, efficiency);
 
   std::vector<Element::Ptr> elements;
   elements.push_back(prom);
   elements.push_back(term);
-  std::vector<std::string> mask_interactions = {"ecolipol"};
+  std::map<std::string, double> mask_interactions {
+    {"ecolipol", 1.0}, 
+  };
   Mask mask = Mask("test_mask", 10, 100, mask_interactions);
 
   std::vector<double> weights(100, 0.1);

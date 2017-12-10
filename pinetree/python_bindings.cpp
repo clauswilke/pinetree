@@ -36,6 +36,7 @@ PYBIND11_PLUGIN(pinetree) {
       .def("register_reaction", &Simulation::RegisterReaction,
            "register a species-level reaction")
       .def("register_genome", &Simulation::RegisterGenome, "register a genome")
+      .def("add_species", &Simulation::AddSpecies, "add species")
       .def("run", &Simulation::Run, "run the simulation");
 
   // Binding for abtract Reaction so pybind11 doesn't complain when doing
@@ -63,17 +64,16 @@ PYBIND11_PLUGIN(pinetree) {
           "name", (const std::string &(Feature::*)() const) & Feature::name);
   py::class_<Mask, Feature, std::shared_ptr<Mask>>(m, "Mask").def(
       py::init<const std::string &, int, int,
-               const std::vector<std::string> &>());
+               const std::map<std::string, double> &>());
   py::class_<Element, Feature, Element::Ptr>(m, "Element")
       .def_property("gene",
                     (const std::string &(Element::*)() const) & Element::gene,
                     (void (Element::*)(const std::string &)) & Element::gene);
   py::class_<Promoter, Element, Promoter::Ptr>(m, "Promoter")
       .def(py::init<const std::string &, int, int,
-                    const std::vector<std::string> &>());
+                    const std::map<std::string, double> &>());
   py::class_<Terminator, Element, Terminator::Ptr>(m, "Terminator")
       .def(py::init<const std::string &, int, int,
-                    const std::vector<std::string> &,
                     const std::map<std::string, double> &>())
       .def_property(
           "reading_frame", (int (Terminator::*)()) & Terminator::reading_frame,

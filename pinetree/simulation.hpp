@@ -195,6 +195,13 @@ public:
    */
   void RegisterReaction(Reaction::Ptr reaction);
   /**
+   * Add species to simulation.
+   * 
+   * @param name species name
+   * @param copy_number copy number of species
+   */
+  void AddSpecies(const std::string &name, int copy_number);
+  /**
    * Add a generic polymer to the list of reactions.
    *
    * @param polymer pointer to Polymer object

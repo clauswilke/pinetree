@@ -51,18 +51,22 @@ TEST_CASE("Bind methods", "[Reaction]") {
   auto &tracker = SpeciesTracker::Instance();
   tracker.Clear();
   // Set up a polymer
-  std::vector<std::string> interactions = {"ecolipol"};
+  std::map<std::string, double> interactions {
+    {"ecolipol", 1.0}, 
+  };
   Promoter::Ptr prom;
   Terminator::Ptr term;
   prom = std::make_shared<Promoter>("p1", 5, 15, interactions);
   std::map<std::string, double> efficiency;
   efficiency["ecolipol"] = 0.6;
-  term = std::make_shared<Terminator>("t1", 50, 55, interactions, efficiency);
+  term = std::make_shared<Terminator>("t1", 50, 55, efficiency);
 
   std::vector<Element::Ptr> elements;
   elements.push_back(prom);
   elements.push_back(term);
-  std::vector<std::string> mask_interactions = {"ecolipol"};
+ std::map<std::string, double> mask_interactions {
+    {"ecolipol", 1.0}, 
+  };
   Mask mask = Mask("test_mask", 50, 100, mask_interactions);
 
   auto polymer =
@@ -142,18 +146,22 @@ TEST_CASE("Simulation methods", "[Simulation]") {
   SECTION("Register polymer and execute") {
     tracker.Clear();
     // Set up a polymer
-    std::vector<std::string> interactions = {"ecolipol"};
+    std::map<std::string, double> interactions {
+        {"ecolipol", 1.0}, 
+      };
     Promoter::Ptr prom;
     Terminator::Ptr term;
     prom = std::make_shared<Promoter>("p1", 5, 15, interactions);
     std::map<std::string, double> efficiency;
     efficiency["ecolipol"] = 0.6;
-    term = std::make_shared<Terminator>("t1", 50, 55, interactions, efficiency);
+    term = std::make_shared<Terminator>("t1", 50, 55, efficiency);
 
     std::vector<Element::Ptr> elements;
     elements.push_back(prom);
     elements.push_back(term);
-    std::vector<std::string> mask_interactions = {"ecolipol"};
+ std::map<std::string, double> mask_interactions {
+    {"ecolipol", 1.0}, 
+  };
     Mask mask = Mask("test_mask", 50, 100, mask_interactions);
 
     auto polymer =

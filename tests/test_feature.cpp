@@ -11,7 +11,10 @@ TEST_CASE("Feature construction", "[Feature]") {
   std::string name = "testing!";
   int start = 1;
   int stop = 10;
-  std::vector<std::string> interactions = {"ecolipol", "rnapol"};
+  std::map<std::string, double> interactions {
+    {"ecolipol", 1.0}, 
+    {"rnapol", 1.0},
+  };
   Feature feat = Feature(name, start, stop, interactions);
 
   // Check that interactions have been set up correctly
@@ -41,7 +44,10 @@ TEST_CASE("Mask construction and movement", "[Mask]") {
   std::string name = "testing!";
   int start = 1;
   int stop = 10;
-  std::vector<std::string> interactions = {"ecolipol", "rnapol"};
+  std::map<std::string, double> interactions {
+    {"ecolipol", 1.0}, 
+    {"rnapol", 1.0},
+  };
   Mask mask = Mask(name, start, stop, interactions);
 
   // Check that interactions have been set up correctly
@@ -60,7 +66,10 @@ TEST_CASE("Element construction and state changes", "[Element]") {
   std::string name = "testing!";
   int start = 1;
   int stop = 10;
-  std::vector<std::string> interactions = {"ecolipol", "rnapol"};
+  std::map<std::string, double> interactions {
+    {"ecolipol", 1.0}, 
+    {"rnapol", 1.0},
+  };
   Promoter elem = Promoter(name, start, stop, interactions);
 
   SECTION("Saving the state") {
@@ -106,11 +115,10 @@ TEST_CASE("Terminator construction", "[Terminator]") {
   std::string name = "testing!";
   int start = 1;
   int stop = 10;
-  std::vector<std::string> interactions = {"ecolipol", "rnapol"};
   std::map<std::string, double> efficiency;
   efficiency["ecolipol"] = 0.5;
   efficiency["rnapol"] = 0.8;
-  Terminator term = Terminator(name, start, stop, interactions, efficiency);
+  Terminator term = Terminator(name, start, stop, efficiency);
   REQUIRE(!term.readthrough());
   REQUIRE(term.reading_frame() == -1);
   // Test for reading frame checking

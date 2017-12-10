@@ -163,6 +163,11 @@ void Simulation::RegisterReaction(Reaction::Ptr reaction) {
   }
 }
 
+void Simulation::AddSpecies(const std::string &name, int copy_number) {
+  auto &tracker = SpeciesTracker::Instance();
+  tracker.Increment(name, copy_number);
+}
+
 void Simulation::RegisterPolymer(Polymer::Ptr polymer) {
   polymer->InitElements();
   for (auto &elem : polymer->elements()) {

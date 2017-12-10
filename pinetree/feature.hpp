@@ -25,7 +25,7 @@ public:
    *                     interacts with
    */
   Feature(const std::string &name, int start, int stop,
-          const std::vector<std::string> &interactions);
+          const std::map<std::string, double> &interactions);
   /**
    * Getters and setters.
    */
@@ -41,6 +41,7 @@ public:
    * @return      TRUE if features interact
    */
   virtual bool CheckInteraction(const std::string &name);
+  std::map<std::string, double> const &interactions() const { return interactions_; }
 
 protected:
   /**
@@ -63,7 +64,7 @@ protected:
    * Vector of names of other features/polymerases that this feature interacts
    * with.
    */
-  std::vector<std::string> interactions_;
+  std::map<std::string, double> interactions_;
 };
 
 /**
@@ -143,7 +144,7 @@ public:
    * Only constructor for Mask.
    */
   Mask(const std::string &name, int start, int stop,
-       const std::vector<std::string> &interactions);
+       const std::map<std::string, double> &interactions);
   /**
    * Shift mask backwards one position.
    */
@@ -159,7 +160,7 @@ public:
    * Only constructor of Element.
    */
   Element(const std::string &name, int start, int stop,
-          const std::vector<std::string> &interactions);
+          const std::map<std::string, double> &interactions);
   /**
    * Some convenience typedefs.
    */
@@ -249,7 +250,7 @@ public:
    * @param interactions vector of polymerases that interact with this promoter
    */
   Promoter(const std::string &name, int start, int stop,
-           const std::vector<std::string> &interactions);
+           const std::map<std::string, double> &interactions);
   /**
    * Some convenience typedefs.
    */
@@ -273,8 +274,7 @@ public:
    * @param interactions list of features that this terminator interacts with
    */
   Terminator(const std::string &name, int start, int stop,
-             const std::vector<std::string> &interactions,
-             const std::map<std::string, double> &efficiency);
+             const std::map<std::string, double> &interactions);
   /**
    * Some convenience typedefs.
    */
@@ -303,7 +303,7 @@ public:
   bool readthrough() const { return readthrough_; }
   void set_readthrough(bool readthrough) { readthrough_ = readthrough; }
   double efficiency(const std::string &pol_name) {
-    return efficiency_[pol_name];
+    return interactions_[pol_name];
   }
 
 private:
@@ -321,10 +321,6 @@ private:
    * Reading frame for terminator.
    */
   int reading_frame_;
-  /**
-   * Readthrough efficiencies for different polymerases.
-   */
-  std::map<std::string, double> efficiency_;
 };
 
 #endif // SRC_FEATURE_HPP_

@@ -511,7 +511,7 @@ Transcript::Ptr Genome::BuildTranscript(int start, int stop) {
     }
   }
   Transcript::Ptr transcript;
-  Mask mask = Mask("mask", start, stop, std::vector<std::string>());
+  Mask mask = Mask("mask", start, stop, std::map<std::string, double>());
   // We need to used the standard shared_ptr constructor here because the
   // constructor of Transcript needs to know its address in memory to wire
   // signals appropriately.
