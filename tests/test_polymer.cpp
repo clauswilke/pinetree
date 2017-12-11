@@ -34,12 +34,12 @@ void EmitTranscript(const Transcript::Ptr &transcript) {
   transcript->InitElements();
   my_transcript = transcript;
 }
-}
+}  // namespace Helper
 
 TEST_CASE("Polymer methods", "[Polymer]") {
-  std::map<std::string, double> interactions {
-    {"ecolipol", 1.0}, 
-    {"rnapol", 1.0},
+  std::map<std::string, double> interactions{
+      {"ecolipol", 1.0},
+      {"rnapol", 1.0},
   };
   Promoter::Ptr prom;
   Terminator::Ptr term;
@@ -52,8 +52,8 @@ TEST_CASE("Polymer methods", "[Polymer]") {
   std::vector<Element::Ptr> elements;
   elements.push_back(prom);
   elements.push_back(term);
-  std::map<std::string, double> mask_interactions {
-    {"ecolipol", 1.0}, 
+  std::map<std::string, double> mask_interactions{
+      {"ecolipol", 1.0},
   };
   Mask mask = Mask("test_mask", 10, 100, mask_interactions);
 
@@ -167,9 +167,7 @@ TEST_CASE("Polymer methods", "[Polymer]") {
 }
 
 TEST_CASE("Polymer methods with multipromoter", "[Polymer]") {
-  std::map<std::string, double> interactions {
-    {"ecolipol", 1.0}
-  };
+  std::map<std::string, double> interactions{{"ecolipol", 1.0}};
   Promoter::Ptr prom1, prom2, prom3;
   Terminator::Ptr term;
   prom1 = std::make_shared<Promoter>("p1", 5, 15, interactions);
@@ -184,8 +182,8 @@ TEST_CASE("Polymer methods with multipromoter", "[Polymer]") {
   elements.push_back(prom2);
   elements.push_back(prom3);
   elements.push_back(term);
-  std::map<std::string, double> mask_interactions {
-    {"ecolipol", 1.0}, 
+  std::map<std::string, double> mask_interactions{
+      {"ecolipol", 1.0},
   };
   Mask mask = Mask("test_mask", 100, 100, mask_interactions);
 
@@ -213,44 +211,22 @@ TEST_CASE("Polymer methods with multipromoter", "[Polymer]") {
 }
 
 TEST_CASE("Genome methods", "[Polymer]") {
-  // Set up transcript template
-  Element::VecPtr transcript_template;
-  std::map<std::string, double> interactions {
-    {"ribosome", 1.0}, 
-  };
-  std::map<std::string, double> efficiency;
-  efficiency["ribosome"] = 1.0;
-  transcript_template.push_back(
-      std::make_shared<Promoter>("rbs", 0, 10, interactions));
-  transcript_template.push_back(
-      std::make_shared<Terminator>("stop", 209, 210, efficiency));
-  transcript_template.push_back(
-      std::make_shared<Promoter>("rbs", 215, 230, interactions));
-  transcript_template.push_back(
-      std::make_shared<Terminator>("stop", 269, 270, efficiency));
-  transcript_template.push_back(
-      std::make_shared<Promoter>("rbs", 285, 300, interactions));
-  transcript_template.push_back(
-      std::make_shared<Terminator>("stop", 599, 600, efficiency));
   // Set up genome
-  interactions = {
-    {"ecolipol", 1.0}, 
-    {"rnapol", 1.0},
+  // RBS and promoter binding strengths aren't used here since no bind reaction
+  // is ever constructed
+  auto genome = std::make_shared<Genome>("test_genome", 700);
+  genome->AddGene("gene1", 0, 210, 0, 10, 1.0);
+  genome->AddGene("gene2", 215, 270, 215, 230, 1.0);
+  genome->AddGene("gene3", 285, 600, 285, 300, 1.0);
+  auto interactions = std::map<std::string, double>{
+      {"ecolipol", 1.0},
+      {"rnapol", 1.0},
   };
-  Promoter::Ptr prom;
-  Terminator::Ptr term;
-  prom = std::make_shared<Promoter>("p1", 5, 15, interactions);
-  efficiency["ecolipol"] = 1.0;
-  term = std::make_shared<Terminator>("t1", 601, 605, efficiency);
-  Element::VecPtr elements;
-  elements.push_back(prom);
-  elements.push_back(term);
- std::map<std::string, double> mask_interactions {
-    {"ecolipol", 1.0}, 
-  };
-  Mask mask = Mask("test_mask", 10, 700, mask_interactions);
-  auto genome = std::make_shared<Genome>("test_genome", 700, elements,
-                                         transcript_template, mask);
+  auto efficiency = std::map<std::string, double>{{"ecolipol", 1.0}};
+  genome->AddPromoter("p1", 5, 15, interactions);
+  genome->AddTerminator("t1", 601, 605, efficiency);
+  std::vector<std::string> mask_interactions{"ecolipol"};
+  genome->AddMask(10, mask_interactions);
   genome->termination_signal_.Connect(Helper::EmitTermination);
   genome->transcript_signal_.Connect(Helper::EmitTranscript);
 
@@ -278,9 +254,9 @@ TEST_CASE("Genome methods", "[Polymer]") {
 }
 
 TEST_CASE("Variable translation rates", "[Polymer]") {
-  std::map<std::string, double> interactions {
-    {"ecolipol", 1.0}, 
-    {"rnapol", 1.0},
+  std::map<std::string, double> interactions{
+      {"ecolipol", 1.0},
+      {"rnapol", 1.0},
   };
   Promoter::Ptr prom;
   Terminator::Ptr term;
@@ -293,8 +269,8 @@ TEST_CASE("Variable translation rates", "[Polymer]") {
   std::vector<Element::Ptr> elements;
   elements.push_back(prom);
   elements.push_back(term);
-  std::map<std::string, double> mask_interactions {
-    {"ecolipol", 1.0}, 
+  std::map<std::string, double> mask_interactions{
+      {"ecolipol", 1.0},
   };
   Mask mask = Mask("test_mask", 10, 100, mask_interactions);
 

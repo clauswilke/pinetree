@@ -17,7 +17,8 @@ bool Feature::CheckInteraction(const std::string &name) {
 
 Polymerase::Polymerase(const std::string &name, int footprint, int speed)
     : Feature(name, 0, footprint - 1, std::map<std::string, double>()),
-      footprint_(footprint), speed_(speed) {
+      footprint_(footprint),
+      speed_(speed) {
   left_most_element_ = 0;
   bound_ = 0;
   type_ = "polymerase";
@@ -55,7 +56,7 @@ void Promoter::CheckState() {
     cover_signal_.Emit(name_);
   } else if (WasUncovered()) {
     uncover_signal_.Emit(name_);
-    if (!first_exposure_ && name_ == "rbs") {
+    if (!first_exposure_ && interactions().count("ribosome") == 1) {
       SpeciesTracker::Instance().IncrementTranscript(gene_, 1);
       first_exposure_ = true;
     }

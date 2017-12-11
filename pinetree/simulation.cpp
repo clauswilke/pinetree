@@ -188,22 +188,6 @@ void Simulation::AddPolymerase(const std::string &name, int footprint,
   AddSpecies(name, copy_number);
 }
 
-void Simulation::AddGenome(const std::string &name, int genome_length,
-                           const Element::VecPtr &dna_elements,
-                           const Element::VecPtr &transcript_template,
-                           const std::tuple<int, int> &mask_coords,
-                           const std::vector<std::string> &mask_interactions) {
-  std::map<std::string, double> interactions;
-  // for (auto partner : mask_interactions) {
-  //   interactions[partner] = 1.0;
-  // }
-  auto mask = Mask("mask", std::get<0>(mask_coords), std::get<1>(mask_coords),
-                   interactions);
-  auto genome = std::make_shared<Genome>(name, genome_length, dna_elements,
-                                         transcript_template, mask);
-  RegisterGenome(genome);
-}
-
 void Simulation::RegisterPolymer(Polymer::Ptr polymer) {
   polymer->InitElements();
   for (auto &elem : polymer->elements()) {

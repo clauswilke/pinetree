@@ -39,7 +39,6 @@ PYBIND11_MODULE(pinetree, m) {
            "register a species-level reaction")
       .def("register_genome", &Simulation::RegisterGenome, "register a genome")
       .def("add_species", &Simulation::AddSpecies, "add species")
-      .def("add_genome", &Simulation::AddGenome, "add a genome")
       .def("add_polymerase", &Simulation::AddPolymerase, "add a polymerase")
       .def("run", &Simulation::Run, "run the simulation");
 
@@ -66,9 +65,6 @@ PYBIND11_MODULE(pinetree, m) {
           "type", (const std::string &(Feature::*)() const) & Feature::type)
       .def_property_readonly(
           "name", (const std::string &(Feature::*)() const) & Feature::name);
-  py::class_<Mask, Feature, std::shared_ptr<Mask>>(m, "Mask").def(
-      py::init<const std::string &, int, int,
-               const std::map<std::string, double> &>());
   py::class_<Element, Feature, Element::Ptr>(m, "Element")
       .def_property("gene",
                     (const std::string &(Element::*)() const) & Element::gene,
@@ -89,11 +85,7 @@ PYBIND11_MODULE(pinetree, m) {
   py::class_<Polymer, Polymer::Ptr>(m, "Polymer");
   py::class_<Genome, Polymer, Genome::Ptr>(m, "Genome")
       .def(py::init<const std::string &, int>(), "name"_a, "length"_a)
-      .def(py::init<const std::string &, int, const Element::VecPtr &,
-                    const Element::VecPtr &, const Mask &>())
-      .def(py::init<const std::string &, int, const Element::VecPtr &,
-                    const Element::VecPtr &, const Mask &,
-                    const std::vector<double> &>())
+      .def("add_mask", &Genome::AddMask, "start"_a, "interactions"_a)
       .def("add_promoter", &Genome::AddPromoter, "name"_a, "start"_a, "stop"_a,
            "interactions"_a)
       .def("add_terminator", &Genome::AddTerminator, "name"_a, "start"_a,

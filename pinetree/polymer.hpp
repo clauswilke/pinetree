@@ -301,12 +301,8 @@ class Genome : public Polymer {
    * @param mask polymer mask (i.e. protion of genome that has not yet entered
    *  the cell)
    */
-  Genome(const std::string &name, int length, const Element::VecPtr &elements,
-         const Element::VecPtr &transcript_template, const Mask &mask);
-  Genome(const std::string &name, int length, const Element::VecPtr &elements,
-         const Element::VecPtr &transcript_template, const Mask &mask,
-         const std::vector<double> &transcript_weights);
   Genome(const std::string &name, int length);
+  void AddMask(int start, const std::vector<std::string> &interactions);
   void AddPromoter(const std::string &name, int start, int stop,
                    const std::map<std::string, double> &interactions);
   void AddTerminator(const std::string &name, int start, int stop,

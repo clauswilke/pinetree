@@ -49,6 +49,12 @@ void Polymer::InitElements() {
         uncovered_[element->name()] = 0;
       }
     } else {
+      // Hack-y of forcing polymer to register open promoters
+      // to register w/ SpeciesTracker
+      if (element->type() == "promoter") {
+        auto &tracker = SpeciesTracker::Instance();
+        tracker.Increment(element->name(), 1);
+      }
       if (uncovered_.count(element->name()) == 0) {
         uncovered_[element->name()] = 1;
       } else {
@@ -108,7 +114,6 @@ void Polymer::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
   // Report some data to tracker
   if (elem->interactions().count("ribosome") == 1 &&
       elem->type() == "promoter") {
-    std::cout << "ribosome bound!";
     auto &tracker = SpeciesTracker::Instance();
     tracker.IncrementRibo(elem->gene(), 1);
   }
@@ -464,43 +469,6 @@ void Transcript::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
   pol->set_reading_frame(pol->start() % 3);
 }
 
-Genome::Genome(const std::string &name, int length,
-               const Element::VecPtr &elements,
-               const Element::VecPtr &transcript_template, const Mask &mask)
-    : Polymer(name, 1, length, elements, mask),
-      transcript_template_(transcript_template) {
-  transcript_weights_ = std::vector<double>(length, 1.0);
-  // Sort transcript template
-  std::sort(transcript_template_.begin(), transcript_template_.end(),
-            [](Element::Ptr elem1, Element::Ptr elem2) {
-              return elem1->start() < elem2->start();
-            });
-  // Sort genomic elements
-  std::sort(elements_.begin(), elements_.end(),
-            [](Element::Ptr elem1, Element::Ptr elem2) {
-              return elem1->start() < elem2->start();
-            });
-}
-
-Genome::Genome(const std::string &name, int length,
-               const Element::VecPtr &elements,
-               const Element::VecPtr &transcript_template, const Mask &mask,
-               const std::vector<double> &transcript_weights)
-    : Polymer(name, 1, length, elements, mask),
-      transcript_template_(transcript_template),
-      transcript_weights_(transcript_weights) {
-  // Sort transcript template
-  std::sort(transcript_template_.begin(), transcript_template_.end(),
-            [](Element::Ptr elem1, Element::Ptr elem2) {
-              return elem1->start() < elem2->start();
-            });
-  // Sort genomic elements
-  std::sort(elements_.begin(), elements_.end(),
-            [](Element::Ptr elem1, Element::Ptr elem2) {
-              return elem1->start() < elem2->start();
-            });
-}
-
 Genome::Genome(const std::string &name, int length)
     : Polymer(
           name, 1, length, Element::VecPtr(),
@@ -520,6 +488,14 @@ void Genome::SortTranscriptTemplate() {
             [](Element::Ptr elem1, Element::Ptr elem2) {
               return elem1->start() < elem2->start();
             });
+}
+
+void Genome::AddMask(int start, const std::vector<std::string> &interactions) {
+  std::map<std::string, double> interaction_map;
+  for (auto name : interactions) {
+    interaction_map[name] = 1.0;
+  }
+  mask_ = Mask("mask", start, stop_, interaction_map);
 }
 
 void Genome::AddPromoter(const std::string &name, int start, int stop,
