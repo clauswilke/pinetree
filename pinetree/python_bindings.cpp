@@ -8,8 +8,8 @@
 
 namespace py = pybind11;
 
-PYBIND11_PLUGIN(pinetree) {
-  py::module m("pinetree", R"doc(
+PYBIND11_MODULE(pinetree, m) {
+  m.doc() = (R"doc(
     Python module
     -----------------------
     .. currentmodule:: pysinthe.core
@@ -90,6 +90,4 @@ PYBIND11_PLUGIN(pinetree) {
       .def(py::init<const std::string &, int, const Element::VecPtr &,
                     const Element::VecPtr &, const Mask &,
                     const std::vector<double> &>());
-
-  return m.ptr();
 }

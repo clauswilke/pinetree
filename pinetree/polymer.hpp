@@ -1,6 +1,6 @@
 /* Copyright (c) 2017 Benjamin Jack All Rights Reserved. */
 
-#ifndef SRC_POLYMER_HPP_ // header guard
+#ifndef SRC_POLYMER_HPP_  // header guard
 #define SRC_POLYMER_HPP_
 
 #include <map>
@@ -28,18 +28,18 @@
  *      polymerization
  */
 class Polymer : public std::enable_shared_from_this<Polymer> {
-public:
+ public:
   /**
-    * The most used constructor for Polymer.
-    *
-    * @param name name of this polymer (should it be unique?)
-    * @param length length of polymer (used purely for debugging, may not be
-    *     needed)
-    * @param elements all elements on this polymer, including promoters,
-    *     terminators, etc.
-    * @param mask mask object which determines which portions of the polymer
-    *     are currently inaccessible
-    */
+   * The most used constructor for Polymer.
+   *
+   * @param name name of this polymer (should it be unique?)
+   * @param length length of polymer (used purely for debugging, may not be
+   *     needed)
+   * @param elements all elements on this polymer, including promoters,
+   *     terminators, etc.
+   * @param mask mask object which determines which portions of the polymer
+   *     are currently inaccessible
+   */
   Polymer(const std::string &name, int start, int stop,
           const Element::VecPtr &elements, const Mask &mask);
   /**
@@ -127,7 +127,7 @@ public:
    */
   Signal<int, const std::string &, const std::string &> termination_signal_;
 
-protected:
+ protected:
   /**
    * An index for this polymer, used by Simulation.
    */
@@ -249,7 +249,7 @@ protected:
  * Genome and uncover the appropriate, "newly-synthesized" RNA elements.
  */
 class Transcript : public Polymer {
-public:
+ public:
   /**
    * The only constructor of Transcript.
    *
@@ -288,7 +288,7 @@ public:
  * construct a transcript upon promoter binding.
  */
 class Genome : public Polymer {
-public:
+ public:
   /**
    * Genome's only constructor.
    *
@@ -306,6 +306,14 @@ public:
   Genome(const std::string &name, int length, const Element::VecPtr &elements,
          const Element::VecPtr &transcript_template, const Mask &mask,
          const std::vector<double> &transcript_weights);
+  Genome(const std::string &name, int length);
+  // Reaction::VecPtr ConstructReactions();
+  void AddPromoter(const std::string &name, int start, int stop,
+                   const std::map<std::string, double> &interactions);
+  void AddTerminator(const std::string &name, int start, int stop,
+                     const std::map<std::string, double> &efficiency);
+  void AddGene(const std::string &name, int start, int stop, int rbs_start,
+               int rbs_stop, double rbs_strength);
   /**
    * Convenience typedefs
    */
@@ -319,9 +327,11 @@ public:
   void Bind(Polymerase::Ptr pol, const std::string &promoter_name);
   Signal<Transcript::Ptr> transcript_signal_;
 
-private:
+ private:
   Element::VecPtr transcript_template_;
   std::vector<double> transcript_weights_;
+  void SortElements();
+  void SortTranscriptTemplate();
   /**
    * Build a transcript object corresponding to start and stop positions within
    * this genome.
@@ -336,4 +346,4 @@ private:
   Transcript::Ptr BuildTranscript(int start, int stop);
 };
 
-#endif // SRC_POLYMER_HPP_
+#endif  // SRC_POLYMER_HPP_

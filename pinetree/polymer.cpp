@@ -6,16 +6,27 @@
 
 Polymer::Polymer(const std::string &name, int start, int stop,
                  const Element::VecPtr &elements, const Mask &mask)
-    : index_(0), name_(name), start_(start), stop_(stop), elements_(elements),
-      mask_(mask), prop_sum_(0) {
+    : index_(0),
+      name_(name),
+      start_(start),
+      stop_(stop),
+      elements_(elements),
+      mask_(mask),
+      prop_sum_(0) {
   weights_ = std::vector<double>(stop - start + 1, 1.0);
 }
 
 Polymer::Polymer(const std::string &name, int start, int stop,
                  const Element::VecPtr &elements, const Mask &mask,
                  const std::vector<double> &weights)
-    : index_(0), name_(name), start_(start), stop_(stop), elements_(elements),
-      mask_(mask), weights_(weights), prop_sum_(0) {
+    : index_(0),
+      name_(name),
+      start_(start),
+      stop_(stop),
+      elements_(elements),
+      mask_(mask),
+      weights_(weights),
+      prop_sum_(0) {
   if (weights_.size() != (stop_ - start_ + 1)) {
     throw std::length_error("Weights vector is not the correct size. " +
                             std::to_string(weights.size()) + " " +
@@ -486,6 +497,56 @@ Genome::Genome(const std::string &name, int length,
             [](Element::Ptr elem1, Element::Ptr elem2) {
               return elem1->start() < elem2->start();
             });
+}
+
+Genome::Genome(const std::string &name, int length)
+    : Polymer(
+          name, 1, length, Element::VecPtr(),
+          Mask("mask", length + 1, length, std::map<std::string, double>())) {
+  // mask_ = Mask(length + 1, length);
+}
+
+void Genome::SortElements() {
+  std::sort(elements_.begin(), elements_.end(),
+            [](Element::Ptr elem1, Element::Ptr elem2) {
+              return elem1->start() < elem2->start();
+            });
+}
+
+void Genome::SortTranscriptTemplate() {
+  std::sort(transcript_template_.begin(), transcript_template_.end(),
+            [](Element::Ptr elem1, Element::Ptr elem2) {
+              return elem1->start() < elem2->start();
+            });
+}
+
+void Genome::AddPromoter(const std::string &name, int start, int stop,
+                         const std::map<std::string, double> &interactions) {
+  auto promoter = std::make_shared<Promoter>(name, start, stop, interactions);
+  elements_.push_back(promoter);
+  SortElements();
+}
+
+void Genome::AddTerminator(const std::string &name, int start, int stop,
+                           const std::map<std::string, double> &efficiency) {
+  auto terminator = std::make_shared<Terminator>(name, start, stop, efficiency);
+  elements_.push_back(terminator);
+  SortElements();
+}
+
+void Genome::AddGene(const std::string &name, int start, int stop,
+                     int rbs_start, int rbs_stop, double rbs_strength) {
+  auto binding = std::map<std::string, double>{{"ribosome", rbs_strength}};
+  auto term = std::map<std::string, double>{{"ribosome", 1.0}};
+  auto rbs = std::make_shared<Promoter>(name + "_rbs", start, stop, binding);
+  rbs->gene(name);
+  elements_.push_back(rbs);
+  auto stop_codon =
+      std::make_shared<Terminator>("stop_codon", stop - 1, stop, term);
+  stop_codon->set_reading_frame(start % 3);
+  stop_codon->gene(name);
+  elements_.push_back(stop_codon);
+  SortTranscriptTemplate();
 }
 
 void Genome::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
