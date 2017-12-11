@@ -108,11 +108,18 @@ Simulation::Simulation()
   tracker.Clear();
 }
 
+Simulation::Simulation(int run_time, int time_step)
+    : time_(0), stop_time_(run_time), time_step_(time_step), alpha_sum_(0) {
+  auto &tracker = SpeciesTracker::Instance();
+  tracker.Clear();
+}
+
 void Simulation::Run(const std::string &output_name) {
   auto &tracker = SpeciesTracker::Instance();
   if (time_ == 0) {
     tracker.propensity_signal_.ConnectMember(shared_from_this(),
                                              &Simulation::UpdatePropensity);
+    InitBindReactions();
     InitPropensity();
   }
   // Set up file output streams
@@ -174,6 +181,13 @@ void Simulation::AddSpecies(const std::string &name, int copy_number) {
   tracker.Increment(name, copy_number);
 }
 
+void Simulation::AddPolymerase(const std::string &name, int footprint,
+                               double mean_speed, int copy_number) {
+  auto pol = Polymerase(name, footprint, mean_speed);
+  polymerases_.push_back(pol);
+  AddSpecies(name, copy_number);
+}
+
 void Simulation::AddGenome(const std::string &name, int genome_length,
                            const Element::VecPtr &dna_elements,
                            const Element::VecPtr &transcript_template,
@@ -213,12 +227,31 @@ void Simulation::RegisterGenome(Genome::Ptr genome) {
       shared_from_this(), &Simulation::TerminateTranscription);
   genome->transcript_signal_.ConnectMember(shared_from_this(),
                                            &Simulation::RegisterTranscript);
+  genomes_.push_back(genome);
 }
 
 void Simulation::RegisterTranscript(Transcript::Ptr transcript) {
   RegisterPolymer(transcript);
   transcript->termination_signal_.ConnectMember(
       shared_from_this(), &Simulation::TerminateTranslation);
+}
+
+void Simulation::InitBindReactions() {
+  // for (Genome::Ptr genome : genomes_) {
+  //   for (auto promoter_name : genome->bindings()) {
+  //     for (auto pol : polymerases_) {
+  //       if (promoter_name.second.count(pol.name()) != 0) {
+  //         std::cout << promoter_name.first + " " + pol.name() << std::endl;
+  //         double rate_constant = promoter_name.second[pol.name()];
+  //         std::cout << std::to_string(rate_constant) << std::endl;
+  //         Polymerase pol_template = Polymerase(pol);
+  //         auto reaction = std::make_shared<Bind>(
+  //             rate_constant, 1.1e-15, promoter_name.first, pol_template);
+  //         RegisterReaction(reaction);
+  //       }
+  //     }
+  //   }
+  // }
 }
 
 void Simulation::InitPropensity() {

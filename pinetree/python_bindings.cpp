@@ -7,6 +7,7 @@
 #include "tracker.hpp"
 
 namespace py = pybind11;
+using namespace pybind11::literals;
 
 PYBIND11_MODULE(pinetree, m) {
   m.doc() = (R"doc(
@@ -24,7 +25,7 @@ PYBIND11_MODULE(pinetree, m) {
 
   py::class_<Simulation, std::shared_ptr<Simulation>>(
       m, "Simulation", "Set up and run a gene expression simulation.")
-      .def(py::init<>())
+      .def(py::init<int, int>(), "run_time"_a, "time_step"_a)
       .def_property("stop_time",
                     (double (Simulation::*)()) & Simulation::stop_time,
                     (void (Simulation::*)(double)) & Simulation::stop_time,
@@ -38,6 +39,7 @@ PYBIND11_MODULE(pinetree, m) {
       .def("register_genome", &Simulation::RegisterGenome, "register a genome")
       .def("add_species", &Simulation::AddSpecies, "add species")
       .def("add_genome", &Simulation::AddGenome, "add a genome")
+      .def("add_polymerase", &Simulation::AddPolymerase, "add a polymerase")
       .def("run", &Simulation::Run, "run the simulation");
 
   // Binding for abtract Reaction so pybind11 doesn't complain when doing
@@ -85,9 +87,16 @@ PYBIND11_MODULE(pinetree, m) {
   // Polymers, genomes, and transcripts
   py::class_<Polymer, Polymer::Ptr>(m, "Polymer");
   py::class_<Genome, Polymer, Genome::Ptr>(m, "Genome")
+      .def(py::init<const std::string &, int>(), "name"_a, "length"_a)
       .def(py::init<const std::string &, int, const Element::VecPtr &,
                     const Element::VecPtr &, const Mask &>())
       .def(py::init<const std::string &, int, const Element::VecPtr &,
                     const Element::VecPtr &, const Mask &,
-                    const std::vector<double> &>());
+                    const std::vector<double> &>())
+      .def("add_promoter", &Genome::AddPromoter, "name"_a, "start"_a, "stop"_a,
+           "interactions"_a)
+      .def("add_terminator", &Genome::AddTerminator, "name"_a, "start"_a,
+           "stop"_a, "efficiency"_a)
+      .def("add_gene", &Genome::AddGene, "name"_a, "start"_a, "stop"_a,
+           "rbs_start"_a, "rbs_stop"_a, "rbs_strength"_a);
 }

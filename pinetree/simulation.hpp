@@ -187,6 +187,7 @@ class Simulation : public std::enable_shared_from_this<Simulation> {
    *
    * @param prefix for output files
    */
+  Simulation(int run_time, int time_step);
   void Run(const std::string &output_name);
   /**
    * Add a SpeciesReaction object to the list of reactions.
@@ -201,6 +202,8 @@ class Simulation : public std::enable_shared_from_this<Simulation> {
    * @param copy_number copy number of species
    */
   void AddSpecies(const std::string &name, int copy_number);
+  void AddPolymerase(const std::string &name, int footprint, double mean_speed,
+                     int copy_number);
   /**
    * Add a genome to the list of reactions.
    *
@@ -319,6 +322,11 @@ class Simulation : public std::enable_shared_from_this<Simulation> {
    */
   Reaction::VecPtr reactions_;
   /**
+   * Vector of all genomes in this ismulation
+   */
+  Genome::VecPtr genomes_;
+  std::vector<Polymerase> polymerases_;
+  /**
    * Vector of propensity values for reactions in this simulation.
    */
   std::vector<double> alpha_list_;
@@ -330,6 +338,8 @@ class Simulation : public std::enable_shared_from_this<Simulation> {
    * Map of terminations.
    */
   std::map<std::string, int> terminations_;
+
+  void InitBindReactions();
 };
 
 #endif  // header guard

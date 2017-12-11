@@ -307,17 +307,18 @@ class Genome : public Polymer {
          const Element::VecPtr &transcript_template, const Mask &mask,
          const std::vector<double> &transcript_weights);
   Genome(const std::string &name, int length);
-  // Reaction::VecPtr ConstructReactions();
   void AddPromoter(const std::string &name, int start, int stop,
                    const std::map<std::string, double> &interactions);
   void AddTerminator(const std::string &name, int start, int stop,
                      const std::map<std::string, double> &efficiency);
   void AddGene(const std::string &name, int start, int stop, int rbs_start,
                int rbs_stop, double rbs_strength);
+  const std::map<std::string, std::map<std::string, double>> &bindings();
   /**
    * Convenience typedefs
    */
   typedef std::shared_ptr<Genome> Ptr;
+  typedef std::vector<std::shared_ptr<Genome>> VecPtr;
   /**
    * Bind a polymerase to genome and construct new transcript.
    *
@@ -330,6 +331,7 @@ class Genome : public Polymer {
  private:
   Element::VecPtr transcript_template_;
   std::vector<double> transcript_weights_;
+  std::map<std::string, std::map<std::string, double>> bindings_;
   void SortElements();
   void SortTranscriptTemplate();
   /**

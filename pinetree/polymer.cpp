@@ -106,7 +106,9 @@ void Polymer::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
   Insert(pol);
 
   // Report some data to tracker
-  if (elem->name() == "rbs") {
+  if (elem->interactions().count("ribosome") == 1 &&
+      elem->type() == "promoter") {
+    std::cout << "ribosome bound!";
     auto &tracker = SpeciesTracker::Instance();
     tracker.IncrementRibo(elem->gene(), 1);
   }
@@ -503,7 +505,7 @@ Genome::Genome(const std::string &name, int length)
     : Polymer(
           name, 1, length, Element::VecPtr(),
           Mask("mask", length + 1, length, std::map<std::string, double>())) {
-  // mask_ = Mask(length + 1, length);
+  transcript_weights_ = std::vector<double>(length, 1.0);
 }
 
 void Genome::SortElements() {
@@ -524,9 +526,13 @@ void Genome::AddPromoter(const std::string &name, int start, int stop,
                          const std::map<std::string, double> &interactions) {
   auto promoter = std::make_shared<Promoter>(name, start, stop, interactions);
   elements_.push_back(promoter);
+  bindings_[name] = interactions;
   SortElements();
 }
 
+const std::map<std::string, std::map<std::string, double>> &Genome::bindings() {
+  return bindings_;
+}
 void Genome::AddTerminator(const std::string &name, int start, int stop,
                            const std::map<std::string, double> &efficiency) {
   auto terminator = std::make_shared<Terminator>(name, start, stop, efficiency);
@@ -538,14 +544,17 @@ void Genome::AddGene(const std::string &name, int start, int stop,
                      int rbs_start, int rbs_stop, double rbs_strength) {
   auto binding = std::map<std::string, double>{{"ribosome", rbs_strength}};
   auto term = std::map<std::string, double>{{"ribosome", 1.0}};
-  auto rbs = std::make_shared<Promoter>(name + "_rbs", start, stop, binding);
+  // auto rbs = std::make_shared<Promoter>(name + "_rbs", start, stop, binding);
+  auto rbs = std::make_shared<Promoter>("rbs", start, stop, binding);
   rbs->gene(name);
-  elements_.push_back(rbs);
+  transcript_template_.push_back(rbs);
+  // bindings_[name + "_rbs"] = binding;
+  bindings_["rbs"] = binding;
   auto stop_codon =
       std::make_shared<Terminator>("stop_codon", stop - 1, stop, term);
   stop_codon->set_reading_frame(start % 3);
   stop_codon->gene(name);
-  elements_.push_back(stop_codon);
+  transcript_template_.push_back(stop_codon);
   SortTranscriptTemplate();
 }
 
