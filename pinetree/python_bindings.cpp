@@ -26,6 +26,7 @@ PYBIND11_MODULE(pinetree, m) {
   py::class_<Simulation, std::shared_ptr<Simulation>>(
       m, "Simulation", "Set up and run a gene expression simulation.")
       .def(py::init<int, int>(), "run_time"_a, "time_step"_a)
+      .def(py::init<>())
       .def_property("stop_time",
                     (double (Simulation::*)()) & Simulation::stop_time,
                     (void (Simulation::*)(double)) & Simulation::stop_time,

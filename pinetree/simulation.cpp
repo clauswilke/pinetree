@@ -194,9 +194,9 @@ void Simulation::AddGenome(const std::string &name, int genome_length,
                            const std::tuple<int, int> &mask_coords,
                            const std::vector<std::string> &mask_interactions) {
   std::map<std::string, double> interactions;
-  for (auto partner : mask_interactions) {
-    interactions[partner] = 1.0;
-  }
+  // for (auto partner : mask_interactions) {
+  //   interactions[partner] = 1.0;
+  // }
   auto mask = Mask("mask", std::get<0>(mask_coords), std::get<1>(mask_coords),
                    interactions);
   auto genome = std::make_shared<Genome>(name, genome_length, dna_elements,
@@ -237,21 +237,19 @@ void Simulation::RegisterTranscript(Transcript::Ptr transcript) {
 }
 
 void Simulation::InitBindReactions() {
-  // for (Genome::Ptr genome : genomes_) {
-  //   for (auto promoter_name : genome->bindings()) {
-  //     for (auto pol : polymerases_) {
-  //       if (promoter_name.second.count(pol.name()) != 0) {
-  //         std::cout << promoter_name.first + " " + pol.name() << std::endl;
-  //         double rate_constant = promoter_name.second[pol.name()];
-  //         std::cout << std::to_string(rate_constant) << std::endl;
-  //         Polymerase pol_template = Polymerase(pol);
-  //         auto reaction = std::make_shared<Bind>(
-  //             rate_constant, 1.1e-15, promoter_name.first, pol_template);
-  //         RegisterReaction(reaction);
-  //       }
-  //     }
-  //   }
-  // }
+  for (Genome::Ptr genome : genomes_) {
+    for (auto promoter_name : genome->bindings()) {
+      for (auto pol : polymerases_) {
+        if (promoter_name.second.count(pol.name()) != 0) {
+          double rate_constant = promoter_name.second[pol.name()];
+          Polymerase pol_template = Polymerase(pol);
+          auto reaction = std::make_shared<Bind>(
+              rate_constant, 1.1e-15, promoter_name.first, pol_template);
+          RegisterReaction(reaction);
+        }
+      }
+    }
+  }
 }
 
 void Simulation::InitPropensity() {

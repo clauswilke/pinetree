@@ -524,8 +524,9 @@ void Genome::SortTranscriptTemplate() {
 
 void Genome::AddPromoter(const std::string &name, int start, int stop,
                          const std::map<std::string, double> &interactions) {
-  auto promoter = std::make_shared<Promoter>(name, start, stop, interactions);
-  elements_.push_back(promoter);
+  Promoter::Ptr promoter =
+      std::make_shared<Promoter>(name, start, stop, interactions);
+  elements_.emplace_back(promoter);
   bindings_[name] = interactions;
   SortElements();
 }
@@ -533,28 +534,30 @@ void Genome::AddPromoter(const std::string &name, int start, int stop,
 const std::map<std::string, std::map<std::string, double>> &Genome::bindings() {
   return bindings_;
 }
+
 void Genome::AddTerminator(const std::string &name, int start, int stop,
                            const std::map<std::string, double> &efficiency) {
-  auto terminator = std::make_shared<Terminator>(name, start, stop, efficiency);
-  elements_.push_back(terminator);
+  Terminator::Ptr terminator =
+      std::make_shared<Terminator>(name, start, stop, efficiency);
+  elements_.emplace_back(terminator);
   SortElements();
 }
 
+// TODO: Add error checking to make sure rbs does not overlap with terminator
 void Genome::AddGene(const std::string &name, int start, int stop,
                      int rbs_start, int rbs_stop, double rbs_strength) {
   auto binding = std::map<std::string, double>{{"ribosome", rbs_strength}};
   auto term = std::map<std::string, double>{{"ribosome", 1.0}};
-  // auto rbs = std::make_shared<Promoter>(name + "_rbs", start, stop, binding);
-  auto rbs = std::make_shared<Promoter>("rbs", start, stop, binding);
+  auto rbs =
+      std::make_shared<Promoter>(name + "_rbs", rbs_start, rbs_stop, binding);
   rbs->gene(name);
-  transcript_template_.push_back(rbs);
-  // bindings_[name + "_rbs"] = binding;
-  bindings_["rbs"] = binding;
+  transcript_template_.emplace_back(rbs);
+  bindings_[name + "_rbs"] = binding;
   auto stop_codon =
       std::make_shared<Terminator>("stop_codon", stop - 1, stop, term);
   stop_codon->set_reading_frame(start % 3);
   stop_codon->gene(name);
-  transcript_template_.push_back(stop_codon);
+  transcript_template_.emplace_back(stop_codon);
   SortTranscriptTemplate();
 }
 
