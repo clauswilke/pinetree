@@ -103,13 +103,17 @@ void Bind::Execute() {
 }
 
 Simulation::Simulation()
-    : time_(0), stop_time_(0), time_step_(0), alpha_sum_(0) {
+    : time_(0), stop_time_(0), time_step_(0), alpha_sum_(0), cell_volume_(0) {
   auto &tracker = SpeciesTracker::Instance();
   tracker.Clear();
 }
 
-Simulation::Simulation(int run_time, int time_step)
-    : time_(0), stop_time_(run_time), time_step_(time_step), alpha_sum_(0) {
+Simulation::Simulation(int run_time, int time_step, double cell_volume)
+    : time_(0),
+      stop_time_(run_time),
+      time_step_(time_step),
+      alpha_sum_(0),
+      cell_volume_(cell_volume) {
   auto &tracker = SpeciesTracker::Instance();
   tracker.Clear();
 }
@@ -176,6 +180,14 @@ void Simulation::RegisterReaction(Reaction::Ptr reaction) {
   }
 }
 
+void Simulation::AddReaction(double rate_constant,
+                             const std::vector<std::string> &reactants,
+                             const std::vector<std::string> &products) {
+  auto rxn = std::make_shared<SpeciesReaction>(rate_constant, cell_volume_,
+                                               reactants, products);
+  RegisterReaction(rxn);
+}
+
 void Simulation::AddSpecies(const std::string &name, int copy_number) {
   auto &tracker = SpeciesTracker::Instance();
   tracker.Increment(name, copy_number);
@@ -228,7 +240,7 @@ void Simulation::InitBindReactions() {
           double rate_constant = promoter_name.second[pol.name()];
           Polymerase pol_template = Polymerase(pol);
           auto reaction = std::make_shared<Bind>(
-              rate_constant, 1.1e-15, promoter_name.first, pol_template);
+              rate_constant, cell_volume_, promoter_name.first, pol_template);
           RegisterReaction(reaction);
         }
       }

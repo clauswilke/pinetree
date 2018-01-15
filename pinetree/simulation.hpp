@@ -187,7 +187,7 @@ class Simulation : public std::enable_shared_from_this<Simulation> {
    *
    * @param prefix for output files
    */
-  Simulation(int run_time, int time_step);
+  Simulation(int run_time, int time_step, double cell_volume);
   void Run(const std::string &output_name);
   /**
    * Add a SpeciesReaction object to the list of reactions.
@@ -204,6 +204,9 @@ class Simulation : public std::enable_shared_from_this<Simulation> {
   void AddSpecies(const std::string &name, int copy_number);
   void AddPolymerase(const std::string &name, int footprint, double mean_speed,
                      int copy_number);
+  void AddReaction(double rate_constant,
+                   const std::vector<std::string> &reactants,
+                   const std::vector<std::string> &products);
   /**
    * Add a genome to the list of reactions.
    *
@@ -334,6 +337,7 @@ class Simulation : public std::enable_shared_from_this<Simulation> {
    * Total simulation propensity.
    */
   double alpha_sum_;
+  double cell_volume_;
   /**
    * Map of terminations.
    */
