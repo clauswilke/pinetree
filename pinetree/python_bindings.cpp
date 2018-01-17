@@ -89,6 +89,7 @@ PYBIND11_MODULE(pinetree, m) {
   py::class_<Genome, Polymer, Genome::Ptr>(m, "Genome")
       .def(py::init<const std::string &, int>(), "name"_a, "length"_a)
       .def("add_mask", &Genome::AddMask, "start"_a, "interactions"_a)
+      .def("add_weights", &Genome::AddWeights, "weights"_a)
       .def("add_promoter", &Genome::AddPromoter, "name"_a, "start"_a, "stop"_a,
            "interactions"_a)
       .def("add_terminator", &Genome::AddTerminator, "name"_a, "start"_a,

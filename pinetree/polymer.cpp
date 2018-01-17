@@ -537,6 +537,15 @@ void Genome::AddGene(const std::string &name, int start, int stop,
   SortTranscriptTemplate();
 }
 
+void Genome::AddWeights(const std::vector<double> &transcript_weights) {
+  if (transcript_weights.size() != (stop_ - start_ + 1)) {
+    throw std::length_error("Weights vector is not the correct size. " +
+                            std::to_string(transcript_weights.size()) + " " +
+                            std::to_string(stop_ - start_ + 1));
+  }
+  transcript_weights_ = transcript_weights;
+}
+
 void Genome::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
   // Bind polymerase
   Polymer::Bind(pol, promoter_name);

@@ -309,6 +309,7 @@ class Genome : public Polymer {
                      const std::map<std::string, double> &efficiency);
   void AddGene(const std::string &name, int start, int stop, int rbs_start,
                int rbs_stop, double rbs_strength);
+  void AddWeights(const std::vector<double> &transcript_weights);
   const std::map<std::string, std::map<std::string, double>> &bindings();
   /**
    * Convenience typedefs
