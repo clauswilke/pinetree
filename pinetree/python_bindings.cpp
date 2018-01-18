@@ -42,7 +42,8 @@ PYBIND11_MODULE(pinetree, m) {
            "add a species-level reaction")
       .def("register_genome", &Simulation::RegisterGenome, "register a genome")
       .def("add_species", &Simulation::AddSpecies, "add species")
-      .def("add_polymerase", &Simulation::AddPolymerase, "add a polymerase")
+      .def("add_polymerase", &Simulation::AddPolymerase, "name"_a,
+           "footprint"_a, "speed"_a, "copy_number"_a, "add a polymerase")
       .def("run", &Simulation::Run, "run the simulation");
 
   // Binding for abtract Reaction so pybind11 doesn't complain when doing
