@@ -246,10 +246,11 @@ TEST_CASE("Genome methods", "[Polymer]") {
     Helper::ShiftMaskN(genome, 20);
     genome->Bind(pol, "p1");
     Helper::MovePolymeraseN(genome, pol, 500);
-    REQUIRE(Helper::my_transcript->uncovered("stop") == 2);
-    REQUIRE(Helper::my_transcript->uncovered("rbs") == 2);
+    REQUIRE(Helper::my_transcript->uncovered("stop_codon") == 2);
+    REQUIRE(Helper::my_transcript->uncovered("gene3_rbs") == 1);
+    REQUIRE(Helper::my_transcript->uncovered("gene2_rbs") == 1);
     Helper::MovePolymeraseN(genome, pol, 87);
-    REQUIRE(Helper::my_transcript->uncovered("stop") == 3);
+    REQUIRE(Helper::my_transcript->uncovered("stop_codon") == 3);
   }
 }
 

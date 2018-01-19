@@ -51,8 +51,8 @@ TEST_CASE("Bind methods", "[Reaction]") {
   auto &tracker = SpeciesTracker::Instance();
   tracker.Clear();
   // Set up a polymer
-  std::map<std::string, double> interactions {
-    {"ecolipol", 1.0}, 
+  std::map<std::string, double> interactions{
+      {"ecolipol", 1.0},
   };
   Promoter::Ptr prom;
   Terminator::Ptr term;
@@ -64,8 +64,8 @@ TEST_CASE("Bind methods", "[Reaction]") {
   std::vector<Element::Ptr> elements;
   elements.push_back(prom);
   elements.push_back(term);
- std::map<std::string, double> mask_interactions {
-    {"ecolipol", 1.0}, 
+  std::map<std::string, double> mask_interactions{
+      {"ecolipol", 1.0},
   };
   Mask mask = Mask("test_mask", 50, 100, mask_interactions);
 
@@ -79,7 +79,7 @@ TEST_CASE("Bind methods", "[Reaction]") {
   SECTION("Calculate propensity") {
     tracker.Increment("p1", 2);
     tracker.Increment("ecolipol", 3);
-    REQUIRE((1000 * 2 * 3) / (double(6.0221409e+23) * double(8e-15)) ==
+    REQUIRE((1000 * 3 * 3) / (double(6.0221409e+23) * double(8e-15)) ==
             reaction.CalculatePropensity());
   }
 
@@ -146,9 +146,9 @@ TEST_CASE("Simulation methods", "[Simulation]") {
   SECTION("Register polymer and execute") {
     tracker.Clear();
     // Set up a polymer
-    std::map<std::string, double> interactions {
-        {"ecolipol", 1.0}, 
-      };
+    std::map<std::string, double> interactions{
+        {"ecolipol", 1.0},
+    };
     Promoter::Ptr prom;
     Terminator::Ptr term;
     prom = std::make_shared<Promoter>("p1", 5, 15, interactions);
@@ -159,9 +159,9 @@ TEST_CASE("Simulation methods", "[Simulation]") {
     std::vector<Element::Ptr> elements;
     elements.push_back(prom);
     elements.push_back(term);
- std::map<std::string, double> mask_interactions {
-    {"ecolipol", 1.0}, 
-  };
+    std::map<std::string, double> mask_interactions{
+        {"ecolipol", 1.0},
+    };
     Mask mask = Mask("test_mask", 50, 100, mask_interactions);
 
     auto polymer =
@@ -173,7 +173,7 @@ TEST_CASE("Simulation methods", "[Simulation]") {
     auto polymerase = Polymerase("ecolipol", 10, 30);
     // Wire up reaction with tracker (TODO: clean this up)
     tracker.Increment("ecolipol", 2);
-    tracker.Increment("p1", 1);
+    // tracker.Increment("p1", 0);
     auto reaction =
         std::make_shared<Bind>(1000, double(8e-15), "p1", polymerase);
     tracker.Add("p1", reaction);
