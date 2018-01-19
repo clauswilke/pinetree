@@ -1,5 +1,6 @@
 import pinetree.pinetree as pt
 
+
 def execute(output):
 
     pt.seed(34)
@@ -10,7 +11,7 @@ def execute(output):
 
     plasmid = pt.Genome(name="T7", length=605)
 
-    plasmid.add_promoter(name="phi1", start=1, stop=10, 
+    plasmid.add_promoter(name="phi1", start=1, stop=10,
                          interactions={"rnapol": 2e8})
     plasmid.add_terminator(name="t1", start=604, stop=605,
                            efficiency={"rnapol": 1.0})
@@ -25,5 +26,3 @@ def execute(output):
     sim.register_genome(plasmid)
 
     sim.run(output)
-
-
