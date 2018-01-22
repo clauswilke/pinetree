@@ -191,7 +191,7 @@ class Bridge : public Reaction {
  */
 class Simulation : public std::enable_shared_from_this<Simulation> {
  public:
-  Simulation();
+  // Simulation();
   /**
    * Run the simulation until the given time point and write output to a file.
    *
@@ -199,12 +199,7 @@ class Simulation : public std::enable_shared_from_this<Simulation> {
    */
   Simulation(int run_time, int time_step, double cell_volume);
   void Run(const std::string &output_name);
-  /**
-   * Add a SpeciesReaction object to the list of reactions.
-   *
-   * @param reaction pointer to SpeciesReaction object
-   */
-  void RegisterReaction(Reaction::Ptr reaction);
+
   /**
    * Add species to simulation.
    *
@@ -227,12 +222,6 @@ class Simulation : public std::enable_shared_from_this<Simulation> {
                  const Element::VecPtr &transcript_template,
                  const std::tuple<int, int> &mask,
                  const std::vector<std::string> &mask_interactions);
-  /**
-   * Add a generic polymer to the list of reactions.
-   *
-   * @param polymer pointer to Polymer object
-   */
-  void RegisterPolymer(Polymer::Ptr polymer);
   /**
    * Add a genome to the list of reactions.
    *
@@ -352,6 +341,18 @@ class Simulation : public std::enable_shared_from_this<Simulation> {
    * Map of terminations.
    */
   std::map<std::string, int> terminations_;
+  /**
+   * Add a SpeciesReaction object to the list of reactions.
+   *
+   * @param reaction pointer to SpeciesReaction object
+   */
+  void RegisterReaction(Reaction::Ptr reaction);
+  /**
+   * Add a generic polymer to the list of reactions.
+   *
+   * @param polymer pointer to Polymer object
+   */
+  void RegisterPolymer(Polymer::Ptr polymer);
 
   void InitBindReactions();
 };

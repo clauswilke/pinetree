@@ -102,11 +102,11 @@ void Bind::Execute() {
   tracker.Increment(pol_name_, -1);
 }
 
-Simulation::Simulation()
-    : time_(0), stop_time_(0), time_step_(0), alpha_sum_(0), cell_volume_(0) {
-  auto &tracker = SpeciesTracker::Instance();
-  tracker.Clear();
-}
+// Simulation::Simulation()
+//     : time_(0), stop_time_(0), time_step_(0), alpha_sum_(0), cell_volume_(0) {
+//   auto &tracker = SpeciesTracker::Instance();
+//   tracker.Clear();
+// }
 
 Simulation::Simulation(int run_time, int time_step, double cell_volume)
     : time_(0),
@@ -123,7 +123,7 @@ void Simulation::Run(const std::string &output_name) {
   if (time_ == 0) {
     tracker.propensity_signal_.ConnectMember(shared_from_this(),
                                              &Simulation::UpdatePropensity);
-    InitBindReactions();
+    // InitBindReactions();
     InitPropensity();
   }
   // Set up file output streams
@@ -249,6 +249,7 @@ void Simulation::InitBindReactions() {
 }
 
 void Simulation::InitPropensity() {
+  InitBindReactions();
   for (int i = 0; i < reactions_.size(); i++) {
     UpdatePropensity(i);
   }

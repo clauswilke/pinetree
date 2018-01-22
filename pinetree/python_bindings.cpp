@@ -27,7 +27,6 @@ PYBIND11_MODULE(pinetree, m) {
       m, "Simulation", "Set up and run a gene expression simulation.")
       .def(py::init<int, int, double>(), "run_time"_a, "time_step"_a,
            "cell_volume"_a)
-      .def(py::init<>())
       .def_property("stop_time",
                     (double (Simulation::*)()) & Simulation::stop_time,
                     (void (Simulation::*)(double)) & Simulation::stop_time,
@@ -36,8 +35,6 @@ PYBIND11_MODULE(pinetree, m) {
                     (double (Simulation::*)()) & Simulation::time_step,
                     (void (Simulation::*)(double)) & Simulation::time_step,
                     "time step at which to output data")
-      .def("register_reaction", &Simulation::RegisterReaction,
-           "register a species-level reaction")
       .def("add_reaction", &Simulation::AddReaction,
            "add a species-level reaction")
       .def("register_genome", &Simulation::RegisterGenome, "register a genome")
