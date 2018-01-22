@@ -18,11 +18,6 @@ PYBIND11_MODULE(pinetree, m) {
 
   m.def("seed", &Random::seed, "Set a global seed for the simulation.");
 
-  py::class_<SpeciesTracker>(m, "SpeciesTracker")
-      .def("get_instance", SpeciesTracker::Instance,
-           py::return_value_policy::reference)
-      .def("increment", &SpeciesTracker::Increment);
-
   py::class_<Simulation, std::shared_ptr<Simulation>>(
       m, "Simulation", "Set up and run a gene expression simulation.")
       .def(py::init<int, int, double>(), "run_time"_a, "time_step"_a,
