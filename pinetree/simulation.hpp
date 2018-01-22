@@ -29,10 +29,14 @@ class Reaction : public std::enable_shared_from_this<Reaction> {
    */
   virtual void Execute() = 0;
   /**
-   * Return the index of the reaction.
+   * Some getters and setters.
    */
   int index() const { return index_; }
   void index(int index) { index_ = index; }
+  /**
+   * Initialize counts. Simulation will call this function at the beginning of
+   * a simulation run before any reactions are executed.
+   */
   void virtual InitCounts() {}
 
  protected:
@@ -51,8 +55,8 @@ class SpeciesReaction : public Reaction {
   /**
    * The only constructor of SpeciesReaction.
    *
-   * @param rate_constant mesoscopic rate constant (this is different, but
-   *  similar in concept, to rate constants used in ODE models)
+   * @param rate_constant macroscopic rate constant (SpeciesReaction will
+   *                      convert rate constant from macroscopic to mesoscopic)
    * @param reactants vector of reactant names
    * @param products vector of product names
    * @param volume the volume in which these reactions will occur
@@ -80,6 +84,9 @@ class SpeciesReaction : public Reaction {
    */
   const std::vector<std::string> &reactants() const { return reactants_; }
   const std::vector<std::string> &products() const { return products_; }
+  /**
+   * Add species to species tracker if not already added.
+   */
   void InitCounts();
 
  private:
@@ -123,6 +130,9 @@ class Bind : public Reaction {
    * and bind the polymerase to the polymer.
    */
   void Execute();
+  /**
+   * Add promoters and polymers to species tracker.
+   */
   void InitCounts();
 
  private:
