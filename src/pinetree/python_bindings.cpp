@@ -19,7 +19,21 @@ PYBIND11_MODULE(pinetree, m) {
   py::class_<Simulation, std::shared_ptr<Simulation>>(
       m, "Simulation", "Set up and run a gene expression simulation.")
       .def(py::init<int, int, double>(), "run_time"_a, "time_step"_a,
-           "cell_volume"_a)
+           "cell_volume"_a, R"doc(
+             Define a new gene expression simulation.
+
+             1. **run_time** Simulated time, in seconds at which this simulation should 
+                stop executing reactions. Note that this *simulated* time 
+                and not real time. The real time that it takes for the 
+                simulation to complete depends on the number of reactions and species (genomes, transcripts, proteins, etc) in the system.
+             
+             2. **time_step** Time interval, in seconds, that species counts 
+                are reported.
+             
+             3. **cell_volume** The volume, in liters of the system being 
+                simulated.
+
+           )doc")
       .def(py::init<int, int, double, int>(), "run_time"_a, "time_step"_a,
            "cell_volume"_a, "seed"_a)
       .def("add_reaction", &Simulation::AddReaction,
