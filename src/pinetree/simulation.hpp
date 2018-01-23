@@ -191,7 +191,13 @@ class Bridge : public Reaction {
  */
 class Simulation : public std::enable_shared_from_this<Simulation> {
  public:
+  /**
+   * Construct a simulation
+   */
   Simulation(int run_time, int time_step, double cell_volume);
+  /**
+   * Construct a simulation with a random seed.
+   */
   Simulation(int run_time, int time_step, double cell_volume, int seed);
   /**
    * Run the simulation until the given time point and write output to a file.
