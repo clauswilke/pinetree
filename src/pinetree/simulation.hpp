@@ -206,21 +206,26 @@ class Simulation : public std::enable_shared_from_this<Simulation> {
    * @param copy_number copy number of species
    */
   void AddSpecies(const std::string &name, int copy_number);
+  /**
+   * Add a polymerase to simulation.
+   *
+   * @param name polymerase name
+   * @param footprint footprint (in basepairs) of polymerase on DNA
+   * @param mean_speed mean speed of polymerase
+   * @param copy_number copy number of free polymerase
+   */
   void AddPolymerase(const std::string &name, int footprint, double mean_speed,
                      int copy_number);
+  /**
+   * Add a species reaction to simulation.
+   *
+   * @param rate_constant macroscopic rate constant of reaction
+   * @param reactants vector of reactant names
+   * @param products vector of product names
+   */
   void AddReaction(double rate_constant,
                    const std::vector<std::string> &reactants,
                    const std::vector<std::string> &products);
-  /**
-   * Add a genome to the list of reactions.
-   *
-   * @param genome pointer to Genome object
-   */
-  void AddGenome(const std::string &name, int genome_length,
-                 const Element::VecPtr &dna_elements,
-                 const Element::VecPtr &transcript_template,
-                 const std::tuple<int, int> &mask,
-                 const std::vector<std::string> &mask_interactions);
   /**
    * Add a genome to the list of reactions.
    *
@@ -326,6 +331,9 @@ class Simulation : public std::enable_shared_from_this<Simulation> {
    * Vector of all genomes in this ismulation
    */
   Genome::VecPtr genomes_;
+  /**
+   * Vector of all polymerases in simulation
+   */
   std::vector<Polymerase> polymerases_;
   /**
    * Vector of propensity values for reactions in this simulation.
@@ -335,6 +343,9 @@ class Simulation : public std::enable_shared_from_this<Simulation> {
    * Total simulation propensity.
    */
   double alpha_sum_;
+  /**
+   * Cell volume
+   */
   double cell_volume_;
   /**
    * Map of terminations.
@@ -352,7 +363,9 @@ class Simulation : public std::enable_shared_from_this<Simulation> {
    * @param polymer pointer to Polymer object
    */
   void RegisterPolymer(Polymer::Ptr polymer);
-
+  /**
+   * Generate appropriate binding reactions.
+   */
   void InitBindReactions();
 };
 
