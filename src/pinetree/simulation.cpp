@@ -102,12 +102,6 @@ void Bind::Execute() {
   tracker.Increment(pol_name_, -1);
 }
 
-// Simulation::Simulation()
-//     : time_(0), stop_time_(0), time_step_(0), alpha_sum_(0), cell_volume_(0) {
-//   auto &tracker = SpeciesTracker::Instance();
-//   tracker.Clear();
-// }
-
 Simulation::Simulation(int run_time, int time_step, double cell_volume)
     : time_(0),
       stop_time_(run_time),
@@ -116,6 +110,18 @@ Simulation::Simulation(int run_time, int time_step, double cell_volume)
       cell_volume_(cell_volume) {
   auto &tracker = SpeciesTracker::Instance();
   tracker.Clear();
+}
+
+Simulation::Simulation(int run_time, int time_step, double cell_volume,
+                       int seed)
+    : time_(0),
+      stop_time_(run_time),
+      time_step_(time_step),
+      alpha_sum_(0),
+      cell_volume_(cell_volume) {
+  auto &tracker = SpeciesTracker::Instance();
+  tracker.Clear();
+  Random::seed(seed);
 }
 
 void Simulation::Run(const std::string &output_name) {

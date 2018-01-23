@@ -82,7 +82,7 @@ class CustomInstall(install):
         lib_dir = self.install_lib
         scripts_dir = self.install_scripts
         subprocess.check_call(
-            ['mv', lib_dir + '/pinetree/pinetree_test', scripts_dir + '/'])
+            ['mv', lib_dir + 'pinetree/pinetree_test', scripts_dir + '/'])
 
 
 class CatchTestCommand(TestCommand):
@@ -118,7 +118,8 @@ setup(
     author_email='benjamin.r.jack@gmail.com',
     url='https://github.com/benjaminjack/pysinthe',
     license=license,
-    packages=['pinetree'],
+    packages=find_packages('src'),
+    package_dir={'': 'src'},
     install_requires=['pyaml',
                       'voluptuous'],
     ext_modules=[CMakeExtension('pinetree/pinetree')],

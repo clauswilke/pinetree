@@ -16,12 +16,12 @@ PYBIND11_MODULE(pinetree, m) {
     .. currentmodule:: pysinthe.core
   )doc");
 
-  m.def("seed", &Random::seed, "Set a global seed for the simulation.");
-
   py::class_<Simulation, std::shared_ptr<Simulation>>(
       m, "Simulation", "Set up and run a gene expression simulation.")
       .def(py::init<int, int, double>(), "run_time"_a, "time_step"_a,
            "cell_volume"_a)
+      .def(py::init<int, int, double, int>(), "run_time"_a, "time_step"_a,
+           "cell_volume"_a, "seed"_a)
       .def("add_reaction", &Simulation::AddReaction,
            "add a species-level reaction")
       .def("register_genome", &Simulation::RegisterGenome, "register a genome")

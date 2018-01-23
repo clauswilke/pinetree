@@ -191,15 +191,14 @@ class Bridge : public Reaction {
  */
 class Simulation : public std::enable_shared_from_this<Simulation> {
  public:
-  // Simulation();
+  Simulation(int run_time, int time_step, double cell_volume);
+  Simulation(int run_time, int time_step, double cell_volume, int seed);
   /**
    * Run the simulation until the given time point and write output to a file.
    *
    * @param prefix for output files
    */
-  Simulation(int run_time, int time_step, double cell_volume);
   void Run(const std::string &output_name);
-
   /**
    * Add species to simulation.
    *
