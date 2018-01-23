@@ -35,7 +35,16 @@ PYBIND11_MODULE(pinetree, m) {
 
            )doc")
       .def(py::init<int, int, double, int>(), "run_time"_a, "time_step"_a,
-           "cell_volume"_a, "seed"_a)
+           "cell_volume"_a, "seed"_a, R"doc(
+             Define a new gene expression simulation with a random seed for
+             reproducible simulations.
+
+             The arguments are the same as above, with the following additional
+             argument
+             
+             4. **seed** A seed for the random number generator.
+
+           )doc")
       .def("add_reaction", &Simulation::AddReaction,
            "add a species-level reaction")
       .def("register_genome", &Simulation::RegisterGenome, "register a genome")

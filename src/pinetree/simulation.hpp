@@ -197,6 +197,7 @@ class Simulation : public std::enable_shared_from_this<Simulation> {
    * Run the simulation until the given time point and write output to a file.
    *
    * @param prefix for output files
+   * @param seed seed for random number generator
    */
   void Run(const std::string &output_name);
   /**
