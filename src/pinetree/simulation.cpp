@@ -102,29 +102,16 @@ void Bind::Execute() {
   tracker.Increment(pol_name_, -1);
 }
 
-Simulation::Simulation(int run_time, int time_step, double cell_volume)
-    : time_(0),
-      stop_time_(run_time),
-      time_step_(time_step),
-      alpha_sum_(0),
-      cell_volume_(cell_volume) {
+Simulation::Simulation(double cell_volume)
+    : time_(0), alpha_sum_(0), cell_volume_(cell_volume) {
   auto &tracker = SpeciesTracker::Instance();
   tracker.Clear();
 }
 
-Simulation::Simulation(int run_time, int time_step, double cell_volume,
-                       int seed)
-    : time_(0),
-      stop_time_(run_time),
-      time_step_(time_step),
-      alpha_sum_(0),
-      cell_volume_(cell_volume) {
-  auto &tracker = SpeciesTracker::Instance();
-  tracker.Clear();
-  Random::seed(seed);
-}
+void Simulation::seed(int seed) { Random::seed(seed); }
 
-void Simulation::Run(const std::string &output_name) {
+void Simulation::Run(int stop_time, int time_step,
+                     const std::string &output_name) {
   auto &tracker = SpeciesTracker::Instance();
   if (time_ == 0) {
     tracker.propensity_signal_.ConnectMember(shared_from_this(),
@@ -137,7 +124,7 @@ void Simulation::Run(const std::string &output_name) {
   countfile << "time\tspecies\tcount\ttranscript\tribo_density\n";
   int out_time = 0;
   std::map<std::string, std::vector<double>> output;
-  while (time_ < stop_time_) {
+  while (time_ < stop_time) {
     if ((out_time - time_) < 0.001) {
       for (auto elem : tracker.species()) {
         output[elem.first].push_back(elem.second);
@@ -167,7 +154,7 @@ void Simulation::Run(const std::string &output_name) {
       }
       output.clear();
       countfile.flush();
-      out_time += time_step_;
+      out_time += time_step;
     }
     Execute();
   }

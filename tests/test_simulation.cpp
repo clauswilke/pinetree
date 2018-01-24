@@ -123,7 +123,7 @@ TEST_CASE("SpeciesTracker methods", "[SpeciesTracker]") {
 }
 
 TEST_CASE("Simulation methods", "[Simulation]") {
-  auto sim = std::make_shared<Simulation>(10, 1, double(8e-15));
+  auto sim = std::make_shared<Simulation>(double(8e-15));
   auto &tracker = SpeciesTracker::Instance();
   tracker.Clear();
   tracker.Increment("reactant1", 1);

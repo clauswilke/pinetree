@@ -21,8 +21,9 @@ class MainTest(unittest.TestCase):
         with open('tests/output/' + prefix + '_counts.tsv') as f:
             text = f.read()
 
-        sim = pt.Simulation(run_time=40, time_step=1,
-                            cell_volume=8e-16, seed=34)
+        sim = pt.Simulation(cell_volume=8e-16)
+        sim.seed(34)
+
         sim.add_polymerase(name="rnapol", copy_number=1,
                            speed=40, footprint=10)
         sim.add_polymerase(name="ribosome", copy_number=1,
@@ -43,8 +44,7 @@ class MainTest(unittest.TestCase):
                          rbs_start=(296 - 15), rbs_stop=296, rbs_strength=1e7)
 
         sim.register_genome(plasmid)
-
-        sim.run(out_prefix)
+        sim.run(stop_time=40, time_step=1, output_name=out_prefix)
 
         with open(out_prefix + '_counts.tsv') as results_file:
             results = results_file.read()

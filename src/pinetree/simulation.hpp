@@ -194,18 +194,14 @@ class Simulation : public std::enable_shared_from_this<Simulation> {
   /**
    * Construct a simulation
    */
-  Simulation(int run_time, int time_step, double cell_volume);
-  /**
-   * Construct a simulation with a random seed.
-   */
-  Simulation(int run_time, int time_step, double cell_volume, int seed);
+  Simulation(double cell_volume);
   /**
    * Run the simulation until the given time point and write output to a file.
    *
    * @param prefix for output files
-   * @param seed seed for random number generator
    */
-  void Run(const std::string &output_name);
+  void Run(int stop_time, int time_step, const std::string &output_name);
+  void seed(int seed);
   /**
    * Add species to simulation.
    *
@@ -279,7 +275,8 @@ class Simulation : public std::enable_shared_from_this<Simulation> {
    */
   void BlockPromoter(const std::string &species_name);
   /**
-   * Update propensities and species counts after transcription has terminated.
+   * Update propensities and species counts after transcription has
+   * terminated.
    *
    * @param polymer_index index of genome in reaction list
    * @param pol_name name of polymerase completing transcription
@@ -307,10 +304,6 @@ class Simulation : public std::enable_shared_from_this<Simulation> {
   /**
    * Getters and setters
    */
-  void stop_time(double stop_time) { stop_time_ = stop_time; }
-  double stop_time() { return stop_time_; }
-  void time_step(double time_step) { time_step_ = time_step; }
-  double time_step() { return time_step_; }
   double alpha_sum() { return alpha_sum_; }
 
  private:
@@ -318,14 +311,6 @@ class Simulation : public std::enable_shared_from_this<Simulation> {
    * Current simulation time.
    */
   double time_;
-  /**
-   * Time at which simulation should stop.
-   */
-  double stop_time_;
-  /**
-   * Time step at which to report data.
-   */
-  double time_step_;
   /**
    * Simulation iteraction counter
    */

@@ -18,40 +18,39 @@ PYBIND11_MODULE(pinetree, m) {
 
   py::class_<Simulation, std::shared_ptr<Simulation>>(
       m, "Simulation", "Set up and run a gene expression simulation.")
-      .def(py::init<int, int, double>(), "run_time"_a, "time_step"_a,
-           "cell_volume"_a, R"doc(
+      .def(py::init<double>(), "cell_volume"_a, R"doc(
              Define a new gene expression simulation.
-
-             1. **run_time** Simulated time, in seconds at which this simulation should 
-                stop executing reactions. Note that this *simulated* time 
-                and not real time. The real time that it takes for the 
-                simulation to complete depends on the number of reactions and species (genomes, transcripts, proteins, etc) in the system.
              
-             2. **time_step** Time interval, in seconds, that species counts 
-                are reported.
-             
-             3. **cell_volume** The volume, in liters of the system being 
+             1. **cell_volume** The volume, in liters, of the system being 
                 simulated.
 
            )doc")
-      .def(py::init<int, int, double, int>(), "run_time"_a, "time_step"_a,
-           "cell_volume"_a, "seed"_a, R"doc(
-             Define a new gene expression simulation with a random seed for
-             reproducible simulations.
-
-             The arguments are the same as above, with the following additional
-             argument
-             
-             4. **seed** A seed for the random number generator.
-
-           )doc")
+      .def("seed", &Simulation::seed,
+           "set a seed for the random number generator")
       .def("add_reaction", &Simulation::AddReaction,
            "add a species-level reaction")
       .def("register_genome", &Simulation::RegisterGenome, "register a genome")
       .def("add_species", &Simulation::AddSpecies, "add species")
       .def("add_polymerase", &Simulation::AddPolymerase, "name"_a,
            "footprint"_a, "speed"_a, "copy_number"_a, "add a polymerase")
-      .def("run", &Simulation::Run, "run the simulation");
+      .def("run", &Simulation::Run, "stop_time"_a, "time_step"_a,
+           "output_name"_a,
+           R"doc(
+            
+            run the simulation
+
+            1. **stop_time** Simulated time, in seconds at which this 
+                simulation should 
+                stop executing reactions. Note that this *simulated* time 
+                and not real time. The real time that it takes for the 
+                simulation to complete depends on the number of reactions and species (genomes, transcripts, proteins, etc) in the system.
+             
+             2. **time_step** Time interval, in seconds, that species counts 
+                are reported.
+            
+             3. **output_name** Prefix for output files.
+
+          )doc");
 
   // Polymers, genomes, and transcripts
   py::class_<Polymer, Polymer::Ptr>(m, "Polymer");
