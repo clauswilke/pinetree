@@ -19,6 +19,7 @@ PYBIND11_MODULE(pinetree, m) {
   py::class_<Simulation, std::shared_ptr<Simulation>>(
       m, "Simulation", "Set up and run a gene expression simulation.")
       .def(py::init<double>(), "cell_volume"_a, R"doc(
+
              Define a new gene expression simulation.
              
              1. **cell_volume** The volume, in liters, of the system being 
@@ -34,7 +35,7 @@ PYBIND11_MODULE(pinetree, m) {
       .def("add_polymerase", &Simulation::AddPolymerase, "name"_a,
            "footprint"_a, "speed"_a, "copy_number"_a, "add a polymerase")
       .def("run", &Simulation::Run, "stop_time"_a, "time_step"_a,
-           "output_name"_a,
+           "output_prefix"_a,
            R"doc(
             
             run the simulation
@@ -48,7 +49,7 @@ PYBIND11_MODULE(pinetree, m) {
              2. **time_step** Time interval, in seconds, that species counts 
                 are reported.
             
-             3. **output_name** Prefix for output files.
+             3. **output_prefix** Prefix for output files.
 
           )doc");
 

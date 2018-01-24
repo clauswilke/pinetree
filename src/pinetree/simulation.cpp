@@ -111,7 +111,7 @@ Simulation::Simulation(double cell_volume)
 void Simulation::seed(int seed) { Random::seed(seed); }
 
 void Simulation::Run(int stop_time, int time_step,
-                     const std::string &output_name) {
+                     const std::string &output_prefix) {
   auto &tracker = SpeciesTracker::Instance();
   if (time_ == 0) {
     tracker.propensity_signal_.ConnectMember(shared_from_this(),
@@ -120,7 +120,7 @@ void Simulation::Run(int stop_time, int time_step,
     InitPropensity();
   }
   // Set up file output streams
-  std::ofstream countfile(output_name + "_counts.tsv", std::ios::trunc);
+  std::ofstream countfile(output_prefix + "_counts.tsv", std::ios::trunc);
   countfile << "time\tspecies\tcount\ttranscript\tribo_density\n";
   int out_time = 0;
   std::map<std::string, std::vector<double>> output;

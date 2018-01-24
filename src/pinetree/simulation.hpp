@@ -200,7 +200,7 @@ class Simulation : public std::enable_shared_from_this<Simulation> {
    *
    * @param prefix for output files
    */
-  void Run(int stop_time, int time_step, const std::string &output_name);
+  void Run(int stop_time, int time_step, const std::string &output_prefix);
   void seed(int seed);
   /**
    * Add species to simulation.
