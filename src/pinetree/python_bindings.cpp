@@ -17,13 +17,16 @@ PYBIND11_MODULE(pinetree, m) {
   )doc");
 
   py::class_<Simulation, std::shared_ptr<Simulation>>(
-      m, "Simulation", "Set up and run a gene expression simulation.")
+      m, "Simulation", "Define and run a gene expression simulation.")
       .def(py::init<double>(), "cell_volume"_a, R"doc(
-
-             Define a new gene expression simulation.
              
-             1. **cell_volume** The volume, in liters, of the system being 
-                simulated.
+             ``cell_volume``
+                The volume, in liters, of the system being simulated.
+             
+             *Example* ::
+
+                import pinetree.pinetree as pt
+                sim = pt.Simulation(cell_volume=8e-16) # Approximate volume of E. coli cell
 
            )doc")
       .def("seed", &Simulation::seed,
@@ -35,16 +38,16 @@ PYBIND11_MODULE(pinetree, m) {
       .def("add_polymerase", &Simulation::AddPolymerase, "name"_a,
            "footprint"_a, "speed"_a, "copy_number"_a, "add a polymerase")
       .def("run", &Simulation::Run, "stop_time"_a, "time_step"_a,
-           "output_prefix"_a,
-           R"doc(
+           "output_prefix"_a, R"doc(
             
             run the simulation
 
             1. **stop_time** Simulated time, in seconds at which this 
-                simulation should 
-                stop executing reactions. Note that this *simulated* time 
-                and not real time. The real time that it takes for the 
-                simulation to complete depends on the number of reactions and species (genomes, transcripts, proteins, etc) in the system.
+               simulation should stop executing reactions. Note that this 
+               *simulated* time and not real time. The real time that it takes 
+               for the simulation to complete depends on the number of 
+               reactions and species (genomes, transcripts, proteins, etc) in 
+               the system.
              
              2. **time_step** Time interval, in seconds, that species counts 
                 are reported.
