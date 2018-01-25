@@ -1,4 +1,4 @@
-Python reference
+Python and parameter reference
 ================
 
 .. note::

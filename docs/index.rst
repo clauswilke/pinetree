@@ -14,7 +14,7 @@ To configure a specific simulation, Pinetree accepts parameter files in the YAML
    :caption: User Documentation
 
    intro
-   parameters
+   python_ref
    output
    multiple_runs
    faq
@@ -22,7 +22,6 @@ To configure a specific simulation, Pinetree accepts parameter files in the YAML
 .. toctree::
    :caption: Developer Documentation
    
-   python_ref
    cpp_ref
 
 
