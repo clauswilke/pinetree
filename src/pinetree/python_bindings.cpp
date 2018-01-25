@@ -59,8 +59,17 @@ PYBIND11_MODULE(pinetree, m) {
                 >>> coming soon
              
            )doc")
+      .def("add_species", &Simulation::AddSpecies, "name"_a, "copy_number"_a,
+           R"doc(
+           
+           Defines individual chemical species not specified by either ``add_ribosome()`` or ``add_polymerase()``.
+
+           Args:
+              name (str): Name of chemical species which can be referred to in    reactions added with ``add_reaction()``.
+              copy_number (int): Initial number of copies of the chemical species 
+
+           )doc")
       .def("register_genome", &Simulation::RegisterGenome, "register a genome")
-      .def("add_species", &Simulation::AddSpecies, "add species")
       .def("add_polymerase", &Simulation::AddPolymerase, "name"_a,
            "footprint"_a, "speed"_a, "copy_number"_a, "add a polymerase")
       .def("run", &Simulation::Run, "stop_time"_a, "time_step"_a,
