@@ -16,19 +16,20 @@ PYBIND11_MODULE(pinetree, m) {
     .. currentmodule:: pysinthe.core
   )doc");
 
-  py::class_<Simulation, std::shared_ptr<Simulation>>(
-      m, "Simulation", "Define and run a gene expression simulation.")
-      .def(py::init<double>(), "cell_volume"_a, R"doc(
+  py::class_<Simulation, std::shared_ptr<Simulation>>(m, "Simulation", R"doc(
+            
+            Define and run a gene expression simulation.
+            
+            Args:
+                cell_volume (float): The volume, in liters, of the system being simulated.
              
-            ``cell_volume``
-                The volume, in liters, of the system being simulated.
-             
-            *Example* ::
+            Examples:
 
-                import pinetree.pinetree as pt
-                sim = pt.Simulation(cell_volume=8e-16) # Approximate volume of E. coli cell
+                >>> import pinetree.pinetree as pt
+                >>> sim = pt.Simulation(cell_volume=8e-16) # Approximate volume of E. coli cell
 
            )doc")
+      .def(py::init<double>(), "cell_volume"_a)
       .def("seed", &Simulation::seed,
            "set a seed for the random number generator")
       .def("add_reaction", &Simulation::AddReaction, "rate_constant"_a,
@@ -37,19 +38,25 @@ PYBIND11_MODULE(pinetree, m) {
             Define a reaction between species, which may include free 
             ribosomes and polymerases.
 
-            ``rate_constant``
-                Macroscopic rate constant of the reaction. This will be converted into a stochastic mesoscopic rate constant automatically.
-            ``reactants``
-                List of reactants, which may be species, ribosomes, or polymerases
-            ``products``
-                List of products which may be species, ribosomes, or polymerases
+            Args:
+                rate_constant (float): Macroscopic rate constant of the 
+                    reaction. This will be converted into a stochastic 
+                    mesoscopic rate constant automatically.
+                reactants (list): List of reactants, which may be species, 
+                    ribosomes, or polymerases
+                products (list): List of products which may be species, 
+                    ribosomes, or polymerases
         
-            .. note::
-               Reaction rate constants should be given as macroscopic rate constants, the same constants used in differential equation-based models. The simulation will automatically convert these rate constants to mesoscopic constants required for a stochastic simulation.
+            Note:
+                Reaction rate constants should be given as macroscopic rate 
+                constants, the same constants used in differential 
+                equation-based models. The simulation will automatically 
+                convert these rate constants to mesoscopic constants required 
+                for a stochastic simulation.
             
-            *Example* ::
+            Example:
 
-                coming soon
+                >>> coming soon
              
            )doc")
       .def("register_genome", &Simulation::RegisterGenome, "register a genome")
@@ -59,19 +66,18 @@ PYBIND11_MODULE(pinetree, m) {
       .def("run", &Simulation::Run, "stop_time"_a, "time_step"_a,
            "output_prefix"_a, R"doc(
             
-            run the simulation
+            Run the simulation.
 
-            1. **stop_time** Simulated time, in seconds at which this 
-               simulation should stop executing reactions. Note that this 
-               *simulated* time and not real time. The real time that it takes 
-               for the simulation to complete depends on the number of 
-               reactions and species (genomes, transcripts, proteins, etc) in 
-               the system.
-             
-             2. **time_step** Time interval, in seconds, that species counts 
-                are reported.
-            
-             3. **output_prefix** Prefix for output files.
+            Args:
+                stop_time (int): Simulated time, in seconds at which this 
+                    simulation should stop executing reactions. Note that this 
+                    *simulated* time and not real time. The real time that it 
+                    takes for the simulation to complete depends on the number 
+                    of reactions and species (genomes, transcripts, proteins, 
+                    etc) in the system.
+                time_step (int): Time interval, in seconds, that species counts 
+                    are reported.
+                output_prefix (str): Prefix for output files.
 
           )doc");
 
