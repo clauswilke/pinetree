@@ -3,9 +3,8 @@ from pinetree import pinetree as pt
 
 def execute(output):
 
-    pt.seed(34)
-
-    sim = pt.Simulation(run_time=40, time_step=1, cell_volume=8e-16)
+    sim = pt.Simulation(cell_volume=8e-16)
+    sim.seed(34)
     sim.add_polymerase(name="rnapol", copy_number=1, speed=40, footprint=10)
     sim.add_polymerase(name="ribosome", copy_number=1, speed=30, footprint=10)
 
@@ -25,4 +24,4 @@ def execute(output):
 
     sim.register_genome(plasmid)
 
-    sim.run(output)
+    sim.run(stop_time=40, time_step=1, output_prefix=output)
