@@ -82,7 +82,7 @@ class CustomInstall(install):
         lib_dir = self.install_lib
         scripts_dir = self.install_scripts
         subprocess.check_call(
-            ['mv', lib_dir + 'pinetree/pinetree_test', scripts_dir + '/'])
+            ['mv', lib_dir + '/pinetree_test', scripts_dir + '/'])
 
 
 class CatchTestCommand(TestCommand):
@@ -122,7 +122,7 @@ setup(
     package_dir={'': 'src'},
     install_requires=['pyaml',
                       'voluptuous'],
-    ext_modules=[CMakeExtension('pinetree/pinetree')],
+    ext_modules=[CMakeExtension('pinetree')],
     cmdclass=dict(install=CustomInstall,
                   build_ext=CMakeBuild,
                   test=CatchTestCommand),

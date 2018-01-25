@@ -1,4 +1,4 @@
-from pinetree import pinetree as pt
+import pinetree as pt
 
 
 def execute(output):

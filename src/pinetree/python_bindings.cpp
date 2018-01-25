@@ -13,7 +13,7 @@ PYBIND11_MODULE(pinetree, m) {
   m.doc() = (R"doc(
     Python module
     -----------------------
-    .. currentmodule:: pysinthe.core
+    .. currentmodule:: pinetree
   )doc");
 
   py::class_<Simulation, std::shared_ptr<Simulation>>(m, "Simulation", R"doc(

@@ -3,7 +3,6 @@ import unittest
 import subprocess
 import tempfile
 import importlib
-import pinetree.pinetree as pt
 
 
 class MainTest(unittest.TestCase):
