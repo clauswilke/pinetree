@@ -127,6 +127,6 @@ setup(
                   build_ext=CMakeBuild,
                   test=CatchTestCommand),
     zip_safe=False,
-    scripts=['bin/pinetree_run.py',
-             'bin/pinetree_batch.py']
+    # scripts=['bin/pinetree_run.py',
+    #         'bin/pinetree_batch.py']
 )
