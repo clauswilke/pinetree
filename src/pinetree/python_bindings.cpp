@@ -20,10 +20,10 @@ PYBIND11_MODULE(pinetree, m) {
       m, "Simulation", "Define and run a gene expression simulation.")
       .def(py::init<double>(), "cell_volume"_a, R"doc(
              
-             ``cell_volume``
+            ``cell_volume``
                 The volume, in liters, of the system being simulated.
              
-             *Example* ::
+            *Example* ::
 
                 import pinetree.pinetree as pt
                 sim = pt.Simulation(cell_volume=8e-16) # Approximate volume of E. coli cell
@@ -31,8 +31,27 @@ PYBIND11_MODULE(pinetree, m) {
            )doc")
       .def("seed", &Simulation::seed,
            "set a seed for the random number generator")
-      .def("add_reaction", &Simulation::AddReaction,
-           "add a species-level reaction")
+      .def("add_reaction", &Simulation::AddReaction, "rate_constant"_a,
+           "reactants"_a, "products"_a, R"doc(
+             
+            Define a reaction between species, which may include free 
+            ribosomes and polymerases.
+
+            ``rate_constant``
+                Macroscopic rate constant of the reaction. This will be converted into a stochastic mesoscopic rate constant automatically.
+            ``reactants``
+                List of reactants, which may be species, ribosomes, or polymerases
+            ``products``
+                List of products which may be species, ribosomes, or polymerases
+        
+            .. note::
+               Reaction rate constants should be given as macroscopic rate constants, the same constants used in differential equation-based models. The simulation will automatically convert these rate constants to mesoscopic constants required for a stochastic simulation.
+            
+            *Example* ::
+
+                coming soon
+             
+           )doc")
       .def("register_genome", &Simulation::RegisterGenome, "register a genome")
       .def("add_species", &Simulation::AddSpecies, "add species")
       .def("add_polymerase", &Simulation::AddPolymerase, "name"_a,
