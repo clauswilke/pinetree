@@ -69,9 +69,22 @@ PYBIND11_MODULE(pinetree, m) {
               copy_number (int): Initial number of copies of the chemical species 
 
            )doc")
-      .def("register_genome", &Simulation::RegisterGenome, "register a genome")
       .def("add_polymerase", &Simulation::AddPolymerase, "name"_a,
-           "footprint"_a, "speed"_a, "copy_number"_a, "add a polymerase")
+           "footprint"_a, "speed"_a, "copy_number"_a, R"doc(
+
+           Add a polymerase to the simulation. Each type of polymerase should define the following fields:
+           
+           Args:
+              name (str): Name of the polymerase which can be referred to in 
+                  ``add_reaction()`` and ``add_promoter()``.
+              copy_number (int): Initial number of copies of the polymerase
+              speed (int): Speed, in base pairs per second, at which the 
+                  polymerase transcribes
+              footprint (int): Footprint, in base pairs, of the polymerase on 
+                  the genome
+
+           )doc")
+      .def("register_genome", &Simulation::RegisterGenome, "register a genome")
       .def("run", &Simulation::Run, "stop_time"_a, "time_step"_a,
            "output_prefix"_a, R"doc(
             
