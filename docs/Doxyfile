@@ -1,5 +1,5 @@
 PROJECT_NAME           = pinetree
-INPUT                  = ../pinetree/
+INPUT                  = ../src/pinetree/
 
 GENERATE_HTML          = NO
 GENERATE_LATEX         = NO
