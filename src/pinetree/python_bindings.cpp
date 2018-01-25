@@ -31,7 +31,14 @@ PYBIND11_MODULE(pinetree, m) {
            )doc")
       .def(py::init<double>(), "cell_volume"_a)
       .def("seed", &Simulation::seed,
-           "set a seed for the random number generator")
+           R"doc(
+             
+             Set a seed for reproducible simulations.
+             
+             Args:
+                seed (int): a seed for the random number generator
+
+             )doc")
       .def("add_reaction", &Simulation::AddReaction, "rate_constant"_a,
            "reactants"_a, "products"_a, R"doc(
              
@@ -84,7 +91,14 @@ PYBIND11_MODULE(pinetree, m) {
                   the genome
 
            )doc")
-      .def("register_genome", &Simulation::RegisterGenome, "register a genome")
+      .def("register_genome", &Simulation::RegisterGenome, R"doc(
+        
+        Register a genome with the simulation.
+
+        Args:
+            genome (Genome): a pinetree ``Genome`` object.
+        
+        )doc")
       .def("run", &Simulation::Run, "stop_time"_a, "time_step"_a,
            "output_prefix"_a, R"doc(
             
