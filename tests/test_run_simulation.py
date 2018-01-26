@@ -14,7 +14,7 @@ class MainTest(unittest.TestCase):
         self.tempdir.cleanup()
 
     def run_test(self, prefix):
-        test_mod = importlib.import_module('params.' + prefix)
+        test_mod = importlib.import_module('.params.' + prefix, 'tests')
         out_prefix = self.tempdir.name + "/" + prefix
         test_mod.execute(out_prefix)
         with open('tests/output/' + prefix + '_counts.tsv') as f:

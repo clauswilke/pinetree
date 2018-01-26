@@ -27,12 +27,12 @@ before_install:
     virtualenv -p python$PYTHON venv
     source venv/bin/activate
   fi
+- pip install scikit-build
 install:
 - |
   if [ -n "$PYTHON" ]; then
     python setup.py sdist
     pip install --verbose dist/*.tar.gz
-    # pip install --verbose .
   fi
 script:
 - python setup.py test

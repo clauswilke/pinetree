@@ -47,3 +47,6 @@ ParseAndAddCatchTests("${PROJECT_NAME}_test")
 # Python bindings!
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib/pybind11)
 pybind11_add_module(${PROJECT_NAME} "${SOURCE_DIR}/python_bindings.cpp" ${SOURCES})
+
+install(TARGETS "${PYTHON_MODULE_PREFIX}${PROJECT_NAME}${PYTHON_MODULE_SUFFIX}" LIBRARY DESTINATION src/pinetree)
+install(TARGETS ${PROJECT_NAME}_test RUNTIME DESTINATION src/pinetree/bin)
