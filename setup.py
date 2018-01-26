@@ -15,7 +15,7 @@ setup(
     long_description=readme,
     author='Benjamin Jack',
     author_email='benjamin.r.jack@gmail.com',
-    url='https://github.com/benjaminjack/pysinthe',
+    url='https://github.com/benjaminjack/pinetree',
     license=license,
     packages=['pinetree'],
     package_dir={'pinetree': 'src/pinetree'},
