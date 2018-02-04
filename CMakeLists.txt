@@ -2,24 +2,12 @@ cmake_minimum_required(VERSION 2.8.12)
 
 project(pinetree)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/lib/cmake.modules/")
-
-# For VSCode debugger support
-include(CMakeToolsHelpers OPTIONAL)
-# Required for CTest to function properly
-include(Dart)
-# Automatically parse Catch unit tests
-include(ParseAndAddCatchTests)
-# Set up for Catch unit testing
-enable_testing()
-
 # Modern C++ woooo!
 set(CMAKE_CXX_STANDARD 11)
 
 # Tell Cmake that headers are also in source directory
 include_directories(src/${PROJECT_NAME})
 include_directories(tests)
-include_directories(lib/catch/include)
 
 # Pull in source and test files
 set(SOURCE_DIR "${CMAKE_SOURCE_DIR}/src/${PROJECT_NAME}")
@@ -39,14 +27,9 @@ set(TESTS ${SOURCES}
     "${TEST_DIR}/test_simulation.cpp")
 
 # Generate a test executable
+include_directories(lib/catch/include)
 add_executable("${PROJECT_NAME}_test" ${TESTS})
 
-# Automatically parse Catch unit tests
-ParseAndAddCatchTests("${PROJECT_NAME}_test")
-
-# Python bindings!
-add_subdirectory(${CMAKE_SOURCE_DIR}/lib/pybind11)
-pybind11_add_module(${PROJECT_NAME} "${SOURCE_DIR}/python_bindings.cpp" ${SOURCES})
-
-install(TARGETS "${PYTHON_MODULE_PREFIX}${PROJECT_NAME}${PYTHON_MODULE_SUFFIX}" LIBRARY DESTINATION src/pinetree)
-install(TARGETS ${PROJECT_NAME}_test RUNTIME DESTINATION src/pinetree/bin)
+# Generate python module
+add_subdirectory(lib/pybind11)
+pybind11_add_module(pinetree ${SOURCES} "${SOURCE_DIR}/python_bindings.cpp")
