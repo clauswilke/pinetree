@@ -33,11 +33,6 @@ class Reaction : public std::enable_shared_from_this<Reaction> {
    */
   int index() const { return index_; }
   void index(int index) { index_ = index; }
-  /**
-   * Initialize counts. Simulation will call this function at the beginning of
-   * a simulation run before any reactions are executed.
-   */
-  void virtual InitCounts() {}
 
  protected:
   /**
@@ -84,10 +79,6 @@ class SpeciesReaction : public Reaction {
    */
   const std::vector<std::string> &reactants() const { return reactants_; }
   const std::vector<std::string> &products() const { return products_; }
-  /**
-   * Add species to species tracker if not already added.
-   */
-  void InitCounts();
 
  private:
   /**
@@ -130,10 +121,6 @@ class Bind : public Reaction {
    * and bind the polymerase to the polymer.
    */
   void Execute();
-  /**
-   * Add promoters and polymers to species tracker.
-   */
-  void InitCounts();
 
  private:
   /**
@@ -244,6 +231,7 @@ class Simulation : public std::enable_shared_from_this<Simulation> {
    * @param pointer to Transcript object
    */
   void RegisterTranscript(Transcript::Ptr transcript);
+  void Initialize();
   /**
    * Initialize propensities. Must be called before simulation is run.
    *
@@ -362,8 +350,6 @@ class Simulation : public std::enable_shared_from_this<Simulation> {
    * Generate appropriate binding reactions.
    */
   void InitBindReactions();
-
-  void Initialize();
 };
 
 #endif  // header guard

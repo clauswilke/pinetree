@@ -26,21 +26,8 @@ SpeciesReaction::SpeciesReaction(double rate_constant, double volume,
   }
   // Rate constant has to be transformed from macroscopic to mesoscopic
   // TODO: make more sophisticated and support different stoichiometries
-  auto &tracker = SpeciesTracker::Instance();
   if (reactants_.size() == 2) {
     rate_constant_ = rate_constant_ / (AVAGADRO * volume);
-  }
-}
-
-void SpeciesReaction::InitCounts() {
-  auto &tracker = SpeciesTracker::Instance();
-  for (const auto &reactant : reactants_) {
-    tracker.Add(reactant, shared_from_this());
-    tracker.Increment(reactant, 0);
-  }
-  for (const auto &product : products_) {
-    tracker.Add(product, shared_from_this());
-    tracker.Increment(product, 0);
   }
 }
 
@@ -75,12 +62,6 @@ Bind::Bind(double rate_constant, double volume,
   rate_constant_ = rate_constant_ / (AVAGADRO * volume);
 }
 
-void Bind::InitCounts() {
-  auto &tracker = SpeciesTracker::Instance();
-  tracker.Add(promoter_name_, shared_from_this());
-  tracker.Add(pol_name_, shared_from_this());
-}
-
 double Bind::CalculatePropensity() {
   auto &tracker = SpeciesTracker::Instance();
   return rate_constant_ * tracker.species(pol_name_) *
@@ -110,21 +91,10 @@ Simulation::Simulation(double cell_volume)
 
 void Simulation::seed(int seed) { Random::seed(seed); }
 
-void Simulation::Initialize() {
-  auto &tracker = SpeciesTracker::Instance();
-  if (time_ == 0) {
-    tracker.propensity_signal_.ConnectMember(shared_from_this(),
-                                             &Simulation::UpdatePropensity);
-    // InitBindReactions();
-    InitPropensity();
-  }
-}
-
 void Simulation::Run(int stop_time, int time_step,
                      const std::string &output_prefix) {
   auto &tracker = SpeciesTracker::Instance();
   Initialize();
-
   // Set up file output streams
   std::ofstream countfile(output_prefix + "_counts.tsv", std::ios::trunc);
   countfile << "time\tspecies\tcount\ttranscript\tribo_density\n";
@@ -168,7 +138,6 @@ void Simulation::Run(int stop_time, int time_step,
 }
 
 void Simulation::RegisterReaction(Reaction::Ptr reaction) {
-  reaction->InitCounts();
   auto it = std::find(reactions_.begin(), reactions_.end(), reaction);
   if (it == reactions_.end()) {
     reaction->index(reactions_.size());
@@ -184,6 +153,15 @@ void Simulation::AddReaction(double rate_constant,
                              const std::vector<std::string> &products) {
   auto rxn = std::make_shared<SpeciesReaction>(rate_constant, cell_volume_,
                                                reactants, products);
+  auto &tracker = SpeciesTracker::Instance();
+  for (const auto &reactant : reactants) {
+    tracker.Add(reactant, rxn);
+    tracker.Increment(reactant, 0);
+  }
+  for (const auto &product : products) {
+    tracker.Add(product, rxn);
+    tracker.Increment(product, 0);
+  }
   RegisterReaction(rxn);
 }
 
@@ -231,6 +209,27 @@ void Simulation::RegisterTranscript(Transcript::Ptr transcript) {
       shared_from_this(), &Simulation::TerminateTranslation);
 }
 
+void Simulation::Initialize() {
+  auto &tracker = SpeciesTracker::Instance();
+  if (time_ == 0) {
+    tracker.propensity_signal_.ConnectMember(shared_from_this(),
+                                             &Simulation::UpdatePropensity);
+    InitBindReactions();
+    InitPropensity();
+  }
+}
+
+void Simulation::InitPropensity() {
+  for (int i = 0; i < reactions_.size(); i++) {
+    UpdatePropensity(i);
+  }
+  // Make sure prop sum is starting from 0
+  alpha_sum_ = 0;
+  for (const auto &alpha : alpha_list_) {
+    alpha_sum_ += alpha;
+  }
+}
+
 void Simulation::InitBindReactions() {
   for (Genome::Ptr genome : genomes_) {
     for (auto promoter_name : genome->bindings()) {
@@ -240,22 +239,13 @@ void Simulation::InitBindReactions() {
           Polymerase pol_template = Polymerase(pol);
           auto reaction = std::make_shared<Bind>(
               rate_constant, cell_volume_, promoter_name.first, pol_template);
+          auto &tracker = SpeciesTracker::Instance();
+          tracker.Add(promoter_name.first, reaction);
+          tracker.Add(pol.name(), reaction);
           RegisterReaction(reaction);
         }
       }
     }
-  }
-}
-
-void Simulation::InitPropensity() {
-  InitBindReactions();
-  for (int i = 0; i < reactions_.size(); i++) {
-    UpdatePropensity(i);
-  }
-  // Make sure prop sum is starting from 0
-  alpha_sum_ = 0;
-  for (const auto &alpha : alpha_list_) {
-    alpha_sum_ += alpha;
   }
 }
 

@@ -131,11 +131,11 @@ TEST_CASE("Simulation methods", "[Simulation]") {
   SECTION("Register reaction") {
     sim->AddReaction(1.5, std::vector<std::string>{"reactant1"},
                      std::vector<std::string>{"product1"});
-    sim->InitPropensity();
+    sim->Initialize();
     REQUIRE(sim->alpha_sum() == 1.5);
     sim->AddReaction(1.5, std::vector<std::string>{"reactant1"},
                      std::vector<std::string>{"product1"});
-    sim->InitPropensity();
+    sim->Initialize();
     REQUIRE(sim->alpha_sum() == 3);
   }
 
@@ -159,7 +159,7 @@ TEST_CASE("Simulation methods", "[Simulation]") {
     // Add a polymerase
     sim->AddPolymerase("ecolipol", 10, 30, 2);
 
-    sim->InitPropensity();
+    sim->Initialize();
     tracker.propensity_signal_.ConnectMember(sim,
                                              &Simulation::UpdatePropensity);
     sim->Execute();
