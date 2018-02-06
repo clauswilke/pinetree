@@ -362,6 +362,8 @@ class Simulation : public std::enable_shared_from_this<Simulation> {
    * Generate appropriate binding reactions.
    */
   void InitBindReactions();
+
+  void Initialize();
 };
 
 #endif  // header guard

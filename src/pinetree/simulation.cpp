@@ -110,8 +110,7 @@ Simulation::Simulation(double cell_volume)
 
 void Simulation::seed(int seed) { Random::seed(seed); }
 
-void Simulation::Run(int stop_time, int time_step,
-                     const std::string &output_prefix) {
+void Simulation::Initialize() {
   auto &tracker = SpeciesTracker::Instance();
   if (time_ == 0) {
     tracker.propensity_signal_.ConnectMember(shared_from_this(),
@@ -119,6 +118,13 @@ void Simulation::Run(int stop_time, int time_step,
     // InitBindReactions();
     InitPropensity();
   }
+}
+
+void Simulation::Run(int stop_time, int time_step,
+                     const std::string &output_prefix) {
+  auto &tracker = SpeciesTracker::Instance();
+  Initialize();
+
   // Set up file output streams
   std::ofstream countfile(output_prefix + "_counts.tsv", std::ios::trunc);
   countfile << "time\tspecies\tcount\ttranscript\tribo_density\n";
