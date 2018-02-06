@@ -9,7 +9,7 @@
 namespace py = pybind11;
 using namespace pybind11::literals;
 
-PYBIND11_MODULE(pinetree, m) {
+PYBIND11_MODULE(core, m) {
   m.doc() = (R"doc(
     Python module
     -----------------------

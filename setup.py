@@ -110,7 +110,7 @@ setup(
     license=license,
     packages=find_packages('src'),
     package_dir={'': 'src'},
-    ext_modules=[CMakeExtension('pinetree/pinetree')],
+    ext_modules=[CMakeExtension('pinetree/core')],
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False,
     test_suite='tests'

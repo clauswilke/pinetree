@@ -32,4 +32,4 @@ add_executable("${PROJECT_NAME}_test" ${TESTS})
 
 # Generate python module
 add_subdirectory(lib/pybind11)
-pybind11_add_module(pinetree ${SOURCES} "${SOURCE_DIR}/python_bindings.cpp")
+pybind11_add_module(core ${SOURCES} "${SOURCE_DIR}/python_bindings.cpp")
