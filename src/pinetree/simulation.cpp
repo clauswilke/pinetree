@@ -93,6 +93,8 @@ void Simulation::seed(int seed) { Random::seed(seed); }
 void Simulation::Run(int stop_time, int time_step,
                      const std::string &output_prefix) {
   auto &tracker = SpeciesTracker::Instance();
+  tracker.propensity_signal_.ConnectMember(shared_from_this(),
+                                           &Simulation::UpdatePropensity);
   Initialize();
   // Set up file output streams
   std::ofstream countfile(output_prefix + "_counts.tsv", std::ios::trunc);
@@ -209,13 +211,8 @@ void Simulation::RegisterTranscript(Transcript::Ptr transcript) {
 }
 
 void Simulation::Initialize() {
-  auto &tracker = SpeciesTracker::Instance();
-  if (time_ == 0) {
-    tracker.propensity_signal_.ConnectMember(shared_from_this(),
-                                             &Simulation::UpdatePropensity);
-    InitBindReactions();
-    InitPropensity();
-  }
+  InitBindReactions();
+  InitPropensity();
   if (genomes_.size() == 0) {
     std::cerr << "Warning: There are no Genome objects registered with "
                  "Simulation. Did you forget to register a Genome?"
