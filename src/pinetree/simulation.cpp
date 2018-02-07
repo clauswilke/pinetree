@@ -58,7 +58,6 @@ Bind::Bind(double rate_constant, double volume,
   if (volume <= 0) {
     throw std::runtime_error("Reaction volume cannot be zero.");
   }
-  auto &tracker = SpeciesTracker::Instance();
   rate_constant_ = rate_constant_ / (AVAGADRO * volume);
 }
 
