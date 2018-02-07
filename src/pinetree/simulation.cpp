@@ -217,6 +217,11 @@ void Simulation::Initialize() {
     InitBindReactions();
     InitPropensity();
   }
+  if (genomes_.size() == 0) {
+    std::cerr << "Warning: There are no Genome objects registered with "
+                 "Simulation. Did you forget to register a Genome?"
+              << std::endl;
+  }
 }
 
 void Simulation::InitPropensity() {
