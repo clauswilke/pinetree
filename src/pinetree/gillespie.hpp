@@ -11,10 +11,6 @@ class Gillespie {
    */
   void LinkReaction(Reaction::Ptr reaction);
   /**
-   * Compute all propensities after all reactions have been added.
-   */
-  void Initialize();
-  /**
    * Update propensity of a reaction at a given index.
    */
   void UpdatePropensity(int index);
@@ -47,7 +43,11 @@ class Gillespie {
   /**
    * Vector of all reactions.
    */
-  Reaction::Ptr reactions_;
+  Reaction::VecPtr reactions_;
+  /**
+   * Compute all propensities after all reactions have been added.
+   */
+  void Initialize();
 };
 
 #endif  // header guard
