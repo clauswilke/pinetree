@@ -1,6 +1,6 @@
 /* Copyright (c) 2017 Benjamin Jack All Rights Reserved. */
 
-#ifndef SRC_TRACKER_HPP // header guard
+#ifndef SRC_TRACKER_HPP  // header guard
 #define SRC_TRACKER_HPP
 
 #include <memory>
@@ -19,7 +19,7 @@
  * TODO: Move propensity cache from Simulation into this class?
  */
 class SpeciesTracker {
-public:
+ public:
   /**
    * Retrieve the only instance of this object.
    */
@@ -52,11 +52,11 @@ public:
    */
   void IncrementRibo(const std::string &transcript_name, int copy_number);
   /**
-    * Update count of a given transcript (gene-specific).
-    *
-    * @param transcript_name name of transcript (usually a gene)
-    * @param copy_number number to add to current copy number count
-    */
+   * Update count of a given transcript (gene-specific).
+   *
+   * @param transcript_name name of transcript (usually a gene)
+   * @param copy_number number to add to current copy number count
+   */
   void IncrementTranscript(const std::string &transcript_name, int copy_number);
   /**
    * Add a species-reaction pair to species-reaction map.
@@ -88,6 +88,7 @@ public:
    * @return vector of pointers to Reaction objects that involve species_name
    */
   const Reaction::VecPtr &FindReactions(const std::string &species_name);
+  const std::string GatherCounts(double time_stamp);
   /**
    * Getters and setters
    */
@@ -104,7 +105,7 @@ public:
    */
   Signal<int> propensity_signal_;
 
-private:
+ private:
   /**
    * Private constructor for singleton
    */
@@ -131,4 +132,4 @@ private:
   std::map<std::string, Reaction::VecPtr> species_map_;
 };
 
-#endif // header guard
+#endif  // header guard

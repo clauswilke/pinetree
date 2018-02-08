@@ -23,38 +23,12 @@ void Simulation::Run(int stop_time, int time_step,
   Initialize();
   // Set up file output streams
   std::ofstream countfile(output_prefix + "_counts.tsv", std::ios::trunc);
+  // Output header
   countfile << "time\tspecies\tcount\ttranscript\tribo_density\n";
   int out_time = 0;
-  std::map<std::string, std::vector<double>> output;
   while (gillespie_.time() < stop_time) {
     if ((out_time - gillespie_.time()) < 0.001) {
-      for (auto elem : tracker.species()) {
-        output[elem.first].push_back(elem.second);
-        output[elem.first].push_back(0);
-        output[elem.first].push_back(0);
-      }
-      for (auto transcript : tracker.transcripts()) {
-        if (output[transcript.first].size() == 3) {
-          output[transcript.first][1] = transcript.second;
-        } else {
-          output[transcript.first].push_back(0);
-          output[transcript.first].push_back(transcript.second);
-          output[transcript.first].push_back(0);
-        }
-        if (tracker.ribo_per_transcript().find(transcript.first) !=
-            tracker.ribo_per_transcript().end()) {
-          output[transcript.first][2] =
-              double(tracker.ribo_per_transcript(transcript.first)) /
-              double(output[transcript.first][1]);
-        }
-      }
-      for (auto row : output) {
-        countfile << (std::to_string(gillespie_.time()) + "\t" + row.first +
-                      "\t" + std::to_string(row.second[0]) + "\t" +
-                      std::to_string(row.second[1]) + "\t" +
-                      std::to_string(row.second[2]) + "\n");
-      }
-      output.clear();
+      countfile << tracker.GatherCounts(gillespie_.time());
       countfile.flush();
       out_time += time_step;
     }

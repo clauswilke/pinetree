@@ -95,13 +95,13 @@ void SpeciesTracker::Add(const std::string &promoter_name,
   }
 }
 
-const Reaction::VecPtr &
-SpeciesTracker::FindReactions(const std::string &species_name) {
+const Reaction::VecPtr &SpeciesTracker::FindReactions(
+    const std::string &species_name) {
   return species_map_[species_name];
 }
 
-const Polymer::VecPtr &
-SpeciesTracker::FindPolymers(const std::string &promoter_name) {
+const Polymer::VecPtr &SpeciesTracker::FindPolymers(
+    const std::string &promoter_name) {
   return promoter_map_[promoter_name];
 }
 
@@ -115,4 +115,36 @@ int SpeciesTracker::transcripts(const std::string &transcript_name) {
 
 int SpeciesTracker::ribo_per_transcript(const std::string &transcript_name) {
   return ribo_per_transcript_[transcript_name];
+}
+
+const std::string SpeciesTracker::GatherCounts(double time_stamp) {
+  std::map<std::string, std::vector<double>> output;
+  for (auto elem : species_) {
+    output[elem.first].push_back(elem.second);
+    output[elem.first].push_back(0);
+    output[elem.first].push_back(0);
+  }
+  for (auto transcript : transcripts_) {
+    if (output[transcript.first].size() == 3) {
+      output[transcript.first][1] = transcript.second;
+    } else {
+      output[transcript.first].push_back(0);
+      output[transcript.first].push_back(transcript.second);
+      output[transcript.first].push_back(0);
+    }
+    if (ribo_per_transcript_.find(transcript.first) !=
+        ribo_per_transcript_.end()) {
+      output[transcript.first][2] =
+          double(ribo_per_transcript_[transcript.first]) /
+          double(output[transcript.first][1]);
+    }
+  }
+  std::string out_string;
+  for (auto row : output) {
+    out_string = out_string + (std::to_string(time_stamp) + "\t" + row.first +
+                               "\t" + std::to_string(row.second[0]) + "\t" +
+                               std::to_string(row.second[1]) + "\t" +
+                               std::to_string(row.second[2]) + "\n");
+  }
+  return out_string;
 }
