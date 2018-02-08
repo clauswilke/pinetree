@@ -45,11 +45,9 @@ void Simulation::AddReaction(double rate_constant,
   auto &tracker = SpeciesTracker::Instance();
   for (const auto &reactant : reactants) {
     tracker.Add(reactant, rxn);
-    tracker.Increment(reactant, 0);
   }
   for (const auto &product : products) {
     tracker.Add(product, rxn);
-    tracker.Increment(product, 0);
   }
   gillespie_.LinkReaction(rxn);
 }

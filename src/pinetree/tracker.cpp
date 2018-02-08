@@ -74,6 +74,7 @@ void SpeciesTracker::IncrementTranscript(const std::string &transcript_name,
 
 void SpeciesTracker::Add(const std::string &species_name,
                          Reaction::Ptr reaction) {
+  Increment(species_name, 0);
   if (species_map_.count(species_name) == 0) {
     species_map_[species_name] = Reaction::VecPtr{reaction};
   } else {
