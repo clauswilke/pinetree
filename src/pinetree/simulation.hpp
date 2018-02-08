@@ -86,17 +86,6 @@ class Simulation : public std::enable_shared_from_this<Simulation> {
    */
   void BlockPromoter(const std::string &species_name);
   /**
-   * Update propensities and species counts after transcription has
-   * terminated.
-   *
-   * @param polymer_index index of genome in reaction list
-   * @param pol_name name of polymerase completing transcription
-   * @param gene_name name of last gene on the polymerase encountered (not
-   *  currently used, but may be used in future)
-   */
-  void TerminateTranscription(int polymer_index, const std::string &pol_name,
-                              const std::string &gene_name);
-  /**
    * Update propensities and species counts after translation has terminated.
    *
    * @param polymer_index index of transcript in reaction list

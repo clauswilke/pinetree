@@ -84,7 +84,7 @@ void Simulation::RegisterPolymer(Polymer::Ptr polymer) {
 void Simulation::RegisterGenome(Genome::Ptr genome) {
   RegisterPolymer(genome);
   genome->termination_signal_.ConnectMember(
-      shared_from_this(), &Simulation::TerminateTranscription);
+      &SpeciesTracker::Instance(), &SpeciesTracker::TerminateTranscription);
   genome->transcript_signal_.ConnectMember(shared_from_this(),
                                            &Simulation::RegisterTranscript);
   genomes_.push_back(genome);
@@ -126,14 +126,6 @@ void Simulation::FreePromoter(const std::string &species_name) {
 }
 void Simulation::BlockPromoter(const std::string &species_name) {
   SpeciesTracker::Instance().Increment(species_name, -1);
-}
-
-void Simulation::TerminateTranscription(int polymer_index,
-                                        const std::string &pol_name,
-                                        const std::string &gene_name) {
-  SpeciesTracker::Instance().Increment(pol_name, 1);
-  gillespie_.UpdatePropensity(polymer_index);
-  CountTermination("transcript");
 }
 
 void Simulation::TerminateTranslation(int polymer_index,

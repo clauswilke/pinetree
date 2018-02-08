@@ -96,6 +96,14 @@ void SpeciesTracker::Add(const std::string &promoter_name,
   }
 }
 
+void SpeciesTracker::TerminateTranscription(int polymer_index,
+                                            const std::string &pol_name,
+                                            const std::string &gene_name) {
+  Increment(pol_name, 1);
+  propensity_signal_.Emit(polymer_index);
+  // CountTermination("transcript");
+}
+
 const Reaction::VecPtr &SpeciesTracker::FindReactions(
     const std::string &species_name) {
   return species_map_[species_name];
