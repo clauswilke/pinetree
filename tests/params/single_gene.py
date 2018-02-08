@@ -25,3 +25,7 @@ def execute(output):
     sim.register_genome(plasmid)
 
     sim.run(stop_time=40, time_step=1, output_prefix=output)
+
+
+if __name__ == "__main__":
+    execute("")

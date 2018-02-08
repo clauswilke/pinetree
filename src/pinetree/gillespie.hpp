@@ -2,7 +2,8 @@
 #define SRC_GILLESPIE_HPP
 
 #include <vector>
-#include "simulation.hpp"
+
+#include "reaction.hpp"
 
 class Gillespie {
  public:
@@ -18,20 +19,24 @@ class Gillespie {
    * Execute one iteration of the gillespie algorithm.
    */
   void Iterate();
+  /**
+   * Getters and setters.
+   */
+  double time() { return time_; }
 
  private:
   /**
    * True if Initialize() has been called.
    */
-  bool initialized_;
+  bool initialized_ = false;
   /**
    * Current simulation time.
    */
-  double time_;
+  double time_ = 0;
   /**
    * Current simulation iteration.
    */
-  int iteration_;
+  int iteration_ = 0;
   /**
    * Vector of individual reaction propensities in same order as reactions_.
    */
@@ -39,7 +44,7 @@ class Gillespie {
   /**
    * Running total of propensities.
    */
-  double alpha_sum_;
+  double alpha_sum_ = 0;
   /**
    * Vector of all reactions.
    */

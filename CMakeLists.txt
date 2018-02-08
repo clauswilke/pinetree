@@ -17,7 +17,9 @@ set(SOURCES
     "${SOURCE_DIR}/polymer.cpp"
     "${SOURCE_DIR}/choices.cpp"
     "${SOURCE_DIR}/tracker.cpp"
-    "${SOURCE_DIR}/simulation.cpp")
+    "${SOURCE_DIR}/simulation.cpp"
+    "${SOURCE_DIR}/gillespie.cpp"
+    "${SOURCE_DIR}/reaction.cpp")
 set(TESTS ${SOURCES}
     "${TEST_DIR}/test_main.cpp"
     "${TEST_DIR}/test_feature.cpp"

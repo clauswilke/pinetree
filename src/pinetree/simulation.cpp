@@ -7,85 +7,11 @@
 #include "simulation.hpp"
 #include "tracker.hpp"
 
-const static double AVAGADRO = double(6.0221409e+23);
-
-SpeciesReaction::SpeciesReaction(double rate_constant, double volume,
-                                 const std::vector<std::string> &reactants,
-                                 const std::vector<std::string> &products)
-    : rate_constant_(rate_constant),
-      reactants_(reactants),
-      products_(products) {
-  // Error checking
-  if (reactants_.size() > 2) {
-    throw std::runtime_error(
-        "Simulation does not support reactions with "
-        "more than two reactant species.");
-  }
-  if (volume <= 0) {
-    throw std::runtime_error("Reaction volume cannot be zero.");
-  }
-  // Rate constant has to be transformed from macroscopic to mesoscopic
-  // TODO: make more sophisticated and support different stoichiometries
-  if (reactants_.size() == 2) {
-    rate_constant_ = rate_constant_ / (AVAGADRO * volume);
-  }
-}
-
-double SpeciesReaction::CalculatePropensity() {
-  double propensity = rate_constant_;
-  for (const auto &reactant : reactants_) {
-    propensity *= SpeciesTracker::Instance().species(reactant);
-  }
-  return propensity;
-}
-
-void SpeciesReaction::Execute() {
-  for (const auto &reactant : reactants_) {
-    SpeciesTracker::Instance().Increment(reactant, -1);
-  }
-  for (const auto &product : products_) {
-    SpeciesTracker::Instance().Increment(product, 1);
-  }
-}
-
-Bind::Bind(double rate_constant, double volume,
-           const std::string &promoter_name, const Polymerase &pol_template)
-    : rate_constant_(rate_constant),
-      promoter_name_(promoter_name),
-      pol_name_(pol_template.name()),
-      pol_template_(pol_template) {
-  // Check volume
-  if (volume <= 0) {
-    throw std::runtime_error("Reaction volume cannot be zero.");
-  }
-  rate_constant_ = rate_constant_ / (AVAGADRO * volume);
-}
-
-double Bind::CalculatePropensity() {
-  auto &tracker = SpeciesTracker::Instance();
-  return rate_constant_ * tracker.species(pol_name_) *
-         tracker.species(promoter_name_);
-}
-
-void Bind::Execute() {
-  auto &tracker = SpeciesTracker::Instance();
-  auto weights = std::vector<double>();
-  for (const auto &polymer : tracker.FindPolymers(promoter_name_)) {
-    weights.push_back(double(polymer->uncovered(promoter_name_)));
-  }
-  Polymer::Ptr polymer =
-      Random::WeightedChoice(tracker.FindPolymers(promoter_name_), weights);
-  auto new_pol = std::make_shared<Polymerase>(pol_template_);
-  polymer->Bind(new_pol, promoter_name_);
-  tracker.propensity_signal_.Emit(polymer->index());
-  tracker.Increment(promoter_name_, -1);
-  tracker.Increment(pol_name_, -1);
-}
-
 Simulation::Simulation(double cell_volume)
     : time_(0), alpha_sum_(0), cell_volume_(cell_volume) {
   auto &tracker = SpeciesTracker::Instance();
   tracker.Clear();
+  gillespie_ = Gillespie();
 }
 
 void Simulation::seed(int seed) { Random::seed(seed); }
@@ -93,16 +19,16 @@ void Simulation::seed(int seed) { Random::seed(seed); }
 void Simulation::Run(int stop_time, int time_step,
                      const std::string &output_prefix) {
   auto &tracker = SpeciesTracker::Instance();
-  tracker.propensity_signal_.ConnectMember(shared_from_this(),
-                                           &Simulation::UpdatePropensity);
+  tracker.propensity_signal_.ConnectMember(&gillespie_,
+                                           &Gillespie::UpdatePropensity);
   Initialize();
   // Set up file output streams
   std::ofstream countfile(output_prefix + "_counts.tsv", std::ios::trunc);
   countfile << "time\tspecies\tcount\ttranscript\tribo_density\n";
   int out_time = 0;
   std::map<std::string, std::vector<double>> output;
-  while (time_ < stop_time) {
-    if ((out_time - time_) < 0.001) {
+  while (gillespie_.time() < stop_time) {
+    if ((out_time - gillespie_.time()) < 0.001) {
       for (auto elem : tracker.species()) {
         output[elem.first].push_back(elem.second);
         output[elem.first].push_back(0);
@@ -124,8 +50,8 @@ void Simulation::Run(int stop_time, int time_step,
         }
       }
       for (auto row : output) {
-        countfile << (std::to_string(time_) + "\t" + row.first + "\t" +
-                      std::to_string(row.second[0]) + "\t" +
+        countfile << (std::to_string(gillespie_.time()) + "\t" + row.first +
+                      "\t" + std::to_string(row.second[0]) + "\t" +
                       std::to_string(row.second[1]) + "\t" +
                       std::to_string(row.second[2]) + "\n");
       }
@@ -133,20 +59,13 @@ void Simulation::Run(int stop_time, int time_step,
       countfile.flush();
       out_time += time_step;
     }
-    Execute();
+    gillespie_.Iterate();
   }
   countfile.close();
 }
 
 void Simulation::RegisterReaction(Reaction::Ptr reaction) {
-  auto it = std::find(reactions_.begin(), reactions_.end(), reaction);
-  if (it == reactions_.end()) {
-    reaction->index(reactions_.size());
-    double new_prop = reaction->CalculatePropensity();
-    alpha_list_.push_back(new_prop);
-    alpha_sum_ += new_prop;
-    reactions_.push_back(reaction);
-  }
+  gillespie_.LinkReaction(reaction);
 }
 
 void Simulation::AddReaction(double rate_constant,
@@ -212,7 +131,7 @@ void Simulation::RegisterTranscript(Transcript::Ptr transcript) {
 
 void Simulation::Initialize() {
   InitBindReactions();
-  InitPropensity();
+  // InitPropensity();
   if (genomes_.size() == 0) {
     std::cerr << "Warning: There are no Genome objects registered with "
                  "Simulation. Did you forget to register a Genome?"
@@ -251,10 +170,11 @@ void Simulation::InitBindReactions() {
 }
 
 void Simulation::UpdatePropensity(int index) {
-  double new_prop = reactions_[index]->CalculatePropensity();
-  double diff = new_prop - alpha_list_[index];
-  alpha_sum_ += diff;
-  alpha_list_[index] = new_prop;
+  gillespie_.UpdatePropensity(index);
+  // double new_prop = reactions_[index]->CalculatePropensity();
+  // double diff = new_prop - alpha_list_[index];
+  // alpha_sum_ += diff;
+  // alpha_list_[index] = new_prop;
 }
 
 void Simulation::Execute() {

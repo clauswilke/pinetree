@@ -128,49 +128,49 @@ TEST_CASE("Simulation methods", "[Simulation]") {
   tracker.Clear();
   tracker.Increment("reactant1", 1);
 
-  SECTION("Register reaction") {
-    sim->AddReaction(1.5, std::vector<std::string>{"reactant1"},
-                     std::vector<std::string>{"product1"});
-    sim->Initialize();
-    REQUIRE(sim->alpha_sum() == 1.5);
-    sim->AddReaction(1.5, std::vector<std::string>{"reactant1"},
-                     std::vector<std::string>{"product1"});
-    sim->Initialize();
-    REQUIRE(sim->alpha_sum() == 3);
-  }
+  // SECTION("Register reaction") {
+  //   sim->AddReaction(1.5, std::vector<std::string>{"reactant1"},
+  //                    std::vector<std::string>{"product1"});
+  //   sim->Initialize();
+  //   REQUIRE(sim->alpha_sum() == 1.5);
+  //   sim->AddReaction(1.5, std::vector<std::string>{"reactant1"},
+  //                    std::vector<std::string>{"product1"});
+  //   sim->Initialize();
+  //   REQUIRE(sim->alpha_sum() == 3);
+  // }
 
-  SECTION("Register polymer and execute") {
-    tracker.Clear();
-    // Set up a genome
-    auto genome = std::make_shared<Genome>("test_polymer", 100);
-    std::map<std::string, double> interactions{
-        {"ecolipol", 1000},
-    };
-    genome->AddPromoter("p1", 5, 15, interactions);
-    std::map<std::string, double> efficiency;
-    efficiency["ecolipol"] = 0.6;
-    genome->AddTerminator("t1", 50, 55, efficiency);
+  // SECTION("Register polymer and execute") {
+  //   tracker.Clear();
+  //   // Set up a genome
+  //   auto genome = std::make_shared<Genome>("test_polymer", 100);
+  //   std::map<std::string, double> interactions{
+  //       {"ecolipol", 1000},
+  //   };
+  //   genome->AddPromoter("p1", 5, 15, interactions);
+  //   std::map<std::string, double> efficiency;
+  //   efficiency["ecolipol"] = 0.6;
+  //   genome->AddTerminator("t1", 50, 55, efficiency);
 
-    std::vector<std::string> mask_interactions{"ecolipol"};
-    genome->AddMask(50, mask_interactions);
+  //   std::vector<std::string> mask_interactions{"ecolipol"};
+  //   genome->AddMask(50, mask_interactions);
 
-    sim->RegisterGenome(genome);
-    REQUIRE(tracker.FindPolymers("p1")[0] == genome);
-    // Add a polymerase
-    sim->AddPolymerase("ecolipol", 10, 30, 2);
+  //   sim->RegisterGenome(genome);
+  //   REQUIRE(tracker.FindPolymers("p1")[0] == genome);
+  //   // Add a polymerase
+  //   sim->AddPolymerase("ecolipol", 10, 30, 2);
 
-    sim->Initialize();
-    tracker.propensity_signal_.ConnectMember(sim,
-                                             &Simulation::UpdatePropensity);
-    sim->Execute();
-    REQUIRE(sim->alpha_sum() == 30);
-    sim->Execute();
-    REQUIRE(sim->alpha_sum() == 30);
-    for (int i = 0; i < 20; i++) {
-      sim->Execute();
-    }
-    // Alpha_sum should be slightly greather than 30 now that promoter is
-    // re-exposed
-    REQUIRE(sim->alpha_sum() > 30);
-  }
+  //   sim->Initialize();
+  //   tracker.propensity_signal_.ConnectMember(sim,
+  //                                            &Simulation::UpdatePropensity);
+  //   sim->Execute();
+  //   REQUIRE(sim->alpha_sum() == 30);
+  //   sim->Execute();
+  //   REQUIRE(sim->alpha_sum() == 30);
+  //   for (int i = 0; i < 20; i++) {
+  //     sim->Execute();
+  //   }
+  //   // Alpha_sum should be slightly greather than 30 now that promoter is
+  //   // re-exposed
+  //   REQUIRE(sim->alpha_sum() > 30);
+  // }
 }
