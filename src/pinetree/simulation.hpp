@@ -6,8 +6,8 @@
 #include <memory>
 
 #include "gillespie.hpp"
-#include "reaction.hpp"
 #include "polymer.hpp"
+#include "reaction.hpp"
 
 /**
  * Coordinate polymers and species-level reactions.
@@ -69,22 +69,6 @@ class Simulation : public std::enable_shared_from_this<Simulation> {
   void RegisterTranscript(Transcript::Ptr transcript);
   void Initialize();
   /**
-   * Initialize propensities. Must be called before simulation is run.
-   *
-   * TODO: Make private?
-   */
-  void InitPropensity();
-  /**
-   * Update propensity of a reaction at a given index.
-   *
-   * @index index of polymer in reaction list
-   */
-  void UpdatePropensity(int index);
-  /**
-   * Execute one iteration of gillespie algorithm.
-   */
-  void Execute();
-  /**
    * Increment promoter count at species level.
    *
    * TODO: Possibley remove this function and call SpeciesTracker directly
@@ -128,28 +112,12 @@ class Simulation : public std::enable_shared_from_this<Simulation> {
    * TODO: Move to species tracker.
    */
   void CountTermination(const std::string &name);
-  /**
-   * Getters and setters
-   */
-  double alpha_sum() { return alpha_sum_; }
 
  private:
   /**
    * Gillespie object
    */
   Gillespie gillespie_;
-  /**
-   * Current simulation time.
-   */
-  double time_;
-  /**
-   * Simulation iteraction counter
-   */
-  int iteration_;
-  /**
-   * Vector of all reactions in this simulation.
-   */
-  Reaction::VecPtr reactions_;
   /**
    * Vector of all genomes in this ismulation
    */
@@ -159,14 +127,6 @@ class Simulation : public std::enable_shared_from_this<Simulation> {
    */
   std::vector<Polymerase> polymerases_;
   /**
-   * Vector of propensity values for reactions in this simulation.
-   */
-  std::vector<double> alpha_list_;
-  /**
-   * Total simulation propensity.
-   */
-  double alpha_sum_;
-  /**
    * Cell volume
    */
   double cell_volume_;
@@ -175,21 +135,11 @@ class Simulation : public std::enable_shared_from_this<Simulation> {
    */
   std::map<std::string, int> terminations_;
   /**
-   * Add a SpeciesReaction object to the list of reactions.
-   *
-   * @param reaction pointer to SpeciesReaction object
-   */
-  void RegisterReaction(Reaction::Ptr reaction);
-  /**
    * Add a generic polymer to the list of reactions.
    *
    * @param polymer pointer to Polymer object
    */
   void RegisterPolymer(Polymer::Ptr polymer);
-  /**
-   * Generate appropriate binding reactions.
-   */
-  void InitBindReactions();
 };
 
 #endif  // header guard

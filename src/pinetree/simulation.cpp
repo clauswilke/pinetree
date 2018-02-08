@@ -7,11 +7,12 @@
 #include "simulation.hpp"
 #include "tracker.hpp"
 
-Simulation::Simulation(double cell_volume)
-    : time_(0), alpha_sum_(0), cell_volume_(cell_volume) {
+Simulation::Simulation(double cell_volume) : cell_volume_(cell_volume) {
   auto &tracker = SpeciesTracker::Instance();
   tracker.Clear();
   gillespie_ = Gillespie();
+  tracker.propensity_signal_.ConnectMember(&gillespie_,
+                                           &Gillespie::UpdatePropensity);
 }
 
 void Simulation::seed(int seed) { Random::seed(seed); }
@@ -19,8 +20,6 @@ void Simulation::seed(int seed) { Random::seed(seed); }
 void Simulation::Run(int stop_time, int time_step,
                      const std::string &output_prefix) {
   auto &tracker = SpeciesTracker::Instance();
-  tracker.propensity_signal_.ConnectMember(&gillespie_,
-                                           &Gillespie::UpdatePropensity);
   Initialize();
   // Set up file output streams
   std::ofstream countfile(output_prefix + "_counts.tsv", std::ios::trunc);
@@ -64,10 +63,6 @@ void Simulation::Run(int stop_time, int time_step,
   countfile.close();
 }
 
-void Simulation::RegisterReaction(Reaction::Ptr reaction) {
-  gillespie_.LinkReaction(reaction);
-}
-
 void Simulation::AddReaction(double rate_constant,
                              const std::vector<std::string> &reactants,
                              const std::vector<std::string> &products) {
@@ -82,7 +77,7 @@ void Simulation::AddReaction(double rate_constant,
     tracker.Add(product, rxn);
     tracker.Increment(product, 0);
   }
-  RegisterReaction(rxn);
+  gillespie_.LinkReaction(rxn);
 }
 
 void Simulation::AddSpecies(const std::string &name, int copy_number) {
@@ -110,7 +105,7 @@ void Simulation::RegisterPolymer(Polymer::Ptr polymer) {
   }
   // Encapsulate polymer in Bridge reaction and add to reaction list
   auto bridge = std::make_shared<Bridge>(polymer);
-  RegisterReaction(bridge);
+  gillespie_.LinkReaction(bridge);
   polymer->index(bridge->index());
 }
 
@@ -130,27 +125,12 @@ void Simulation::RegisterTranscript(Transcript::Ptr transcript) {
 }
 
 void Simulation::Initialize() {
-  InitBindReactions();
-  // InitPropensity();
   if (genomes_.size() == 0) {
     std::cerr << "Warning: There are no Genome objects registered with "
                  "Simulation. Did you forget to register a Genome?"
               << std::endl;
   }
-}
-
-void Simulation::InitPropensity() {
-  for (int i = 0; i < reactions_.size(); i++) {
-    UpdatePropensity(i);
-  }
-  // Make sure prop sum is starting from 0
-  alpha_sum_ = 0;
-  for (const auto &alpha : alpha_list_) {
-    alpha_sum_ += alpha;
-  }
-}
-
-void Simulation::InitBindReactions() {
+  // Create Bind reactions for each promoter-polymerase pair
   for (Genome::Ptr genome : genomes_) {
     for (auto promoter_name : genome->bindings()) {
       for (auto pol : polymerases_) {
@@ -162,39 +142,11 @@ void Simulation::InitBindReactions() {
           auto &tracker = SpeciesTracker::Instance();
           tracker.Add(promoter_name.first, reaction);
           tracker.Add(pol.name(), reaction);
-          RegisterReaction(reaction);
+          gillespie_.LinkReaction(reaction);
         }
       }
     }
   }
-}
-
-void Simulation::UpdatePropensity(int index) {
-  gillespie_.UpdatePropensity(index);
-  // double new_prop = reactions_[index]->CalculatePropensity();
-  // double diff = new_prop - alpha_list_[index];
-  // alpha_sum_ += diff;
-  // alpha_list_[index] = new_prop;
-}
-
-void Simulation::Execute() {
-  // Generate random number
-  if (alpha_sum_ <= 0) {
-    throw std::runtime_error("Propensity of system is 0.");
-  }
-  // InitPropensity();
-  double random_num = Random::random();
-  // Calculate tau, i.e. time until next reaction
-  double tau = (1.0 / alpha_sum_) * std::log(1.0 / random_num);
-  if (!std::isnormal(tau)) {
-    throw std::runtime_error("Underflow error.");
-  }
-  time_ += tau;
-  // Randomly select next reaction to execute, weighted by propensities
-  auto next_reaction = Random::WeightedChoiceIndex(reactions_, alpha_list_);
-  reactions_[next_reaction]->Execute();
-  UpdatePropensity(next_reaction);
-  iteration_++;
 }
 
 void Simulation::FreePromoter(const std::string &species_name) {
@@ -208,7 +160,7 @@ void Simulation::TerminateTranscription(int polymer_index,
                                         const std::string &pol_name,
                                         const std::string &gene_name) {
   SpeciesTracker::Instance().Increment(pol_name, 1);
-  UpdatePropensity(polymer_index);
+  gillespie_.UpdatePropensity(polymer_index);
   CountTermination("transcript");
 }
 
@@ -218,7 +170,7 @@ void Simulation::TerminateTranslation(int polymer_index,
   SpeciesTracker::Instance().Increment(pol_name, 1);
   SpeciesTracker::Instance().Increment(gene_name, 1);
   SpeciesTracker::Instance().IncrementRibo(gene_name, -1);
-  UpdatePropensity(polymer_index);
+  gillespie_.UpdatePropensity(polymer_index);
   CountTermination(gene_name);
 }
 
