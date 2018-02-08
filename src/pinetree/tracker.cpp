@@ -104,6 +104,16 @@ void SpeciesTracker::TerminateTranscription(int polymer_index,
   // CountTermination("transcript");
 }
 
+void SpeciesTracker::TerminateTranslation(int polymer_index,
+                                          const std::string &pol_name,
+                                          const std::string &gene_name) {
+  Increment(pol_name, 1);
+  Increment(gene_name, 1);
+  IncrementRibo(gene_name, -1);
+  propensity_signal_.Emit(polymer_index);
+  // CountTermination(gene_name);
+}
+
 const Reaction::VecPtr &SpeciesTracker::FindReactions(
     const std::string &species_name) {
   return species_map_[species_name];

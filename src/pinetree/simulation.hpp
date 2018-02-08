@@ -86,15 +86,6 @@ class Simulation : public std::enable_shared_from_this<Simulation> {
    */
   void BlockPromoter(const std::string &species_name);
   /**
-   * Update propensities and species counts after translation has terminated.
-   *
-   * @param polymer_index index of transcript in reaction list
-   * @param pol_name name of ribosome completing transcription
-   * @param protein_name name of newly-synthesized protein
-   */
-  void TerminateTranslation(int polymer_index, const std::string &pol_name,
-                            const std::string &protein_name);
-  /**
    * Record when a polymerase reaches a terminator so that we can track total
    * quantity of a species synthesized during simulation.
    *
