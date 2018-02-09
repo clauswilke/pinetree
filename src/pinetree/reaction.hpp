@@ -29,8 +29,8 @@ class Reaction : public std::enable_shared_from_this<Reaction> {
   /**
    * Some getters and setters.
    */
-  int index() const { return index_; }
-  void index(int index) { index_ = index; }
+  virtual int index() const { return index_; }
+  virtual void index(int index) { index_ = index; }
 
  protected:
   /**
@@ -163,6 +163,9 @@ class Bridge : public Reaction {
    * Execute reaction within polymer (e.g. typically moving a polymerase)
    */
   void Execute() { polymer_->Execute(); }
+
+  void index(int index);
+  int index() const { return index_; }
 
  private:
   /**

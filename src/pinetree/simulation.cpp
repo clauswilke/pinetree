@@ -78,7 +78,6 @@ void Simulation::RegisterPolymer(Polymer::Ptr polymer) {
   // Encapsulate polymer in Bridge reaction and add to reaction list
   auto bridge = std::make_shared<Bridge>(polymer);
   gillespie_.LinkReaction(bridge);
-  polymer->index(bridge->index());
 }
 
 void Simulation::RegisterGenome(Genome::Ptr genome) {

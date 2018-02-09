@@ -76,3 +76,8 @@ void Bind::Execute() {
   tracker.Increment(promoter_name_, -1);
   tracker.Increment(pol_name_, -1);
 }
+
+void Bridge::index(int index) {
+  index_ = index;
+  polymer_->index(index);
+}
