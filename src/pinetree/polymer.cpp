@@ -1,4 +1,5 @@
 #include "polymer.hpp"
+#include "IntervalTree.h"
 #include "choices.hpp"
 #include "tracker.hpp"
 
@@ -207,25 +208,12 @@ void Polymer::Insert(Polymerase::Ptr pol) {
 }
 
 int Polymer::Choose() {
-  // Code to deal with propensity cache errors
-  // double prop_list_sum = 0;
-  // for (auto &n : prop_list_) {
-  //   prop_list_sum += n;
-  // }
-  // if (prop_list_sum != prop_sum_) {
-  //   throw std::runtime_error("Prop sum and list not equal " +
-  //                            std::to_string(prop_list_sum) + " " +
-  //                            std::to_string(prop_sum_));
-  // }
   if (prop_list_.size() == 0) {
     std::string err = "There are no active polymerases on polymer " + name_ +
                       std::to_string(prop_sum_);
     throw std::runtime_error(err);
   }
-  return Random::WeightedChoiceIndex(polymerases_, prop_list_);
-}
-
-void Polymer::Move(int pol_index) {
+  int pol_index = Random::WeightedChoiceIndex(polymerases_, prop_list_);
   // Error checking to make sure that pol is in vector
   if (pol_index >= polymerases_.size()) {
     std::string err = "Attempting to move unbound polymerase with index " +
@@ -236,8 +224,16 @@ void Polymer::Move(int pol_index) {
     throw std::runtime_error(
         "Prop list vector index is invalid (before move).");
   }
+  return pol_index;
+}
+
+void Polymer::Move(int pol_index) {
   // Find which elements this polymerase is covering and temporarily uncover
   // them
+  if (pol_index >= prop_list_.size()) {
+    throw std::runtime_error(
+        "Prop list vector index is invalid (before move 2).");
+  }
   auto pol = polymerases_[pol_index];
   UncoverElements(pol);
   // Move polymerase
@@ -246,69 +242,21 @@ void Polymer::Move(int pol_index) {
   bool pol_collision = ResolveCollisions(pol);
   bool mask_collision = ResolveMaskCollisions(pol);
 
-  if (pol_index >= prop_list_.size()) {
-    throw std::runtime_error(
-        "Prop list vector index is invalid (before move 2).");
-  }
-
   // Check for uncoverings
   bool terminated = RecoverElements(pol);
 
   // Check to see if it's safe to broadcast that this polymerase has moved
   if (!pol_collision && !mask_collision && !terminated) {
-    if (pol_index >= prop_list_.size()) {
-      throw std::runtime_error(
-          "Prop list vector index is invalid (before move 3).");
+    // Update propensity for new codon
+    if ((pol->stop() - start_ - 1) >= weights_.size()) {
+      throw std::runtime_error("Weight is missing for this position.");
     }
-    // Terminate polymerase if it's run off the end of the polymer
-    if (pol->stop() > stop_) {
-      // TODO: Why are we sending the stop position of the polymer ?
-      Terminate(pol, std::to_string(stop_));
-    } else {
-      // Update propensity for new codon
-      if ((pol->stop() - start_ - 1) >= weights_.size()) {
-        throw std::runtime_error("Weight is missing for this position.");
-      }
-
-      // Code for debugging propensity cache problems
-      // double prop_list_sum = 0;
-      // for (auto &n : prop_list_) {
-      //   prop_list_sum += n;
-      // }
-      // std::cout << "Just moved! Prop sum and list not equal " +
-      //                  std::to_string(prop_list_sum) + " " +
-      //                  std::to_string(prop_sum_);
-      // if (prop_list_.size() != polymerases_.size()) {
-      //   throw std::runtime_error("Prop list not correct size.");
-      // }
-      // if ((pol->stop() - start_) >= weights_.size()) {
-      //   throw std::runtime_error("Weights vector index is invalid.");
-      // }
-      // if (pol_index >= prop_list_.size()) {
-      //   throw std::runtime_error("Prop list vector index is invalid.");
-      // }
-
-      double weight = weights_[pol->stop() - start_ - 1];
-      double new_speed = weight * pol->speed();
-      // std::cout << std::to_string(pol->speed());
-      double diff = new_speed - prop_list_[pol_index];
-      prop_sum_ += diff;
-      prop_list_[pol_index] = new_speed;
-      pol->move_signal_.Emit();
-      // Code for debugging propensity cache problems
-      // prop_list_sum = 0;
-      // for (auto &n : prop_list_) {
-      //   prop_list_sum += n;
-      // }
-      // if (prop_list_sum != prop_sum_) {
-      //   throw std::runtime_error(
-      //       "Just moved! Prop sum and list not equal " +
-      //       std::to_string(prop_list_sum) + " " + std::to_string(prop_sum_) +
-      //       " " + std::to_string(diff) + " " + std::to_string(new_speed) + "
-      //       " +
-      //       std::to_string(weight));
-      // }
-    }
+    double weight = weights_[pol->stop() - start_ - 1];
+    double new_speed = weight * pol->speed();
+    double diff = new_speed - prop_list_[pol_index];
+    prop_sum_ += diff;
+    prop_list_[pol_index] = new_speed;
+    pol->move_signal_.Emit();
   }
 }
 
@@ -362,6 +310,11 @@ bool Polymer::RecoverElements(Polymerase::Ptr pol) {
     if (old_index >= elements_.size()) {
       break;
     }
+  }
+  if (pol->stop() > stop_) {
+    // TODO: Why are we sending the stop position of the polymer ?
+    Terminate(pol, std::to_string(stop_));
+    terminating = true;
   }
   return terminating;
 }

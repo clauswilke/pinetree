@@ -81,3 +81,5 @@ void Bridge::index(int index) {
   index_ = index;
   polymer_->index(index);
 }
+
+// TODO: Add check for changes in species counts within Bridge class
