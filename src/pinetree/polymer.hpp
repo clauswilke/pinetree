@@ -99,14 +99,14 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    *
    * @param species_name name of species to cover
    */
-  void CoverBindingSite(const std::string &species_name);
+  void LogCover(const std::string &species_name);
   /**
    * Update the cached count of uncovered promoters/elements.
    * TODO: Make private and refactor covering signals
    *
    * @param species_name name of species to uncover
    */
-  void UncoverBindingSite(const std::string &species_name);
+  void LogUncover(const std::string &species_name);
   /**
    * Getters and setters. There are two getters for prop_sum_... mostly to
    * maintain the interface that Simulation expects.

@@ -19,34 +19,28 @@ void Polymer::Initialize() {
   release_sites_ = IntervalTree<Terminator::Ptr>(release_intervals_);
   std::vector<Interval<Promoter::Ptr>> results;
 
-  // Probably not necessary, but let's make sure
-  species_log_.clear();
   // Cover all masked sites
   int mask_start = mask_.start();
   int mask_stop = mask_.stop();
   binding_sites_.findOverlapping(mask_start, mask_stop, results);
-  std::cout << "Initializing..." + name_ << std::endl;
-  std::cout << std::to_string(binding_intervals_.size()) << std::endl;
+
   for (auto &interval : results) {
-    CoverBindingSite(interval.value->name());
     interval.value->Cover();
-    interval.value->SaveState();
-    std::cout << interval.value->name() + " covered" << std::endl;
+    interval.value->ResetState();
+    // We don't need to log anything here because covered promoters are
+    // invisible to SpeciesTracker.
     // TODO: move to bridge reaction
     SpeciesTracker::Instance().Add(interval.value->name(), shared_from_this());
   }
 
   // Make sure all unmasked sites are uncovered
-  std::cout << std::to_string(start_) + ", " + std::to_string(mask_start)
-            << std::endl;
+  species_log_.clear();
   results.clear();
   binding_sites_.findContained(start_, mask_start, results);
   for (auto &interval : results) {
-    UncoverBindingSite(interval.value->name());
     interval.value->Uncover();
-    std::cout << "uncovered" << std::endl;
-    interval.value->SaveState();
-    // std::cout << interval.value->name() << std::endl;
+    interval.value->ResetState();
+    LogUncover(interval.value->name());
     // TODO: Move to bridge reaction
     SpeciesTracker::Instance().Add(interval.value->name(), shared_from_this());
   }
@@ -93,9 +87,9 @@ void Polymer::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
     throw std::runtime_error(err);
   }
   elem->Cover();
-  elem->SaveState();
+  elem->ResetState();
   // Cover promoter in cache
-  CoverBindingSite(elem->name());
+  LogCover(elem->name());
   // Add polymerase to this polymer
   Insert(pol);
 
@@ -123,10 +117,7 @@ void Polymer::ShiftMask() {
     int old_start = mask_.start();
     mask_.Recede();
     CheckBehind(old_start, mask_.start());
-    // std::cout << name_ + " Mask shifted!" << std::endl;
     for (auto const &species : species_log_) {
-      std::cout << species.first + ":" + std::to_string(species.second)
-                << std::endl;
       SpeciesTracker::Instance().Increment(species.first, species.second);
     }
   }
@@ -144,7 +135,7 @@ void Polymer::Terminate(Polymerase::Ptr pol, const std::string &last_gene) {
   }
 }
 
-void Polymer::CoverBindingSite(const std::string &species_name) {
+void Polymer::LogCover(const std::string &species_name) {
   if (uncovered_.count(species_name) == 0) {
     uncovered_[species_name] = 0;
   } else {
@@ -162,7 +153,7 @@ void Polymer::CoverBindingSite(const std::string &species_name) {
   }
 }
 
-void Polymer::UncoverBindingSite(const std::string &species_name) {
+void Polymer::LogUncover(const std::string &species_name) {
   if (uncovered_.count(species_name) == 0) {
     uncovered_[species_name] = 1;
   } else {
@@ -252,11 +243,10 @@ void Polymer::Move(int pol_index) {
     for (auto &interval : results) {
       interval.value->Uncover();
       if (interval.value->WasUncovered()) {
-        std::cout << "Terminating uncovered" << std::endl;
-        UncoverBindingSite(interval.value->name());
         // Record changes that species was covered
+        LogUncover(interval.value->name());
       }
-      interval.value->SaveState();
+      interval.value->ResetState();
     }
     return;
   }
@@ -285,10 +275,9 @@ void Polymer::CheckAhead(int old_stop, int new_stop) {
     if (interval.value->start() < new_stop) {
       interval.value->Cover();
       if (interval.value->WasCovered()) {
-        std::cout << "Covered!" << std::endl;
-        CoverBindingSite(interval.value->name());
         // Record changes that species was covered
-        interval.value->SaveState();
+        LogCover(interval.value->name());
+        interval.value->ResetState();
       }
     }
   }
@@ -299,18 +288,11 @@ void Polymer::CheckBehind(int old_start, int new_start) {
   binding_sites_.findOverlapping(old_start, new_start + 1, results);
   for (auto &interval : results) {
     if (interval.value->stop() < new_start) {
-      std::cout << "Found overlap!" + interval.value->name() + " " +
-                       std::to_string(interval.value->IsCovered())
-                << std::endl;
       interval.value->Uncover();
-      std::cout << "Just uncovered!" +
-                       std::to_string(interval.value->IsCovered())
-                << std::endl;
       if (interval.value->WasUncovered()) {
-        std::cout << "Uncovered!" + interval.value->name() << std::endl;
-        UncoverBindingSite(interval.value->name());
         // Record changes that species was covered
-        interval.value->SaveState();
+        LogUncover(interval.value->name());
+        interval.value->ResetState();
       }
     }
   }
@@ -418,9 +400,6 @@ Genome::Genome(const std::string &name, int length) : Polymer(name, 1, length) {
 void Genome::Initialize() {
   Polymer::Initialize();
   transcript_rbs_ = IntervalTree<Promoter::Ptr>(transcript_rbs_intervals_);
-  std::cout << "Initializing transcript rbs..." +
-                   std::to_string(transcript_rbs_intervals_.size())
-            << std::endl;
   transcript_stop_sites_ =
       IntervalTree<Terminator::Ptr>(transcript_stop_site_intervals_);
 }
@@ -504,7 +483,6 @@ Transcript::Ptr Genome::BuildTranscript(int start, int stop) {
     int start = interval.start;
     int stop = interval.stop;
     auto elem = interval.value;
-    std::cout << "building transcript..." << std::endl;
     rbs_intervals.emplace_back(
         Interval<Promoter::Ptr>(start, stop, elem->Clone()));
   }

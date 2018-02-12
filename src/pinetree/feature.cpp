@@ -51,17 +51,17 @@ Promoter::Promoter(const std::string &name, int start, int stop,
   type_ = "promoter";
 }
 
-void Promoter::CheckState() {
-  if (WasCovered()) {
-    cover_signal_.Emit(name_);
-  } else if (WasUncovered()) {
-    uncover_signal_.Emit(name_);
-    if (!first_exposure_ && interactions().count("ribosome") == 1) {
-      SpeciesTracker::Instance().IncrementTranscript(gene_, 1);
-      first_exposure_ = true;
-    }
-  }
-}
+// void Promoter::CheckState() {
+//   if (WasCovered()) {
+//     cover_signal_.Emit(name_);
+//   } else if (WasUncovered()) {
+//     uncover_signal_.Emit(name_);
+//     if (!first_exposure_ && interactions().count("ribosome") == 1) {
+//       SpeciesTracker::Instance().IncrementTranscript(gene_, 1);
+//       first_exposure_ = true;
+//     }
+//   }
+// }
 
 Promoter::Ptr Promoter::Clone() const {
   return std::make_shared<Promoter>(*this);
@@ -75,14 +75,14 @@ Terminator::Terminator(const std::string &name, int start, int stop,
   type_ = "terminator";
 }
 
-void Terminator::CheckState() {
-  if (WasUncovered()) {
-    readthrough_ = false;
-    uncover_signal_.Emit(name_);
-  } else if (WasCovered()) {
-    cover_signal_.Emit(name_);
-  }
-}
+// void Terminator::CheckState() {
+//   if (WasUncovered()) {
+//     readthrough_ = false;
+//     uncover_signal_.Emit(name_);
+//   } else if (WasCovered()) {
+//     cover_signal_.Emit(name_);
+//   }
+// }
 
 Terminator::Ptr Terminator::Clone() const {
   return std::make_shared<Terminator>(*this);

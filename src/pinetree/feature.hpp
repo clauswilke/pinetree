@@ -174,7 +174,7 @@ class Element : public Feature {
   /**
    * Save covering state.
    */
-  void SaveState() { old_covered_ = covered_; }
+  void ResetState() { old_covered_ = covered_; }
   /**
    * Was this element just uncovered?
    * @return True if element was just uncovered.
@@ -193,22 +193,15 @@ class Element : public Feature {
    * Uncover element.
    */
   void Uncover() {
-    std::cout << name_ + " covered: " + std::to_string(covered_) << std::endl;
     if (covered_ > 0) {
       covered_ = covered_ - 1;
     }
-    std::cout << "covered: " + std::to_string(covered_) << std::endl;
   }
   /**
    * Is this element covered at all?
    * @return True if at least one feature is covering element.
    */
   bool IsCovered() { return covered_ > 0; }
-  /**
-   * Check for change in state and react appropriately. (Should be overridden
-   * by children).
-   */
-  virtual void CheckState() = 0;
   /**
    * Signal to fire when element changes state from uncovered to covered
    */
@@ -266,7 +259,6 @@ class Promoter : public Element {
   /**
    * Check to see if covering state has changed and fire appropriate signals.
    */
-  void CheckState();
   Promoter::Ptr Clone() const;
 };
 
@@ -287,10 +279,7 @@ class Terminator : public Element {
    */
   typedef std::shared_ptr<Terminator> Ptr;
   typedef std::vector<std::shared_ptr<Terminator>> VecPtr;
-  /**
-   * Check for changes in covering state and fire appropriate signals.
-   */
-  void CheckState();
+
   Terminator::Ptr Clone() const;
   /**
    * Check to see if feature interacts with this terminator and is in the

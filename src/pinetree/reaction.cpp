@@ -84,23 +84,12 @@ void Bridge::index(int index) {
 
 Bridge::Bridge(Polymer::Ptr polymer) : polymer_(polymer) {
   polymer_->Initialize();
-  auto changes = polymer_->ReportChanges();
-  for (auto const &species : changes) {
-    int count = 0;
-    if (species.second < 0) {
-      count = 0;
-    } else {
-      count = species.second;
-    }
-    SpeciesTracker::Instance().Increment(species.first, count);
-  }
+  ReportChanges();
 }
 
 void Bridge::ReportChanges() {
   auto changes = polymer_->ReportChanges();
   for (auto const &species : changes) {
-    std::cout << species.first + " " + std::to_string(species.second)
-              << std::endl;
     SpeciesTracker::Instance().Increment(species.first, species.second);
   }
 }
@@ -109,5 +98,3 @@ void Bridge::Execute() {
   polymer_->Execute();
   ReportChanges();
 }
-
-// TODO: Add check for changes in species counts within Bridge class

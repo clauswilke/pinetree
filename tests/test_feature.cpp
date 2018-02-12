@@ -11,9 +11,9 @@ TEST_CASE("Feature construction", "[Feature]") {
   std::string name = "testing!";
   int start = 1;
   int stop = 10;
-  std::map<std::string, double> interactions {
-    {"ecolipol", 1.0}, 
-    {"rnapol", 1.0},
+  std::map<std::string, double> interactions{
+      {"ecolipol", 1.0},
+      {"rnapol", 1.0},
   };
   Feature feat = Feature(name, start, stop, interactions);
 
@@ -44,9 +44,9 @@ TEST_CASE("Mask construction and movement", "[Mask]") {
   std::string name = "testing!";
   int start = 1;
   int stop = 10;
-  std::map<std::string, double> interactions {
-    {"ecolipol", 1.0}, 
-    {"rnapol", 1.0},
+  std::map<std::string, double> interactions{
+      {"ecolipol", 1.0},
+      {"rnapol", 1.0},
   };
   Mask mask = Mask(name, start, stop, interactions);
 
@@ -66,9 +66,9 @@ TEST_CASE("Element construction and state changes", "[Element]") {
   std::string name = "testing!";
   int start = 1;
   int stop = 10;
-  std::map<std::string, double> interactions {
-    {"ecolipol", 1.0}, 
-    {"rnapol", 1.0},
+  std::map<std::string, double> interactions{
+      {"ecolipol", 1.0},
+      {"rnapol", 1.0},
   };
   Promoter elem = Promoter(name, start, stop, interactions);
 
@@ -79,7 +79,7 @@ TEST_CASE("Element construction and state changes", "[Element]") {
     REQUIRE(elem.IsCovered());
     REQUIRE(elem.WasCovered());
 
-    elem.SaveState();
+    elem.ResetState();
     REQUIRE(!elem.WasCovered());
 
     elem.Uncover();
@@ -88,7 +88,7 @@ TEST_CASE("Element construction and state changes", "[Element]") {
     REQUIRE(!elem.IsCovered());
     REQUIRE(elem.WasUncovered());
 
-    elem.SaveState();
+    elem.ResetState();
     REQUIRE(!elem.WasUncovered());
   }
 
