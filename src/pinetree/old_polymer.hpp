@@ -41,17 +41,20 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    * @param mask mask object which determines which portions of the polymer
    *     are currently inaccessible
    */
-  Polymer(const std::string &name, int start, int stop);
+  Polymer(const std::string &name, int start, int stop,
+          const Element::VecPtr &elements, const Mask &mask);
+  /**
+   * Constructor to optionally provide position-based weights.
+   */
+  Polymer(const std::string &name, int start, int stop,
+          const Element::VecPtr &elements, const Mask &mask,
+          const std::vector<double> &weights);
   /**
    * Some convenience typedefs.
    */
   typedef std::shared_ptr<Polymer> Ptr;
   typedef std::vector<std::shared_ptr<Polymer>> VecPtr;
-  /**
-   * Create interval trees.
-   * Make sure elements covered by mask have correct state.
-   */
-  void Initialize();
+  void InitElements();
   /**
    * Bind a polymerase object to the polymer. Randomly select an open
    * promoter with which to bind and update the polymerases position to the
@@ -80,6 +83,7 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    * @param pol polymerase to move
    */
   void Move(int pol_index);
+  int PolymeraseIndex(Polymerase::Ptr pol);
   /**
    * Shift mask by 1 base-pair and check for uncovered elements.
    */
@@ -99,24 +103,36 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    *
    * @param species_name name of species to cover
    */
-  void CoverBindingSite(const std::string &species_name);
+  void CoverElement(const std::string &species_name);
   /**
    * Update the cached count of uncovered promoters/elements.
    * TODO: Make private and refactor covering signals
    *
    * @param species_name name of species to uncover
    */
-  void UncoverBindingSite(const std::string &species_name);
+  void UncoverElement(const std::string &species_name);
   /**
    * Getters and setters. There are two getters for prop_sum_... mostly to
    * maintain the interface that Simulation expects.
    */
+  int index() { return index_; }
+  void index(int index) { index_ = index; }
+  double CalculatePropensity() { return prop_sum_; }
   double prop_sum() { return prop_sum_; }
   int uncovered(const std::string &name) { return uncovered_[name]; }
   int start() const { return start_; }
   int stop() const { return stop_; }
+  Element::VecPtr &elements() { return elements_; }
+  /**
+   * Signal to fire when a polymerase terminates.
+   */
+  Signal<int, const std::string &, const std::string &> termination_signal_;
 
  protected:
+  /**
+   * An index for this polymer, used by Simulation.
+   */
+  int index_;
   /**
    * Name of polymer
    */
@@ -133,7 +149,10 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    * Vector of polymerases currently on this polymer.
    */
   Polymerase::VecPtr polymerases_;
-
+  /**
+   * Vector of elements on this polymer (Promoters, Terminators, etc.)
+   */
+  Element::VecPtr elements_;
 
   std::vector<Interval<Promoter::Ptr>> binding_intervals_;
   std::vector<Interval<Terminator::Ptr>> release_intervals_;
@@ -184,7 +203,7 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    *
    * @param pol pointer to polymerase object
    */
-  void CheckAhead(int old_stop, int new_stop);
+  void UncoverElements(Polymerase::Ptr pol);
   /**
    * Recover all elements that a given polymerase should be covering,
    * and trigger actions if there has been a change in state (for example,
@@ -192,7 +211,7 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    *
    * @param pol pointer to polymerase object
    */
-  void CheckBehind(int old_start, int new_start);
+  bool RecoverElements(Polymerase::Ptr pol);
   /**
    * Determine if polymerase should terminate upon interacting with a terminator
    * or if it should read through the terminator.
@@ -202,7 +221,7 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    *
    * @return true if polymerase is terminating
    */
-  bool CheckTermination(Polymerase::Ptr pol);
+  bool ResolveTermination(Polymerase::Ptr pol, Element::Ptr element);
   /**
    * Check for collisions between polymerase and this polymer's mask.
    *
@@ -210,7 +229,7 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    *
    * @return true if this pol will collide with mask (but not shift mask)
    */
-  bool CheckMaskCollisions(Polymerase::Ptr pol);
+  bool ResolveMaskCollisions(Polymerase::Ptr pol);
   /**
    * Check for collisions between polymerases.
    *
@@ -218,7 +237,16 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    *
    * @return true if polymerases will collide
    */
-  bool CheckPolCollisions(Polymerase::Ptr pol);
+  bool ResolveCollisions(Polymerase::Ptr pol);
+  /**
+   * Do two elements intersect?
+   *
+   * @param elem1 an element
+   * @param elem2 another element
+   *
+   * @return true if elements intersect
+   */
+  bool Intersect(const Feature &elem1, const Feature &elem2);
 };
 
 /**

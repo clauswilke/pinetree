@@ -5,35 +5,63 @@
 
 #include <iostream>
 
-Polymer::Polymer(const std::string &name, int start, int stop)
-    : name_(name),
+Polymer::Polymer(const std::string &name, int start, int stop,
+                 const Element::VecPtr &elements, const Mask &mask)
+    : index_(0),
+      name_(name),
       start_(start),
-      stop_(stop) {
+      stop_(stop),
+      elements_(elements),
+      mask_(mask),
+      prop_sum_(0) {
   weights_ = std::vector<double>(stop - start + 1, 1.0);
 }
 
-void Polymer::Initialize() {
-  // Construct invterval trees
-  binding_sites_ = IntervalTree<Promoter::Ptr>(binding_intervals_);
-  release_sites_ = IntervalTree<Terminator::Ptr>(release_intervals_);
-  std::vector<Interval<Promoter::Ptr>> results;
-
-  // Cover all masked sites
-  int mask_start = mask_.start();
-  int mask_stop = mask_.stop();
-  binding_sites_.findOverlapping(mask_start, mask_stop, results);
-  for (auto &interval : results) {
-      CoverBindingSite(interval.value->name());
-      interval.value->Cover();
-      interval.value->SaveState();
+Polymer::Polymer(const std::string &name, int start, int stop,
+                 const Element::VecPtr &elements, const Mask &mask,
+                 const std::vector<double> &weights)
+    : index_(0),
+      name_(name),
+      start_(start),
+      stop_(stop),
+      elements_(elements),
+      mask_(mask),
+      weights_(weights),
+      prop_sum_(0) {
+  if (weights_.size() != (stop_ - start_ + 1)) {
+    throw std::length_error("Weights vector is not the correct size. " +
+                            std::to_string(weights.size()) + " " +
+                            std::to_string(stop_ - start_ + 1));
   }
+}
 
-  // Make sure all unmasked sites are uncovered
-  binding_sites_.findOverlapping(start_, mask_stop, results);
-  for (auto &interval : results) {
-      UncoverBindingSite(interval.value->name());
-      interval.value->Uncover();
-      interval.value->SaveState();
+void Polymer::InitElements() {
+  for (auto &element : elements_) {
+    element->cover_signal_.ConnectMember(shared_from_this(),
+                                         &Polymer::CoverElement);
+    element->uncover_signal_.ConnectMember(shared_from_this(),
+                                           &Polymer::UncoverElement);
+    // Cover masked elements and set up signals for covered/uncovered
+    // elements
+    if (Intersect(*element, mask_)) {
+      element->Cover();
+      element->SaveState();
+      if (uncovered_.count(element->name()) == 0) {
+        uncovered_[element->name()] = 0;
+      }
+    } else {
+      // Hack-y of forcing polymer to register open promoters
+      // to register w/ SpeciesTracker
+      if (element->type() == "promoter") {
+        auto &tracker = SpeciesTracker::Instance();
+        tracker.Increment(element->name(), 1);
+      }
+      if (uncovered_.count(element->name()) == 0) {
+        uncovered_[element->name()] = 1;
+      } else {
+        uncovered_[element->name()]++;
+      }
+    }
   }
 }
 
@@ -80,7 +108,7 @@ void Polymer::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
   elem->Cover();
   elem->SaveState();
   // Cover promoter in cache
-  CoverBindingSite(elem->name());
+  CoverElement(elem->name());
   // Add polymerase to this polymer
   Insert(pol);
 
