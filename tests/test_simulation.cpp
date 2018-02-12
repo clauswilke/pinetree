@@ -71,7 +71,7 @@ TEST_CASE("Bind methods", "[Reaction]") {
 
   auto polymer =
       std::make_shared<Polymer>("test_polymer", 1, 100, elements, mask);
-  polymer->InitElements();
+  polymer->Initialize();
   // Set up a polymerase
   auto polymerase = Polymerase("ecolipol", 10, 30);
   auto reaction = Bind(1000, double(8e-15), "p1", polymerase);

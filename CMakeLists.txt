@@ -24,10 +24,11 @@ set(SOURCES
 set(TESTS ${SOURCES}
     "${TEST_DIR}/test_main.cpp"
     "${TEST_DIR}/test_feature.cpp"
-    "${TEST_DIR}/test_polymer.cpp"
+    # "${TEST_DIR}/test_polymer.cpp"
     "${TEST_DIR}/test_choices.cpp"
     "${TEST_DIR}/test_signals.cpp"
-    "${TEST_DIR}/test_simulation.cpp")
+    # "${TEST_DIR}/test_simulation.cpp"
+    )
 
 # Generate a test executable
 include_directories(lib/catch/include)

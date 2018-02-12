@@ -158,7 +158,7 @@ class Bridge : public Reaction {
    *
    * @return total propensity of reactions within polymer
    */
-  double CalculatePropensity() { return polymer_->CalculatePropensity(); }
+  double CalculatePropensity() { return polymer_->prop_sum(); }
   /**
    * Execute reaction within polymer (e.g. typically moving a polymerase)
    */

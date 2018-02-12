@@ -63,7 +63,7 @@ void Promoter::CheckState() {
   }
 }
 
-Element::Ptr Promoter::Clone() const {
+Promoter::Ptr Promoter::Clone() const {
   return std::make_shared<Promoter>(*this);
 }
 
@@ -84,7 +84,7 @@ void Terminator::CheckState() {
   }
 }
 
-Element::Ptr Terminator::Clone() const {
+Terminator::Ptr Terminator::Clone() const {
   return std::make_shared<Terminator>(*this);
 }
 

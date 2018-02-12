@@ -6,10 +6,11 @@
 #include <iostream>
 
 Polymer::Polymer(const std::string &name, int start, int stop)
-    : name_(name),
-      start_(start),
-      stop_(stop) {
+    : name_(name), start_(start), stop_(stop) {
   weights_ = std::vector<double>(stop - start + 1, 1.0);
+
+  std::map<std::string, double> interaction_map;
+  mask_ = Mask("mask", stop_ + 1, stop_, interaction_map);
 }
 
 void Polymer::Initialize() {
@@ -23,27 +24,30 @@ void Polymer::Initialize() {
   int mask_stop = mask_.stop();
   binding_sites_.findOverlapping(mask_start, mask_stop, results);
   for (auto &interval : results) {
-      CoverBindingSite(interval.value->name());
-      interval.value->Cover();
-      interval.value->SaveState();
+    CoverBindingSite(interval.value->name());
+    interval.value->Cover();
+    interval.value->SaveState();
   }
 
   // Make sure all unmasked sites are uncovered
   binding_sites_.findOverlapping(start_, mask_stop, results);
   for (auto &interval : results) {
-      UncoverBindingSite(interval.value->name());
-      interval.value->Uncover();
-      interval.value->SaveState();
+    UncoverBindingSite(interval.value->name());
+    interval.value->Uncover();
+    interval.value->SaveState();
   }
 }
 
 void Polymer::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
   // Make a list of free promoters that pol can bind
   bool found = false;
-  Element::VecPtr element_choices;
-  for (auto &elem : elements_) {
-    if (elem->name() == promoter_name && !elem->IsCovered()) {
-      element_choices.push_back(elem);
+  Promoter::VecPtr promoter_choices;
+  std::vector<Interval<Promoter::Ptr>> results;
+  binding_sites_.findOverlapping(start_, mask_.start(), results);
+  for (auto &interval : results) {
+    if (interval.value->name() == promoter_name &&
+        !interval.value->IsCovered()) {
+      promoter_choices.push_back(interval.value);
       found = true;
     }
   }
@@ -55,7 +59,7 @@ void Polymer::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
     throw std::runtime_error(err);
   }
   // Randomly select promoter.
-  Element::Ptr elem = Random::WeightedChoice(element_choices);
+  Promoter::Ptr elem = Random::WeightedChoice(promoter_choices);
   // More error checking.
   if (!elem->CheckInteraction(pol->name())) {
     std::string err = "Polymerase " + pol->name() +
@@ -66,9 +70,6 @@ void Polymer::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
   // (TODO: refactor; pol doesn't need to expose footprint/stop position)
   pol->set_start(elem->start());
   pol->set_stop(elem->start() + pol->footprint() - 1);
-  // Find index of element
-  auto it = std::find(elements_.begin(), elements_.end(), elem);
-  pol->set_left_most_element(it - elements_.begin());
   // More error checking.
   if (pol->stop() >= mask_.start()) {
     std::string err = "Polymerase " + pol->name() +
@@ -98,37 +99,17 @@ void Polymer::Execute() {
         "Attempting to execute polymer with reaction propensity of 0.");
   }
   int pol_index = Choose();
+  species_log_.clear();
   Move(pol_index);
 }
 
 void Polymer::ShiftMask() {
-  if (mask_.start() > mask_.stop()) {
-    return;
-  }
-  int index = -1;
-  for (size_t i = 0; i < elements_.size(); i++) {
-    if (Intersect(mask_, *elements_[i])) {
-      elements_[i]->SaveState();
-      elements_[i]->Uncover();
-      index = i;
-      break;
-    }
-  }
-  mask_.Recede();
-  if (index == -1) {
-    return;
-  }
-  if (Intersect(mask_, *elements_[index])) {
-    elements_[index]->Cover();
-  }
-  elements_[index]->CheckState();
-  elements_[index]->SaveState();
-}
+  if (mask_.start() <= mask_.stop()) {
+    int old_start = mask_.start();
+    mask_.Recede();
 
-int Polymer::PolymeraseIndex(Polymerase::Ptr pol) {
-  auto it = std::find(polymerases_.begin(), polymerases_.end(), pol);
-  int index = it - polymerases_.begin();
-  return index;
+    CheckBehind(old_start, mask_.start());
+  }
 }
 
 void Polymer::Terminate(Polymerase::Ptr pol, const std::string &last_gene) {
@@ -143,17 +124,35 @@ void Polymer::Terminate(Polymerase::Ptr pol, const std::string &last_gene) {
   }
 }
 
-void Polymer::CoverElement(const std::string &species_name) {
-  uncovered_[species_name]--;
+void Polymer::CoverBindingSite(const std::string &species_name) {
+  if (uncovered_.count(species_name) == 0) {
+    uncovered_[species_name] = 0;
+  } else {
+    uncovered_[species_name]--;
+  }
   if (uncovered_[species_name] < 0) {
     std::string err = "Cached count of uncovered element " + species_name +
                       " cannot be a negative value";
     throw std::runtime_error(err);
   }
+  if (species_log_.count(species_name) == 0) {
+    species_log_[species_name] = -1;
+  } else {
+    species_log_[species_name]--;
+  }
 }
 
-void Polymer::UncoverElement(const std::string &species_name) {
-  uncovered_[species_name]++;
+void Polymer::UncoverBindingSite(const std::string &species_name) {
+  if (uncovered_.count(species_name) == 0) {
+    uncovered_[species_name] = 1;
+  } else {
+    uncovered_[species_name]++;
+  }
+  if (species_log_.count(species_name) == 0) {
+    species_log_[species_name] = 1;
+  } else {
+    species_log_[species_name]++;
+  }
 }
 
 void Polymer::Insert(Polymerase::Ptr pol) {
@@ -200,139 +199,109 @@ int Polymer::Choose() {
 }
 
 void Polymer::Move(int pol_index) {
-  // Find which elements this polymerase is covering and temporarily uncover
-  // them
   if (pol_index >= prop_list_.size()) {
-    throw std::runtime_error(
-        "Prop list vector index is invalid (before move 2).");
+    throw std::runtime_error("Prop list vector index is invalid.");
   }
   auto pol = polymerases_[pol_index];
-  UncoverElements(pol);
+
+  // Record old positions
+  int old_start = pol->start();
+  int old_stop = pol->stop();
+
   // Move polymerase
   pol->Move();
-  // Resolve any collisions between polymerases or with mask
-  bool pol_collision = ResolveCollisions(pol);
-  bool mask_collision = ResolveMaskCollisions(pol);
 
-  // Check for uncoverings
-  bool terminated = RecoverElements(pol);
-
-  // Check to see if it's safe to broadcast that this polymerase has moved
-  if (!pol_collision && !mask_collision && !terminated) {
-    // Update propensity for new codon
-    if ((pol->stop() - start_ - 1) >= weights_.size()) {
-      throw std::runtime_error("Weight is missing for this position.");
-    }
-    double weight = weights_[pol->stop() - start_ - 1];
-    double new_speed = weight * pol->speed();
-    double diff = new_speed - prop_list_[pol_index];
-    prop_sum_ += diff;
-    prop_list_[pol_index] = new_speed;
-    pol->move_signal_.Emit();
+  // Check for upstream polymerase collision
+  bool pol_collision = CheckPolCollisions(pol_index);
+  if (pol_collision) {
+    pol->MoveBack();
+    return;
   }
+
+  // Check for collisions with mask
+  bool mask_collision = CheckMaskCollisions(pol);
+  if (mask_collision) {
+    pol->MoveBack();
+    return;
+  }
+  // Check if polymerase has run into a terminator
+  bool terminating = CheckTermination(pol);
+  if (terminating) {
+    // Log some species changes
+    // Uncover all elements
+    return;
+  }
+
+  // Check for new covered and uncovered elements
+  CheckBehind(old_start, pol->start());
+  CheckAhead(old_stop, pol->stop());
+
+  // Update propensity for new codon (TODO: make its own function)
+  if ((pol->stop() - start_ - 1) >= weights_.size()) {
+    throw std::runtime_error("Weight is missing for this position.");
+  }
+  double weight = weights_[pol->stop() - start_ - 1];
+  double new_speed = weight * pol->speed();
+  double diff = new_speed - prop_list_[pol_index];
+  prop_sum_ += diff;
+  prop_list_[pol_index] = new_speed;
 }
 
-void Polymer::UncoverElements(Polymerase::Ptr pol) {
-  int save_index = pol->left_most_element();
-  if (save_index < 0) {
-    std::string err = "`left_most_element` for polymerase " + pol->name() +
-                      " is not defined.";
-    throw std::runtime_error(err);
-  }
-  while (elements_[save_index]->start() <= pol->stop()) {
-    if (Intersect(*pol, *elements_[save_index])) {
-      elements_[save_index]->SaveState();
-      elements_[save_index]->Uncover();
-    }
-    save_index++;
-    if (save_index >= elements_.size()) {
-      break;
-    }
-  }
-}
-
-bool Polymer::RecoverElements(Polymerase::Ptr pol) {
-  int old_index = pol->left_most_element();
-  if (old_index < 0) {
-    std::string err = "`left_most_element` for polymerase " + pol->name() +
-                      " is not defined.";
-    throw std::runtime_error(err);
-  }
-  bool reset_index = true;
-  bool terminating = false;
-  while (elements_[old_index]->start() <= pol->stop()) {
-    if (Intersect(*pol, *elements_[old_index])) {
-      if (reset_index) {
-        pol->set_left_most_element(old_index);
-        reset_index = false;
+void Polymer::CheckAhead(int old_stop, int new_stop) {
+  std::vector<Interval<Promoter::Ptr>> results;
+  binding_sites_.findOverlapping(old_stop, new_stop, results);
+  for (auto &interval : results) {
+    if (interval.value->start() < new_stop) {
+      interval.value->Cover();
+      if (interval.value->WasCovered()) {
+        // Record changes that species was covered
       }
-      if (terminating) {
-        elements_[old_index]->Uncover();
-      } else {
-        elements_[old_index]->Cover();
-        if (ResolveTermination(pol, elements_[old_index])) {
-          old_index = pol->left_most_element() - 1;
-          terminating = true;
+    }
+  }
+}
+
+void Polymer::CheckBehind(int old_start, int new_start) {
+  std::vector<Interval<Promoter::Ptr>> results;
+  binding_sites_.findOverlapping(old_start, new_start, results);
+  for (auto &interval : results) {
+    if (interval.value->stop() < new_start) {
+      interval.value->Uncover();
+      if (interval.value->WasUncovered()) {
+        // Record changes that species was covered
+      }
+    }
+  }
+}
+
+bool Polymer::CheckTermination(Polymerase::Ptr pol) {
+  std::vector<Interval<Terminator::Ptr>> results;
+  release_sites_.findOverlapping(pol->start(), pol->stop(), results);
+  for (auto &interval : results) {
+    if (interval.value->CheckInteraction(pol->name(), pol->reading_frame()) &&
+        !interval.value->readthrough()) {
+      // terminate
+      double random_num = Random::random();
+      if (random_num <= interval.value->efficiency(pol->name())) {
+        // Fire Emit signal until entire terminator is uncovered
+        // Coordinates are inclusive, so must add 1 after calculating
+        // difference
+        int dist = interval.value->stop() - pol->stop() + 1;
+        for (int i = 0; i < dist; i++) {
+          pol->move_signal_.Emit();
         }
+        Terminate(pol, interval.value->gene());
+        return true;
+      } else {
+        interval.value->set_readthrough(true);
       }
     }
-    elements_[old_index]->CheckState();
-    elements_[old_index]->SaveState();
-    old_index++;
-    if (old_index >= elements_.size()) {
-      break;
-    }
   }
-  if (pol->stop() > stop_) {
-    // TODO: Why are we sending the stop position of the polymer ?
-    Terminate(pol, std::to_string(stop_));
-    terminating = true;
-  }
-  return terminating;
+  return false;
 }
 
-bool Polymer::ResolveTermination(Polymerase::Ptr pol, Element::Ptr element) {
-  // TODO: find less janky way to do this
-  Terminator::Ptr term = std::dynamic_pointer_cast<Terminator>(element);
-  if (element->type() != "terminator") {
-    return false;
-  } else {
-    if (!term->CheckInteraction(pol->name(), pol->reading_frame())) {
-      return false;
-    }
-    if (term->readthrough()) {
-      return false;
-    }
-    if (pol->stop() != term->start()) {
-      return false;
-    }
-    double random_num = Random::random();
-    if (random_num <= term->efficiency(pol->name())) {
-      if (PolymeraseIndex(pol) >= prop_list_.size()) {
-        throw std::runtime_error(
-            "Prop list vector index is invalid (before termination).");
-      }
-      // Fire Emit signal until entire terminator is uncovered
-      // Coordinates are inclusive, so must add 1 after calculating difference
-      int dist = term->stop() - pol->stop() + 1;
-      for (int i = 0; i < dist; i++) {
-        pol->move_signal_.Emit();
-      }
-      Terminate(pol, term->gene());
-      return true;
-    } else {
-      term->set_readthrough(true);
-      return false;
-    }
-  }
-}
-
-bool Polymer::ResolveMaskCollisions(Polymerase::Ptr pol) {
-  if (mask_.start() > stop_) {
-    // Is there still a mask?
-    return false;
-  }
-  if (Intersect(*pol, mask_)) {
+bool Polymer::CheckMaskCollisions(Polymerase::Ptr pol) {
+  // Is there still a mask, and does it overlap polymerase?
+  if (mask_.start() <= stop_ && pol->stop() >= mask_.start()) {
     if (pol->stop() - mask_.start() > 0) {
       std::string err =
           "Polymerase " + pol->name() +
@@ -342,49 +311,53 @@ bool Polymer::ResolveMaskCollisions(Polymerase::Ptr pol) {
     if (mask_.CheckInteraction(pol->name())) {
       ShiftMask();
     } else {
-      pol->MoveBack();
       return true;
     }
   }
   return false;
 }
 
-bool Polymer::ResolveCollisions(Polymerase::Ptr pol) {
-  bool collision = false;
-  auto it = std::find(polymerases_.begin(), polymerases_.end(), pol);
-  int index = it - polymerases_.begin();
-  if (index + 1 >= polymerases_.size()) {
-    return collision;
+bool Polymer::CheckPolCollisions(int pol_index) {
+  // Are there any polymerases ahead of this one?
+  if (pol_index + 1 >= polymerases_.size()) {
+    return false;
   }
   // We only need to check the polymerase one position ahead of this polymerase
-  if (Intersect(*pol, *polymerases_[index + 1])) {
-    if (pol->stop() > polymerases_[index + 1]->start()) {
+  if ((polymerases_[pol_index]->stop() >=
+       polymerases_[pol_index + 1]->start()) &&
+      (polymerases_[pol_index + 1]->stop() >=
+       polymerases_[pol_index]->start())) {
+    // Error checking. TODO: Can this be removed?
+    if (polymerases_[pol_index]->stop() >
+        polymerases_[pol_index + 1]->start()) {
       std::string err =
-          "Polymerase " + pol->name() +
-          " (start: " + std::to_string(pol->start()) +
-          ", stop: " + std::to_string(pol->stop()) +
-          ", index: " + std::to_string(index) + ") is overlapping polymerase " +
-          polymerases_[index + 1]->name() +
-          " (start: " + std::to_string(polymerases_[index + 1]->start()) +
-          ", stop: " + std::to_string(polymerases_[index + 1]->stop()) +
-          ", index: " + std::to_string(index + 1) +
+          "Polymerase " + polymerases_[pol_index]->name() +
+          " (start: " + std::to_string(polymerases_[pol_index]->start()) +
+          ", stop: " + std::to_string(polymerases_[pol_index]->stop()) +
+          ", index: " + std::to_string(pol_index) +
+          ") is overlapping polymerase " + polymerases_[pol_index + 1]->name() +
+          " (start: " + std::to_string(polymerases_[pol_index + 1]->start()) +
+          ", stop: " + std::to_string(polymerases_[pol_index + 1]->stop()) +
+          ", index: " + std::to_string(pol_index + 1) +
           ") by more than one position on polymer " + name_;
       throw std::runtime_error(err);
     }
-    pol->MoveBack();
-    collision = true;
+    return true;
   }
-  return collision;
+  return false;
 }
 
-bool Polymer::Intersect(const Feature &elem1, const Feature &elem2) {
-  return (elem1.stop() >= elem2.start()) && (elem2.stop() >= elem1.start());
+Transcript::Transcript(
+    const std::string &name, int start, int stop,
+    const std::vector<Interval<Promoter::Ptr>> &rbs_intervals,
+    const std::vector<Interval<Terminator::Ptr>> &stop_site_intervals,
+    const Mask &mask, const std::vector<double> &weights)
+    : Polymer(name, start, stop) {
+  mask_ = mask;
+  weights_ = weights;
+  binding_intervals_ = rbs_intervals;
+  release_intervals_ = stop_site_intervals;
 }
-
-Transcript::Transcript(const std::string &name, int start, int stop,
-                       const Element::VecPtr &elements, const Mask &mask,
-                       const std::vector<double> &weights)
-    : Polymer(name, start, stop, elements, mask, weights) {}
 
 void Transcript::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
   // Bind polymerase just like in parent Polymer
@@ -394,25 +367,15 @@ void Transcript::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
   pol->set_reading_frame(pol->start() % 3);
 }
 
-Genome::Genome(const std::string &name, int length)
-    : Polymer(
-          name, 1, length, Element::VecPtr(),
-          Mask("mask", length + 1, length, std::map<std::string, double>())) {
+Genome::Genome(const std::string &name, int length) : Polymer(name, 1, length) {
   transcript_weights_ = std::vector<double>(length, 1.0);
 }
 
-void Genome::SortElements() {
-  std::sort(elements_.begin(), elements_.end(),
-            [](Element::Ptr elem1, Element::Ptr elem2) {
-              return elem1->start() < elem2->start();
-            });
-}
-
-void Genome::SortTranscriptTemplate() {
-  std::sort(transcript_template_.begin(), transcript_template_.end(),
-            [](Element::Ptr elem1, Element::Ptr elem2) {
-              return elem1->start() < elem2->start();
-            });
+void Genome::Initialize() {
+  Polymer::Initialize();
+  transcript_rbs_ = IntervalTree<Promoter::Ptr>(transcript_rbs_intervals_);
+  transcript_stop_sites_ =
+      IntervalTree<Terminator::Ptr>(transcript_stop_site_intervals_);
 }
 
 void Genome::AddMask(int start, const std::vector<std::string> &interactions) {
@@ -427,11 +390,8 @@ void Genome::AddPromoter(const std::string &name, int start, int stop,
                          const std::map<std::string, double> &interactions) {
   Promoter::Ptr promoter =
       std::make_shared<Promoter>(name, start, stop, interactions);
-  elements_.emplace_back(promoter);
-  bindings_[name] = interactions;
-  SortElements();
-  // New code for IntervalTree
   binding_intervals_.push_back(Interval<Promoter::Ptr>(start, stop, promoter));
+  bindings_[name] = interactions;
 }
 
 const std::map<std::string, std::map<std::string, double>> &Genome::bindings() {
@@ -442,10 +402,9 @@ void Genome::AddTerminator(const std::string &name, int start, int stop,
                            const std::map<std::string, double> &efficiency) {
   Terminator::Ptr terminator =
       std::make_shared<Terminator>(name, start, stop, efficiency);
-  elements_.emplace_back(terminator);
-  SortElements();
   // New code for IntervalTree
-  release_intervals_.push_back(Interval<Terminator::Ptr>(start, stop, terminator));
+  release_intervals_.push_back(
+      Interval<Terminator::Ptr>(start, stop, terminator));
 }
 
 // TODO: Add error checking to make sure rbs does not overlap with terminator
@@ -456,14 +415,15 @@ void Genome::AddGene(const std::string &name, int start, int stop,
   auto rbs =
       std::make_shared<Promoter>(name + "_rbs", rbs_start, rbs_stop, binding);
   rbs->gene(name);
-  transcript_template_.emplace_back(rbs);
+  transcript_rbs_intervals_.push_back(
+      Interval<Promoter::Ptr>(rbs->start(), rbs->stop(), rbs));
   bindings_[name + "_rbs"] = binding;
   auto stop_codon =
       std::make_shared<Terminator>("stop_codon", stop - 1, stop, term);
   stop_codon->set_reading_frame(start % 3);
   stop_codon->gene(name);
-  transcript_template_.emplace_back(stop_codon);
-  SortTranscriptTemplate();
+  transcript_stop_site_intervals_.push_back(Interval<Terminator::Ptr>(
+      stop_codon->start(), stop_codon->stop(), stop_codon));
 }
 
 void Genome::AddWeights(const std::vector<double> &transcript_weights) {
@@ -490,19 +450,35 @@ void Genome::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
 }
 
 Transcript::Ptr Genome::BuildTranscript(int start, int stop) {
-  Element::VecPtr elements;
-  for (const auto &elem : transcript_template_) {
-    if (elem->start() >= start && elem->stop() <= stop) {
-      // Construct a *copy* and insert into elements
-      elements.emplace_back(elem->Clone());
-    }
+  std::vector<Interval<Promoter::Ptr>> prom_results;
+  std::vector<Interval<Promoter::Ptr>> rbs_intervals;
+  transcript_rbs_.findContained(start, stop, prom_results);
+  for (auto &interval : prom_results) {
+    int start = interval.start;
+    int stop = interval.stop;
+    auto elem = interval.value;
+    rbs_intervals.emplace_back(
+        Interval<Promoter::Ptr>(start, stop, elem->Clone()));
   }
+
+  std::vector<Interval<Terminator::Ptr>> term_results;
+  std::vector<Interval<Terminator::Ptr>> stop_site_intervals;
+  transcript_stop_sites_.findContained(start, stop, term_results);
+  for (auto &interval : term_results) {
+    int start = interval.start;
+    int stop = interval.stop;
+    auto elem = interval.value;
+    stop_site_intervals.emplace_back(
+        Interval<Terminator::Ptr>(start, stop, elem->Clone()));
+  }
+
   Transcript::Ptr transcript;
   Mask mask = Mask("mask", start, stop, std::map<std::string, double>());
   // We need to used the standard shared_ptr constructor here because the
   // constructor of Transcript needs to know its address in memory to wire
   // signals appropriately.
-  transcript = std::make_shared<Transcript>("rna", start_, stop_, elements,
-                                            mask, transcript_weights_);
+  transcript = std::make_shared<Transcript>("rna", start_, stop_, rbs_intervals,
+                                            stop_site_intervals, mask,
+                                            transcript_weights_);
   return transcript;
 }

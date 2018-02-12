@@ -65,16 +65,16 @@ void Simulation::AddPolymerase(const std::string &name, int footprint,
 }
 
 void Simulation::RegisterPolymer(Polymer::Ptr polymer) {
-  polymer->InitElements();
-  for (auto &elem : polymer->elements()) {
-    if (elem->type() == "promoter") {
-      elem->uncover_signal_.ConnectMember(shared_from_this(),
-                                          &Simulation::FreePromoter);
-      elem->cover_signal_.ConnectMember(shared_from_this(),
-                                        &Simulation::BlockPromoter);
-      SpeciesTracker::Instance().Add(elem->name(), polymer);
-    }
-  }
+  polymer->Initialize();
+  // for (auto &elem : polymer->elements()) {
+  //   if (elem->type() == "promoter") {
+  //     elem->uncover_signal_.ConnectMember(shared_from_this(),
+  //                                         &Simulation::FreePromoter);
+  //     elem->cover_signal_.ConnectMember(shared_from_this(),
+  //                                       &Simulation::BlockPromoter);
+  //     SpeciesTracker::Instance().Add(elem->name(), polymer);
+  //   }
+  // }
   // Encapsulate polymer in Bridge reaction and add to reaction list
   auto bridge = std::make_shared<Bridge>(polymer);
   gillespie_.LinkReaction(bridge);

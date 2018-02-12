@@ -111,12 +111,21 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    * Getters and setters. There are two getters for prop_sum_... mostly to
    * maintain the interface that Simulation expects.
    */
+  void index(int index) { index_ = index; }
+  int index() { return index_; }
   double prop_sum() { return prop_sum_; }
   int uncovered(const std::string &name) { return uncovered_[name]; }
   int start() const { return start_; }
   int stop() const { return stop_; }
+  const std::map<std::string, int> &ReportChanges() { return species_log_; }
+
+  /**
+   * Signal to fire when a polymerase terminates.
+   */
+  Signal<int, const std::string &, const std::string &> termination_signal_;
 
  protected:
+  int index_;
   /**
    * Name of polymer
    */
@@ -134,7 +143,6 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    */
   Polymerase::VecPtr polymerases_;
 
-
   std::vector<Interval<Promoter::Ptr>> binding_intervals_;
   std::vector<Interval<Terminator::Ptr>> release_intervals_;
   IntervalTree<Promoter::Ptr> binding_sites_;
@@ -142,7 +150,7 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
   /**
    * Mask corresponding to this polymer. Controls which elements are hidden.
    */
-  Mask mask_;
+  Mask mask_ = Mask("mask", 0, 0, std::map<std::string, double>());
   /**
    * Cached total propensity of this polymerase, i.e. the sum of all of the
    * polymerase speeds.
@@ -156,6 +164,7 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    * Cached count of uncovered elements on this polymer, used by Simulation.
    */
   std::map<std::string, int> uncovered_;
+  std::map<std::string, int> species_log_;
   /**
    * Vector of the same length as this polymer, containing weights for different
    * positions along the polymer. When a polymerase passes over a given position
@@ -218,7 +227,7 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    *
    * @return true if polymerases will collide
    */
-  bool CheckPolCollisions(Polymerase::Ptr pol);
+  bool CheckPolCollisions(int pol_index);
 };
 
 /**
@@ -240,8 +249,9 @@ class Transcript : public Polymer {
    *  of the transcript
    */
   Transcript(const std::string &name, int start, int stop,
-             const Element::VecPtr &elements, const Mask &mask,
-             const std::vector<double> &weights);
+             const std::vector<Interval<Promoter::Ptr>> &rbs_intervals,
+             const std::vector<Interval<Terminator::Ptr>> &stop_site_intervals,
+             const Mask &mask, const std::vector<double> &weights);
   /**
    * Convenience typdefs.
    */
@@ -280,6 +290,7 @@ class Genome : public Polymer {
    *  the cell)
    */
   Genome(const std::string &name, int length);
+  void Initialize();
   void AddMask(int start, const std::vector<std::string> &interactions);
   void AddPromoter(const std::string &name, int start, int stop,
                    const std::map<std::string, double> &interactions);
@@ -304,7 +315,10 @@ class Genome : public Polymer {
   Signal<Transcript::Ptr> transcript_signal_;
 
  private:
-  Element::VecPtr transcript_template_;
+  std::vector<Interval<Promoter::Ptr>> transcript_rbs_intervals_;
+  std::vector<Interval<Terminator::Ptr>> transcript_stop_site_intervals_;
+  IntervalTree<Promoter::Ptr> transcript_rbs_;
+  IntervalTree<Terminator::Ptr> transcript_stop_sites_;
   std::vector<double> transcript_weights_;
   std::map<std::string, std::map<std::string, double>> bindings_;
   void SortElements();

@@ -1,6 +1,6 @@
 /* Copyright (c) 2017 Benjamin Jack All Rights Reserved. */
 
-#ifndef SRC_FEATURE_HPP_ // header guard
+#ifndef SRC_FEATURE_HPP_  // header guard
 #define SRC_FEATURE_HPP_
 
 #include <iostream>
@@ -15,7 +15,7 @@
  * TODO: make abstract?
  */
 class Feature : public std::enable_shared_from_this<Feature> {
-public:
+ public:
   /**
    * Default constructor of Feature
    * @param name a (unique?) name for this feature
@@ -41,9 +41,11 @@ public:
    * @return      TRUE if features interact
    */
   virtual bool CheckInteraction(const std::string &name);
-  std::map<std::string, double> const &interactions() const { return interactions_; }
+  std::map<std::string, double> const &interactions() const {
+    return interactions_;
+  }
 
-protected:
+ protected:
   /**
    * Name of this feature.
    */
@@ -71,7 +73,7 @@ protected:
  * A molecule that binds to `Polymer` and moves.
  */
 class Polymerase : public Feature {
-public:
+ public:
   /**
    * The only constructor for Polymerase.
    * @param name name of polymerase (unique?)
@@ -105,7 +107,7 @@ public:
   Signal<> move_signal_;
   // Signal release_signal;
 
-private:
+ private:
   /**
    * Foot print in base pairs of polymerase.
    */
@@ -139,7 +141,7 @@ private:
  * transcript is being synthesized.
  */
 class Mask : public Feature {
-public:
+ public:
   /**
    * Only constructor for Mask.
    */
@@ -155,7 +157,7 @@ public:
  * A fixed feature in the polymer that can be covered or uncovered.
  */
 class Element : public Feature {
-public:
+ public:
   /**
    * Only constructor of Element.
    */
@@ -210,11 +212,11 @@ public:
    * Signal to fire when element changes state from covered to uncovered
    */
   Signal<const std::string &> uncover_signal_;
-  virtual Element::Ptr Clone() const = 0;
+
   const std::string &gene() const { return gene_; }
   void gene(const std::string &gene) { gene_ = gene; }
 
-protected:
+ protected:
   /**
    * Name of gene that this terminator terminates on. This is the value that
    * will get reported to the species tracker.
@@ -225,7 +227,7 @@ protected:
    */
   bool first_exposure_;
 
-private:
+ private:
   /**
    * Count of how many features are currently covering this element.
    */
@@ -240,7 +242,7 @@ private:
  * A promoter class
  */
 class Promoter : public Element {
-public:
+ public:
   /**
    * The only constructor for Promoter.
    *
@@ -260,11 +262,11 @@ public:
    * Check to see if covering state has changed and fire appropriate signals.
    */
   void CheckState();
-  virtual Element::Ptr Clone() const;
+  Promoter::Ptr Clone() const;
 };
 
 class Terminator : public Element {
-public:
+ public:
   /**
    * Only constructor for Terminator.
    *
@@ -284,7 +286,7 @@ public:
    * Check for changes in covering state and fire appropriate signals.
    */
   void CheckState();
-  virtual Element::Ptr Clone() const;
+  Terminator::Ptr Clone() const;
   /**
    * Check to see if feature interacts with this terminator and is in the
    * correct reading frame.
@@ -306,7 +308,7 @@ public:
     return interactions_[pol_name];
   }
 
-private:
+ private:
   /**
    * Name of gene that this terminator terminates on. This is the value that
    * will get reported to the species tracker.
@@ -323,4 +325,4 @@ private:
   int reading_frame_;
 };
 
-#endif // SRC_FEATURE_HPP_
+#endif  // SRC_FEATURE_HPP_
