@@ -51,7 +51,7 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    * Create interval trees.
    * Make sure elements covered by mask have correct state.
    */
-  void Initialize();
+  virtual void Initialize();
   /**
    * Bind a polymerase object to the polymer. Randomly select an open
    * promoter with which to bind and update the polymerases position to the

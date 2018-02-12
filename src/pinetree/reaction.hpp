@@ -151,7 +151,7 @@ class Bridge : public Reaction {
    * @param polymer pointer to polymer object that this reaction is
    *  encapsulating
    */
-  Bridge(Polymer::Ptr polymer) : polymer_(polymer) {}
+  Bridge(Polymer::Ptr polymer);
   /**
    * Retrieve total propensity of all reactions tha tmay occur within this
    * polymer.
@@ -162,7 +162,7 @@ class Bridge : public Reaction {
   /**
    * Execute reaction within polymer (e.g. typically moving a polymerase)
    */
-  void Execute() { polymer_->Execute(); }
+  void Execute();
 
   void index(int index);
   int index() const { return index_; }
@@ -172,6 +172,7 @@ class Bridge : public Reaction {
    * Pointer to polymer object that this reaction encapsulates.
    */
   Polymer::Ptr polymer_;
+  void ReportChanges();
 };
 
 #endif  // header guard

@@ -65,7 +65,7 @@ void Simulation::AddPolymerase(const std::string &name, int footprint,
 }
 
 void Simulation::RegisterPolymer(Polymer::Ptr polymer) {
-  polymer->Initialize();
+  // polymer->Initialize();
   // for (auto &elem : polymer->elements()) {
   //   if (elem->type() == "promoter") {
   //     elem->uncover_signal_.ConnectMember(shared_from_this(),

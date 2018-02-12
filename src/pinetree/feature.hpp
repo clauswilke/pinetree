@@ -104,6 +104,8 @@ class Polymerase : public Feature {
    */
   void MoveBack();
 
+  // const std::map<std::string, int> &CollectChanges();
+
   Signal<> move_signal_;
   // Signal release_signal;
 
@@ -125,6 +127,7 @@ class Polymerase : public Feature {
    * Where did this polymerase bind?
    */
   int bound_;
+  // Polymer::Ptr transcript_;
   /**
    * Type of polymerase. (Is this used?)
    */
@@ -190,9 +193,11 @@ class Element : public Feature {
    * Uncover element.
    */
   void Uncover() {
+    std::cout << name_ + " covered: " + std::to_string(covered_) << std::endl;
     if (covered_ > 0) {
       covered_ = covered_ - 1;
     }
+    std::cout << "covered: " + std::to_string(covered_) << std::endl;
   }
   /**
    * Is this element covered at all?
