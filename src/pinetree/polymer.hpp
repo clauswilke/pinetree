@@ -10,6 +10,29 @@
 #include "IntervalTree.h"
 #include "feature.hpp"
 
+class Polymer;
+
+class PolymeraseManager {
+ public:
+  PolymeraseManager(const std::vector<double> &weights);
+  void Insert(std::shared_ptr<Polymerase> pol,
+              std::shared_ptr<Polymer> polymer);
+  void Delete(int index);
+  int Choose();
+  bool ValidIndex(int index) { return index < polymerases_.size(); };
+  std::shared_ptr<Polymerase> GetPol(int index);
+  std::shared_ptr<Polymer> GetAttached(int index);
+  void UpdatePropensity(int index);
+  double prop_sum() { return prop_sum_; }
+
+ private:
+  double prop_sum_ = 0;
+  std::vector<double> prop_list_;
+  std::vector<std::pair<std::shared_ptr<Polymerase>, std::shared_ptr<Polymer>>>
+      polymerases_;
+  std::vector<double> weights_;
+};
+
 /**
  * Track element objects, polymerase objects, and collisions on a single
  * polymer. Move polymerase objects along the polymer. Handle logic for
@@ -91,7 +114,7 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    */
   void index(int index) { index_ = index; }
   int index() { return index_; }
-  double prop_sum() { return prop_sum_; }
+  double prop_sum() { return polymerases_.prop_sum(); }
   int uncovered(const std::string &name) { return uncovered_[name]; }
   int start() const { return start_; }
   int stop() const { return stop_; }
@@ -118,7 +141,7 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
   /**
    * Vector of polymerases currently on this polymer.
    */
-  Polymerase::VecPtr polymerases_;
+  PolymeraseManager polymerases_;
 
   std::vector<Interval<Promoter::Ptr>> binding_intervals_;
   std::vector<Interval<Terminator::Ptr>> release_intervals_;
@@ -188,7 +211,7 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    *
    * @return true if polymerase is terminating
    */
-  bool CheckTermination(Polymerase::Ptr pol);
+  bool CheckTermination(int pol_index);
   /**
    * Check for collisions between polymerase and this polymer's mask.
    *
@@ -205,15 +228,6 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    * @return true if polymerases will collide
    */
   bool CheckPolCollisions(int pol_index);
-  /**
-   * Terminate polymerization reaction, fire the appropriate signals,
-   * reduce the total propensity of this polymer, and then delete the
-   * polymerase object itself.
-   *
-   * @param pol polymerase object to be deleted
-   * @param last_gene last gene polymerase passed over before terminating
-   */
-  void Terminate(Polymerase::Ptr pol, const std::string &last_gene);
   /**
    * Update the cached count of uncovered promoters/elements.
    * TODO: Make private and refactor covering signals
@@ -333,24 +347,6 @@ class Genome : public Polymer {
    * @returns pointer to Transcript object
    */
   Transcript::Ptr BuildTranscript(int start, int stop);
-};
-
-class PolymeraseManager {
- public:
-  PolymeraseManager(const std::vector<double> &weights);
-  void Insert(Polymerase::Ptr pol, Polymer::Ptr polymer);
-  void Delete(int index);
-  int Choose();
-  Polymerase::Ptr GetPol(int index);
-  Polymer::Ptr GetAttached(int index);
-  void UpdatePropensity(int index);
-  double prop_sum() { return prop_sum_; }
-
- private:
-  double prop_sum_ = 0;
-  std::vector<double> prop_list_;
-  std::vector<std::pair<Polymerase::Ptr, Polymer::Ptr>> polymerases_;
-  std::vector<double> weights_;
 };
 
 #endif  // SRC_POLYMER_HPP_

@@ -92,8 +92,12 @@ int PolymeraseManager::Choose() {
 }
 
 Polymer::Polymer(const std::string &name, int start, int stop)
-    : name_(name), start_(start), stop_(stop) {
+    : name_(name),
+      start_(start),
+      stop_(stop),
+      polymerases_(PolymeraseManager(std::vector<double>())) {
   weights_ = std::vector<double>(stop - start + 1, 1.0);
+  polymerases_ = PolymeraseManager(weights_);
   prop_sum_ = 0;
   std::map<std::string, double> interaction_map;
   mask_ = Mask("mask", stop_ + 1, stop_, interaction_map);
@@ -176,7 +180,7 @@ void Polymer::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
   // Cover promoter in cache
   LogCover(elem->name());
   // Add polymerase to this polymer
-  Insert(pol);
+  polymerases_.Insert(pol, Polymer::Ptr());
 
   // Report some data to tracker
   if (elem->interactions().count("ribosome") == 1 &&
@@ -187,11 +191,11 @@ void Polymer::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
 }
 
 void Polymer::Execute() {
-  if (prop_sum_ == 0) {
+  if (polymerases_.prop_sum() == 0) {
     throw std::runtime_error(
         "Attempting to execute polymer with reaction propensity of 0.");
   }
-  int pol_index = Choose();
+  int pol_index = polymerases_.Choose();
   Move(pol_index);
 }
 
@@ -200,21 +204,6 @@ void Polymer::ShiftMask() {
     int old_start = mask_.start();
     mask_.Recede();
     CheckBehind(old_start, mask_.start());
-  }
-}
-
-void Polymer::Terminate(Polymerase::Ptr pol, const std::string &last_gene) {
-  auto it = std::find(polymerases_.begin(), polymerases_.end(), pol);
-  int index = it - polymerases_.begin();
-  if (index >= prop_list_.size() || index >= polymerases_.size()) {
-    throw std::runtime_error("Prop list not correct size.");
-  }
-  prop_sum_ -= prop_list_[index];
-  termination_signal_.Emit(index_, pol->name(), last_gene);
-  polymerases_.erase(it);
-  prop_list_.erase(prop_list_.begin() + index);
-  if (prop_list_.size() != polymerases_.size()) {
-    throw std::runtime_error("Prop list not correct size.");
   }
 }
 
@@ -241,54 +230,8 @@ void Polymer::LogUncover(const std::string &species_name) {
   SpeciesTracker::Instance().Increment(species_name, 1);
 }
 
-void Polymer::Insert(Polymerase::Ptr pol) {
-  // Find where in vector polymerase should insert; use a lambda function
-  // to make comparison between polymerase pointers
-  auto it = std::upper_bound(polymerases_.begin(), polymerases_.end(), pol,
-                             [](Polymerase::Ptr a, Polymerase::Ptr b) {
-                               return a->start() < b->start();
-                             });
-  // Record position for prop_list_
-  // NOTE: iterators become invalid as soon as a vector is changed!!
-  // Attempting to use an iterator twice will lead to a segfault.
-  auto prop_it = (it - polymerases_.begin()) + prop_list_.begin();
-  // Add polymerase to this polymer
-  polymerases_.insert(it, pol);
-  // Cache polymerase speed
-  double weight = weights_[pol->stop() - start_ - 1];
-  // Update total move propensity of this polymer
-  prop_sum_ += weight * pol->speed();
-  prop_list_.insert(prop_it, weight * pol->speed());
-  if (prop_list_.size() != polymerases_.size()) {
-    throw std::runtime_error("Prop list not correct size.");
-  }
-}
-
-int Polymer::Choose() {
-  if (prop_list_.size() == 0) {
-    std::string err = "There are no active polymerases on polymer " + name_ +
-                      std::to_string(prop_sum_);
-    throw std::runtime_error(err);
-  }
-  int pol_index = Random::WeightedChoiceIndex(polymerases_, prop_list_);
-  // Error checking to make sure that pol is in vector
-  if (pol_index >= polymerases_.size()) {
-    std::string err = "Attempting to move unbound polymerase with index " +
-                      std::to_string(pol_index) + " on polymer " + name_;
-    throw std::runtime_error(err);
-  }
-  if (pol_index >= prop_list_.size()) {
-    throw std::runtime_error(
-        "Prop list vector index is invalid (before move).");
-  }
-  return pol_index;
-}
-
 void Polymer::Move(int pol_index) {
-  if (pol_index >= prop_list_.size()) {
-    throw std::runtime_error("Prop list vector index is invalid.");
-  }
-  auto pol = polymerases_[pol_index];
+  auto pol = polymerases_.GetPol(pol_index);
 
   // Record old positions
   int old_start = pol->start();
@@ -311,7 +254,7 @@ void Polymer::Move(int pol_index) {
     return;
   }
   // Check if polymerase has run into a terminator
-  bool terminating = CheckTermination(pol);
+  bool terminating = CheckTermination(pol_index);
   if (terminating) {
     std::vector<Interval<Promoter::Ptr>> results;
     binding_sites_.findOverlapping(old_start, pol->stop(), results);
@@ -333,15 +276,7 @@ void Polymer::Move(int pol_index) {
   CheckAhead(old_stop, pol->stop());
 
   // Update propensity for new codon (TODO: make its own function)
-  int weight_index = pol->stop() - start_ - 1;
-  if (weight_index >= weights_.size() || weight_index < 0) {
-    throw std::runtime_error("Weight is missing for this position.");
-  }
-  double weight = weights_[pol->stop() - start_ - 1];
-  double new_speed = weight * pol->speed();
-  double diff = new_speed - prop_list_[pol_index];
-  prop_sum_ += diff;
-  prop_list_[pol_index] = new_speed;
+  polymerases_.UpdatePropensity(pol_index);
 }
 
 void Polymer::CheckAhead(int old_stop, int new_stop) {
@@ -396,9 +331,11 @@ void Polymer::CheckBehind(int old_start, int new_start) {
   }
 }
 
-bool Polymer::CheckTermination(Polymerase::Ptr pol) {
+bool Polymer::CheckTermination(int pol_index) {
+  auto pol = polymerases_.GetPol(pol_index);
   if (pol->stop() >= stop_) {
-    Terminate(pol, "NA");
+    termination_signal_.Emit(index_, pol->name(), "NA");
+    polymerases_.Delete(pol_index);
     return true;
   }
   std::vector<Interval<Terminator::Ptr>> results;
@@ -416,7 +353,8 @@ bool Polymer::CheckTermination(Polymerase::Ptr pol) {
         for (int i = 0; i < dist; i++) {
           pol->move_signal_.Emit();
         }
-        Terminate(pol, interval.value->gene());
+        termination_signal_.Emit(index_, pol->name(), interval.value->gene());
+        polymerases_.Delete(pol_index);
         return true;
       } else {
         interval.value->set_readthrough(true);
@@ -445,29 +383,27 @@ bool Polymer::CheckMaskCollisions(Polymerase::Ptr pol) {
 }
 
 bool Polymer::CheckPolCollisions(int pol_index) {
-  // Are there any polymerases ahead of this one?
-  if (pol_index + 1 >= polymerases_.size()) {
+  auto this_pol = polymerases_.GetPol(pol_index);
+  if (!polymerases_.ValidIndex(pol_index + 1)) {
+    // Are there any polymerases ahead of this one?
     return false;
   }
+  auto next_pol = polymerases_.GetPol(pol_index + 1);
   // We only need to check the polymerase one position ahead of this
   // polymerase
-  if ((polymerases_[pol_index]->stop() >=
-       polymerases_[pol_index + 1]->start()) &&
-      (polymerases_[pol_index + 1]->stop() >=
-       polymerases_[pol_index]->start())) {
+  if ((this_pol->stop() >= next_pol->start()) &&
+      (next_pol->stop() >= this_pol->start())) {
     // Error checking. TODO: Can this be removed?
-    if (polymerases_[pol_index]->stop() >
-        polymerases_[pol_index + 1]->start()) {
-      std::string err =
-          "Polymerase " + polymerases_[pol_index]->name() +
-          " (start: " + std::to_string(polymerases_[pol_index]->start()) +
-          ", stop: " + std::to_string(polymerases_[pol_index]->stop()) +
-          ", index: " + std::to_string(pol_index) +
-          ") is overlapping polymerase " + polymerases_[pol_index + 1]->name() +
-          " (start: " + std::to_string(polymerases_[pol_index + 1]->start()) +
-          ", stop: " + std::to_string(polymerases_[pol_index + 1]->stop()) +
-          ", index: " + std::to_string(pol_index + 1) +
-          ") by more than one position on polymer " + name_;
+    if (this_pol->stop() > next_pol->start()) {
+      std::string err = "Polymerase " + this_pol->name() +
+                        " (start: " + std::to_string(this_pol->start()) +
+                        ", stop: " + std::to_string(this_pol->stop()) +
+                        ", index: " + std::to_string(pol_index) +
+                        ") is overlapping polymerase " + next_pol->name() +
+                        " (start: " + std::to_string(next_pol->start()) +
+                        ", stop: " + std::to_string(next_pol->stop()) +
+                        ", index: " + std::to_string(pol_index + 1) +
+                        ") by more than one position on polymer " + name_;
       throw std::runtime_error(err);
     }
     return true;
@@ -483,6 +419,7 @@ Transcript::Transcript(
     : Polymer(name, start, stop) {
   mask_ = mask;
   weights_ = weights;
+  polymerases_ = PolymeraseManager(weights_);
   binding_intervals_ = rbs_intervals;
   release_intervals_ = stop_site_intervals;
 }
