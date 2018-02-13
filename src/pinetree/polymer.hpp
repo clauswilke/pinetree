@@ -335,4 +335,22 @@ class Genome : public Polymer {
   Transcript::Ptr BuildTranscript(int start, int stop);
 };
 
+class PolymeraseManager {
+ public:
+  PolymeraseManager(const std::vector<double> &weights);
+  void Insert(Polymerase::Ptr pol, Polymer::Ptr polymer);
+  void Delete(int index);
+  int Choose();
+  Polymerase::Ptr GetPol(int index);
+  Polymer::Ptr GetAttached(int index);
+  void UpdatePropensity(int index);
+  double prop_sum() { return prop_sum_; }
+
+ private:
+  double prop_sum_ = 0;
+  std::vector<double> prop_list_;
+  std::vector<std::pair<Polymerase::Ptr, Polymer::Ptr>> polymerases_;
+  std::vector<double> weights_;
+};
+
 #endif  // SRC_POLYMER_HPP_

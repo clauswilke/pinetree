@@ -5,6 +5,92 @@
 
 #include <iostream>
 
+PolymeraseManager::PolymeraseManager(const std::vector<double> &weights)
+    : weights_(weights) {}
+
+void PolymeraseManager::Insert(Polymerase::Ptr pol, Polymer::Ptr polymer) {
+  // Find where in vector polymerase should insert; use a lambda function
+  // to make comparison between polymerase pointers
+  auto pol_polymer = std::make_pair(pol, polymer);
+  auto it =
+      std::upper_bound(polymerases_.begin(), polymerases_.end(), pol_polymer,
+                       [](std::pair<Polymerase::Ptr, Polymer::Ptr> a,
+                          std::pair<Polymerase::Ptr, Polymer::Ptr> b) {
+                         return a.first->start() < b.first->start();
+                       });
+  // Record position for prop_list_
+  // NOTE: iterators become invalid as soon as a vector is changed!!
+  // Attempting to use an iterator twice will lead to a segfault.
+  auto prop_it = (it - polymerases_.begin()) + prop_list_.begin();
+  // Add polymerase to this polymer
+  polymerases_.insert(it, std::make_pair(pol, polymer));
+  // Cache polymerase speed
+  double weight = weights_[pol->stop() - 1];
+  // Update total move propensity of this polymer
+  prop_sum_ += weight * pol->speed();
+  prop_list_.insert(prop_it, weight * pol->speed());
+  if (prop_list_.size() != polymerases_.size()) {
+    throw std::runtime_error("Prop list not correct size.");
+  }
+}
+
+void PolymeraseManager::Delete(int index) {
+  prop_sum_ -= prop_list_[index];
+  polymerases_.erase(polymerases_.begin() + index);
+  prop_list_.erase(prop_list_.begin() + index);
+  if (prop_list_.size() != polymerases_.size()) {
+    throw std::runtime_error("Prop list not correct size.");
+  }
+}
+
+void PolymeraseManager::UpdatePropensity(int index) {
+  auto pol = GetPol(index);
+  int weight_index = pol->stop() - 1;
+  if (weight_index >= weights_.size() || weight_index < 0) {
+    throw std::runtime_error("Weight is missing for this position.");
+  }
+  double weight = weights_[weight_index];
+  double new_speed = weight * pol->speed();
+  double diff = new_speed - prop_list_[index];
+  prop_sum_ += diff;
+  prop_list_[index] = new_speed;
+}
+
+Polymerase::Ptr PolymeraseManager::GetPol(int index) {
+  if (index >= polymerases_.size()) {
+    throw std::range_error("Polymerase index out of range.");
+  }
+  return polymerases_[index].first;
+}
+
+Polymer::Ptr PolymeraseManager::GetAttached(int index) {
+  if (index >= polymerases_.size()) {
+    throw std::range_error("Polymerase index out of range.");
+  }
+  return polymerases_[index].second;
+}
+
+int PolymeraseManager::Choose() {
+  if (prop_list_.size() == 0) {
+    std::string err =
+        "There are no active polymerases on polymer (propensity sum: " +
+        std::to_string(prop_sum_) + ").";
+    throw std::runtime_error(err);
+  }
+  int pol_index = Random::WeightedChoiceIndex(polymerases_, prop_list_);
+  // Error checking to make sure that pol is in vector
+  if (pol_index >= polymerases_.size()) {
+    std::string err = "Attempting to move unbound polymerase with index " +
+                      std::to_string(pol_index) + " on polymer.";
+    throw std::runtime_error(err);
+  }
+  if (pol_index >= prop_list_.size()) {
+    throw std::runtime_error(
+        "Prop list vector index is invalid (before move).");
+  }
+  return pol_index;
+}
+
 Polymer::Polymer(const std::string &name, int start, int stop)
     : name_(name), start_(start), stop_(stop) {
   weights_ = std::vector<double>(stop - start + 1, 1.0);
@@ -512,7 +598,6 @@ Transcript::Ptr Genome::BuildTranscript(int start, int stop) {
 
   Transcript::Ptr transcript;
   Mask mask = Mask("mask", start, stop, std::map<std::string, double>());
-  // Mask mask = Mask("mask", stop + 1, stop, std::map<std::string, double>());
   // We need to used the standard shared_ptr constructor here because the
   // constructor of Transcript needs to know its address in memory to wire
   // signals appropriately.
