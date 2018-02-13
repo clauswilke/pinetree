@@ -84,29 +84,7 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    * Shift mask by 1 base-pair and check for uncovered elements.
    */
   virtual void ShiftMask();
-  /**
-   * Terminate polymerization reaction, fire the appropriate signals,
-   * reduce the total propensity of this polymer, and then delete the
-   * polymerase object itself.
-   *
-   * @param pol polymerase object to be deleted
-   * @param last_gene last gene polymerase passed over before terminating
-   */
-  void Terminate(Polymerase::Ptr pol, const std::string &last_gene);
-  /**
-   * Update the cached count of uncovered promoters/elements.
-   * TODO: Make private and refactor covering signals
-   *
-   * @param species_name name of species to cover
-   */
-  void LogCover(const std::string &species_name);
-  /**
-   * Update the cached count of uncovered promoters/elements.
-   * TODO: Make private and refactor covering signals
-   *
-   * @param species_name name of species to uncover
-   */
-  void LogUncover(const std::string &species_name);
+
   /**
    * Getters and setters. There are two getters for prop_sum_... mostly to
    * maintain the interface that Simulation expects.
@@ -227,6 +205,29 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    * @return true if polymerases will collide
    */
   bool CheckPolCollisions(int pol_index);
+  /**
+   * Terminate polymerization reaction, fire the appropriate signals,
+   * reduce the total propensity of this polymer, and then delete the
+   * polymerase object itself.
+   *
+   * @param pol polymerase object to be deleted
+   * @param last_gene last gene polymerase passed over before terminating
+   */
+  void Terminate(Polymerase::Ptr pol, const std::string &last_gene);
+  /**
+   * Update the cached count of uncovered promoters/elements.
+   * TODO: Make private and refactor covering signals
+   *
+   * @param species_name name of species to cover
+   */
+  void LogCover(const std::string &species_name);
+  /**
+   * Update the cached count of uncovered promoters/elements.
+   * TODO: Make private and refactor covering signals
+   *
+   * @param species_name name of species to uncover
+   */
+  void LogUncover(const std::string &species_name);
 };
 
 /**
@@ -320,8 +321,6 @@ class Genome : public Polymer {
   IntervalTree<Terminator::Ptr> transcript_stop_sites_;
   std::vector<double> transcript_weights_;
   std::map<std::string, std::map<std::string, double>> bindings_;
-  void SortElements();
-  void SortTranscriptTemplate();
   /**
    * Build a transcript object corresponding to start and stop positions within
    * this genome.

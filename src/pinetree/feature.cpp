@@ -19,7 +19,6 @@ Polymerase::Polymerase(const std::string &name, int footprint, int speed)
     : Feature(name, 0, footprint - 1, std::map<std::string, double>()),
       footprint_(footprint),
       speed_(speed) {
-  left_most_element_ = 0;
   bound_ = 0;
   type_ = "polymerase";
   reading_frame_ = -1;

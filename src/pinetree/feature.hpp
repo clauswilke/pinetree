@@ -91,8 +91,6 @@ class Polymerase : public Feature {
    */
   double speed() const { return speed_; }
   int footprint() const { return footprint_; }
-  int left_most_element() const { return left_most_element_; }
-  void set_left_most_element(int index) { left_most_element_ = index; }
   int reading_frame() const { return reading_frame_; }
   void set_reading_frame(int reading_frame) { reading_frame_ = reading_frame; }
   /**
@@ -119,15 +117,10 @@ class Polymerase : public Feature {
    */
   double speed_;
   /**
-   * Index of left-most interacting element; used for increasing efficiency of
-   * polymerase movement.
-   */
-  int left_most_element_;
-  /**
    * Where did this polymerase bind?
    */
   int bound_;
-  // Polymer::Ptr transcript_;
+
   /**
    * Type of polymerase. (Is this used?)
    */
