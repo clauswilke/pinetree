@@ -152,15 +152,6 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    */
   Mask mask_ = Mask("mask", 0, 0, std::map<std::string, double>());
   /**
-   * Cached total propensity of this polymerase, i.e. the sum of all of the
-   * polymerase speeds.
-   */
-  double prop_sum_;
-  /**
-   * List of all propensities for polymerases on this polymer.
-   */
-  std::vector<double> prop_list_;
-  /**
    * Cached count of uncovered elements on this polymer, used by Simulation.
    */
   std::map<std::string, int> uncovered_;
