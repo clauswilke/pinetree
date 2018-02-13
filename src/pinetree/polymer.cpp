@@ -98,7 +98,6 @@ Polymer::Polymer(const std::string &name, int start, int stop)
       polymerases_(PolymeraseManager(std::vector<double>())) {
   weights_ = std::vector<double>(stop - start + 1, 1.0);
   polymerases_ = PolymeraseManager(weights_);
-  prop_sum_ = 0;
   std::map<std::string, double> interaction_map;
   mask_ = Mask("mask", stop_ + 1, stop_, interaction_map);
 }
@@ -135,7 +134,8 @@ void Polymer::Initialize() {
   }
 }
 
-void Polymer::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
+Promoter::Ptr Polymer::FindBindingSite(Polymerase::Ptr pol,
+                                       const std::string &promoter_name) {
   // Make a list of free promoters that pol can bind
   bool found = false;
   Promoter::VecPtr promoter_choices;
@@ -163,6 +163,12 @@ void Polymer::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
                       " does not interact with promoter " + promoter_name;
     throw std::runtime_error(err);
   }
+  return elem;
+}
+
+void Polymer::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
+  // Find a free promoter to bind to
+  auto elem = FindBindingSite(pol, promoter_name);
   // Update polymerase coordinates
   // (TODO: refactor; pol doesn't need to expose footprint/stop position)
   pol->set_start(elem->start());
@@ -179,15 +185,18 @@ void Polymer::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
   elem->ResetState();
   // Cover promoter in cache
   LogCover(elem->name());
-  // Add polymerase to this polymer
-  polymerases_.Insert(pol, Polymer::Ptr());
-
   // Report some data to tracker
   if (elem->interactions().count("ribosome") == 1 &&
       elem->type() == "promoter") {
     auto &tracker = SpeciesTracker::Instance();
     tracker.IncrementRibo(elem->gene(), 1);
   }
+  // Add polymerase to this polymer
+  Attach(pol);
+}
+
+void Polymer::Attach(Polymerase::Ptr pol) {
+  polymerases_.Insert(pol, Polymer::Ptr());
 }
 
 void Polymer::Execute() {
@@ -269,7 +278,10 @@ void Polymer::Move(int pol_index) {
     return;
   }
 
-  pol->move_signal_.Emit();
+  auto transcript = polymerases_.GetAttached(pol_index);
+  if (transcript != nullptr) {
+    transcript->ShiftMask();
+  }
 
   // Check for new covered and uncovered elements
   CheckBehind(old_start, pol->start());
@@ -350,8 +362,11 @@ bool Polymer::CheckTermination(int pol_index) {
         // Coordinates are inclusive, so must add 1 after calculating
         // difference
         int dist = interval.value->stop() - pol->stop() + 1;
-        for (int i = 0; i < dist; i++) {
-          pol->move_signal_.Emit();
+        auto transcript = polymerases_.GetAttached(pol_index);
+        if (transcript != nullptr) {
+          for (int i = 0; i < dist; i++) {
+            transcript->ShiftMask();
+          }
         }
         termination_signal_.Emit(index_, pol->name(), interval.value->gene());
         polymerases_.Delete(pol_index);
@@ -498,17 +513,9 @@ void Genome::AddWeights(const std::vector<double> &transcript_weights) {
   transcript_weights_ = transcript_weights;
 }
 
-void Genome::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
-  // Bind polymerase
-  Polymer::Bind(pol, promoter_name);
-  // Construct a transcript starting from *end* of polymerase
+void Genome::Attach(Polymerase::Ptr pol) {
   Transcript::Ptr transcript = BuildTranscript(pol->stop(), stop_);
-  // Connect polymerase movement signal to transcript, so that transcript
-  // knows when to expose new elements
-  // TODO: figure out if this could cause a memory leak
-  // What happens if transcript gets deleted?
-  pol->move_signal_.ConnectMember(transcript, &Transcript::ShiftMask);
-  // Fire new transcript signal (adds transcript to Simulation)
+  polymerases_.Insert(pol, transcript);
   transcript_signal_.Emit(transcript);
 }
 

@@ -102,11 +102,6 @@ class Polymerase : public Feature {
    */
   void MoveBack();
 
-  // const std::map<std::string, int> &CollectChanges();
-
-  Signal<> move_signal_;
-  // Signal release_signal;
-
  private:
   /**
    * Foot print in base pairs of polymerase.

@@ -163,22 +163,9 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    * propensity for the next movement of that polymerase.
    */
   std::vector<double> weights_;
-  /**
-   * Add a polymerase to polymerase list, while maintaining the
-   * order in which polymerases currently on the polymer. Higher
-   * indices correspond to downstream polymerases, and lower
-   * indices correspond to upstream polymerases.
-   *
-   * @param pol pointer to polymerase object
-   */
-  void Insert(Polymerase::Ptr pol);
-  /**
-   * Randomly select next polymerase to move, weighted by propensity
-   * (i.e. speed).
-   *
-   * @return pointer to selected polymerase object
-   */
-  int Choose();
+  Promoter::Ptr FindBindingSite(Polymerase::Ptr pol,
+                                const std::string &promoter_name);
+  virtual void Attach(Polymerase::Ptr pol);
   /**
    * Temporarily uncover all elements covered by a given polymerase.
    *
@@ -316,7 +303,7 @@ class Genome : public Polymer {
    * @param pol pointer to polymerase to bind
    * @param promoter name of promoter to which this polymerase binds
    */
-  void Bind(Polymerase::Ptr pol, const std::string &promoter_name);
+  void Attach(Polymerase::Ptr pol);
   Signal<Transcript::Ptr> transcript_signal_;
 
  private:
