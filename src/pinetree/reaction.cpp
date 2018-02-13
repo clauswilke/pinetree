@@ -73,7 +73,8 @@ void Bind::Execute() {
   auto new_pol = std::make_shared<Polymerase>(pol_template_);
   polymer->Bind(new_pol, promoter_name_);
   tracker.propensity_signal_.Emit(polymer->index());
-  tracker.Increment(promoter_name_, -1);
+  // Polymer should handle decrementing promoter
+  // tracker.Increment(promoter_name_, -1);
   tracker.Increment(pol_name_, -1);
 }
 
@@ -84,17 +85,6 @@ void Bridge::index(int index) {
 
 Bridge::Bridge(Polymer::Ptr polymer) : polymer_(polymer) {
   polymer_->Initialize();
-  ReportChanges();
 }
 
-void Bridge::ReportChanges() {
-  auto changes = polymer_->ReportChanges();
-  for (auto const &species : changes) {
-    SpeciesTracker::Instance().Increment(species.first, species.second);
-  }
-}
-
-void Bridge::Execute() {
-  polymer_->Execute();
-  ReportChanges();
-}
+void Bridge::Execute() { polymer_->Execute(); }

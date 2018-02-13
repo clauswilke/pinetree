@@ -202,17 +202,12 @@ class Element : public Feature {
    * @return True if at least one feature is covering element.
    */
   bool IsCovered() { return covered_ > 0; }
-  /**
-   * Signal to fire when element changes state from uncovered to covered
-   */
-  Signal<const std::string &> cover_signal_;
-  /**
-   * Signal to fire when element changes state from covered to uncovered
-   */
-  Signal<const std::string &> uncover_signal_;
 
   const std::string &gene() const { return gene_; }
   void gene(const std::string &gene) { gene_ = gene; }
+
+  bool first_exposure() { return first_exposure_; }
+  void first_exposure(bool first_exposure) { first_exposure_ = first_exposure; }
 
  protected:
   /**

@@ -117,7 +117,6 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
   int uncovered(const std::string &name) { return uncovered_[name]; }
   int start() const { return start_; }
   int stop() const { return stop_; }
-  const std::map<std::string, int> &ReportChanges() { return species_log_; }
 
   /**
    * Signal to fire when a polymerase terminates.
@@ -164,7 +163,7 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    * Cached count of uncovered elements on this polymer, used by Simulation.
    */
   std::map<std::string, int> uncovered_;
-  std::map<std::string, int> species_log_;
+
   /**
    * Vector of the same length as this polymer, containing weights for different
    * positions along the polymer. When a polymerase passes over a given position

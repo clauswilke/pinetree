@@ -5,6 +5,8 @@ project(pinetree)
 # Modern C++ woooo!
 set(CMAKE_CXX_STANDARD 11)
 
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -O0 -g")
+
 # Tell Cmake that headers are also in source directory
 include_directories(src/${PROJECT_NAME})
 include_directories(tests)

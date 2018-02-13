@@ -27,6 +27,7 @@ void Gillespie::Iterate() {
   if (initialized_ == false) {
     Initialize();
   }
+
   // Basic sanity checks
   if (alpha_sum_ <= 0) {
     throw std::runtime_error(

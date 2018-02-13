@@ -172,7 +172,6 @@ class Bridge : public Reaction {
    * Pointer to polymer object that this reaction encapsulates.
    */
   Polymer::Ptr polymer_;
-  void ReportChanges();
 };
 
 #endif  // header guard

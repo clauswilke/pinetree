@@ -69,23 +69,6 @@ class Simulation : public std::enable_shared_from_this<Simulation> {
   void RegisterTranscript(Transcript::Ptr transcript);
   void Initialize();
   /**
-   * Increment promoter count at species level.
-   *
-   * TODO: Possibley remove this function and call SpeciesTracker directly
-   * elsewhere?
-   *
-   * @param species_name name of promoter to free
-   */
-  void FreePromoter(const std::string &species_name);
-  /**
-   * Decrement promoter count at species level.
-   *
-   * TODO: Possibly remove this function and call SpeciesTracker directly.
-   *
-   * @param species_name name of promoter to block
-   */
-  void BlockPromoter(const std::string &species_name);
-  /**
    * Record when a polymerase reaches a terminator so that we can track total
    * quantity of a species synthesized during simulation.
    *

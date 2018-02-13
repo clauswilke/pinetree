@@ -8,7 +8,7 @@
 Polymer::Polymer(const std::string &name, int start, int stop)
     : name_(name), start_(start), stop_(stop) {
   weights_ = std::vector<double>(stop - start + 1, 1.0);
-
+  prop_sum_ = 0;
   std::map<std::string, double> interaction_map;
   mask_ = Mask("mask", stop_ + 1, stop_, interaction_map);
 }
@@ -25,24 +25,23 @@ void Polymer::Initialize() {
   binding_sites_.findOverlapping(mask_start, mask_stop, results);
 
   for (auto &interval : results) {
+    // TODO: move to bridge reaction
+    SpeciesTracker::Instance().Add(interval.value->name(), shared_from_this());
     interval.value->Cover();
     interval.value->ResetState();
     // We don't need to log anything here because covered promoters are
     // invisible to SpeciesTracker.
-    // TODO: move to bridge reaction
-    SpeciesTracker::Instance().Add(interval.value->name(), shared_from_this());
   }
 
   // Make sure all unmasked sites are uncovered
-  species_log_.clear();
   results.clear();
   binding_sites_.findContained(start_, mask_start, results);
   for (auto &interval : results) {
+    // TODO: Move to bridge reaction
+    SpeciesTracker::Instance().Add(interval.value->name(), shared_from_this());
     interval.value->Uncover();
     interval.value->ResetState();
     LogUncover(interval.value->name());
-    // TODO: Move to bridge reaction
-    SpeciesTracker::Instance().Add(interval.value->name(), shared_from_this());
   }
 }
 
@@ -107,25 +106,23 @@ void Polymer::Execute() {
         "Attempting to execute polymer with reaction propensity of 0.");
   }
   int pol_index = Choose();
-  species_log_.clear();
   Move(pol_index);
 }
 
 void Polymer::ShiftMask() {
   if (mask_.start() <= mask_.stop()) {
-    species_log_.clear();
     int old_start = mask_.start();
     mask_.Recede();
     CheckBehind(old_start, mask_.start());
-    for (auto const &species : species_log_) {
-      SpeciesTracker::Instance().Increment(species.first, species.second);
-    }
   }
 }
 
 void Polymer::Terminate(Polymerase::Ptr pol, const std::string &last_gene) {
   auto it = std::find(polymerases_.begin(), polymerases_.end(), pol);
   int index = it - polymerases_.begin();
+  if (index >= prop_list_.size() || index >= polymerases_.size()) {
+    throw std::runtime_error("Prop list not correct size.");
+  }
   prop_sum_ -= prop_list_[index];
   termination_signal_.Emit(index_, pol->name(), last_gene);
   polymerases_.erase(it);
@@ -140,16 +137,12 @@ void Polymer::LogCover(const std::string &species_name) {
     uncovered_[species_name] = 0;
   } else {
     uncovered_[species_name]--;
+    SpeciesTracker::Instance().Increment(species_name, -1);
   }
   if (uncovered_[species_name] < 0) {
     std::string err = "Cached count of uncovered element " + species_name +
                       " cannot be a negative value";
     throw std::runtime_error(err);
-  }
-  if (species_log_.count(species_name) == 0) {
-    species_log_[species_name] = -1;
-  } else {
-    species_log_[species_name]--;
   }
 }
 
@@ -159,11 +152,7 @@ void Polymer::LogUncover(const std::string &species_name) {
   } else {
     uncovered_[species_name]++;
   }
-  if (species_log_.count(species_name) == 0) {
-    species_log_[species_name] = 1;
-  } else {
-    species_log_[species_name]++;
-  }
+  SpeciesTracker::Instance().Increment(species_name, 1);
 }
 
 void Polymer::Insert(Polymerase::Ptr pol) {
@@ -258,7 +247,8 @@ void Polymer::Move(int pol_index) {
   CheckAhead(old_stop, pol->stop());
 
   // Update propensity for new codon (TODO: make its own function)
-  if ((pol->stop() - start_ - 1) >= weights_.size()) {
+  int weight_index = pol->stop() - start_ - 1;
+  if (weight_index >= weights_.size() || weight_index < 0) {
     throw std::runtime_error("Weight is missing for this position.");
   }
   double weight = weights_[pol->stop() - start_ - 1];
@@ -277,8 +267,8 @@ void Polymer::CheckAhead(int old_stop, int new_stop) {
       if (interval.value->WasCovered()) {
         // Record changes that species was covered
         LogCover(interval.value->name());
-        interval.value->ResetState();
       }
+      interval.value->ResetState();
     }
   }
 }
@@ -292,13 +282,39 @@ void Polymer::CheckBehind(int old_start, int new_start) {
       if (interval.value->WasUncovered()) {
         // Record changes that species was covered
         LogUncover(interval.value->name());
-        interval.value->ResetState();
+        // Is this a new transcript?
+        if (!interval.value->first_exposure() &&
+            interval.value->interactions().count("ribosome") == 1) {
+          SpeciesTracker::Instance().IncrementTranscript(interval.value->gene(),
+                                                         1);
+          interval.value->first_exposure(true);
+        }
       }
+      interval.value->ResetState();
+    }
+  }
+
+  std::vector<Interval<Terminator::Ptr>> term_results;
+  release_sites_.findOverlapping(old_start, new_start + 1, term_results);
+  for (auto &interval : term_results) {
+    if (interval.value->stop() < new_start) {
+      interval.value->Uncover();
+      if (interval.value->WasUncovered()) {
+        // Record changes that species was covered
+        // LogUncover(interval.value->name());
+        // Is this a terminator being uncovered?
+        interval.value->set_readthrough(false);
+      }
+      interval.value->ResetState();
     }
   }
 }
 
 bool Polymer::CheckTermination(Polymerase::Ptr pol) {
+  if (pol->stop() >= stop_) {
+    Terminate(pol, "NA");
+    return true;
+  }
   std::vector<Interval<Terminator::Ptr>> results;
   release_sites_.findOverlapping(pol->start(), pol->stop(), results);
   for (auto &interval : results) {
@@ -416,7 +432,7 @@ void Genome::AddPromoter(const std::string &name, int start, int stop,
                          const std::map<std::string, double> &interactions) {
   Promoter::Ptr promoter =
       std::make_shared<Promoter>(name, start, stop, interactions);
-  binding_intervals_.push_back(Interval<Promoter::Ptr>(start, stop, promoter));
+  binding_intervals_.emplace_back(start, stop, promoter);
   bindings_[name] = interactions;
 }
 
@@ -429,8 +445,7 @@ void Genome::AddTerminator(const std::string &name, int start, int stop,
   Terminator::Ptr terminator =
       std::make_shared<Terminator>(name, start, stop, efficiency);
   // New code for IntervalTree
-  release_intervals_.push_back(
-      Interval<Terminator::Ptr>(start, stop, terminator));
+  release_intervals_.emplace_back(start, stop, terminator);
 }
 
 // TODO: Add error checking to make sure rbs does not overlap with terminator
@@ -441,15 +456,14 @@ void Genome::AddGene(const std::string &name, int start, int stop,
   auto rbs =
       std::make_shared<Promoter>(name + "_rbs", rbs_start, rbs_stop, binding);
   rbs->gene(name);
-  transcript_rbs_intervals_.push_back(
-      Interval<Promoter::Ptr>(rbs->start(), rbs->stop(), rbs));
+  transcript_rbs_intervals_.emplace_back(rbs->start(), rbs->stop(), rbs);
   bindings_[name + "_rbs"] = binding;
   auto stop_codon =
       std::make_shared<Terminator>("stop_codon", stop - 1, stop, term);
   stop_codon->set_reading_frame(start % 3);
   stop_codon->gene(name);
-  transcript_stop_site_intervals_.push_back(Interval<Terminator::Ptr>(
-      stop_codon->start(), stop_codon->stop(), stop_codon));
+  transcript_stop_site_intervals_.emplace_back(stop_codon->start(),
+                                               stop_codon->stop(), stop_codon);
 }
 
 void Genome::AddWeights(const std::vector<double> &transcript_weights) {
@@ -480,30 +494,29 @@ Transcript::Ptr Genome::BuildTranscript(int start, int stop) {
   std::vector<Interval<Promoter::Ptr>> rbs_intervals;
   transcript_rbs_.findContained(start, stop, prom_results);
   for (auto &interval : prom_results) {
-    int start = interval.start;
-    int stop = interval.stop;
+    int istart = interval.start;
+    int istop = interval.stop;
     auto elem = interval.value;
-    rbs_intervals.emplace_back(
-        Interval<Promoter::Ptr>(start, stop, elem->Clone()));
+    rbs_intervals.emplace_back(istart, istop, elem->Clone());
   }
 
   std::vector<Interval<Terminator::Ptr>> term_results;
   std::vector<Interval<Terminator::Ptr>> stop_site_intervals;
   transcript_stop_sites_.findContained(start, stop, term_results);
   for (auto &interval : term_results) {
-    int start = interval.start;
-    int stop = interval.stop;
+    int istart = interval.start;
+    int istop = interval.stop;
     auto elem = interval.value;
-    stop_site_intervals.emplace_back(
-        Interval<Terminator::Ptr>(start, stop, elem->Clone()));
+    stop_site_intervals.emplace_back(istart, istop, elem->Clone());
   }
 
   Transcript::Ptr transcript;
   Mask mask = Mask("mask", start, stop, std::map<std::string, double>());
+  // Mask mask = Mask("mask", stop + 1, stop, std::map<std::string, double>());
   // We need to used the standard shared_ptr constructor here because the
   // constructor of Transcript needs to know its address in memory to wire
   // signals appropriately.
-  transcript = std::make_shared<Transcript>("rna", start_, stop_, rbs_intervals,
+  transcript = std::make_shared<Transcript>("rna", start, stop_, rbs_intervals,
                                             stop_site_intervals, mask,
                                             transcript_weights_);
   return transcript;

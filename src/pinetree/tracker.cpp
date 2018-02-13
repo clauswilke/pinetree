@@ -116,15 +116,24 @@ void SpeciesTracker::TerminateTranslation(int polymer_index,
 
 const Reaction::VecPtr &SpeciesTracker::FindReactions(
     const std::string &species_name) {
+  if (species_map_.count(species_name) == 0) {
+    throw std::runtime_error("Species not found in tracker.");
+  }
   return species_map_[species_name];
 }
 
 const Polymer::VecPtr &SpeciesTracker::FindPolymers(
     const std::string &promoter_name) {
+  if (promoter_map_.count(promoter_name) == 0) {
+    throw std::runtime_error("Species not found in tracker.");
+  }
   return promoter_map_[promoter_name];
 }
 
 int SpeciesTracker::species(const std::string &reactant) {
+  if (species_.count(reactant) == 0) {
+    throw std::runtime_error("Species not found in tracker.");
+  }
   return species_[reactant];
 }
 

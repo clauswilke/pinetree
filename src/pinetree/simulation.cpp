@@ -110,13 +110,6 @@ void Simulation::Initialize() {
   }
 }
 
-void Simulation::FreePromoter(const std::string &species_name) {
-  SpeciesTracker::Instance().Increment(species_name, 1);
-}
-void Simulation::BlockPromoter(const std::string &species_name) {
-  SpeciesTracker::Instance().Increment(species_name, -1);
-}
-
 void Simulation::CountTermination(const std::string &name) {
   auto new_name = name + "_total";
   if (terminations_.count(name) == 0) {
