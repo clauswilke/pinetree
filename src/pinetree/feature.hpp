@@ -96,11 +96,11 @@ class Polymerase : public Feature {
   /**
    * Move one position forward.
    */
-  void Move();
+  virtual void Move();
   /**
    * Move one positioin back.
    */
-  void MoveBack();
+  virtual void MoveBack();
 
  private:
   /**
@@ -142,6 +142,16 @@ class Mask : public Feature {
    * Shift mask backwards one position.
    */
   void Recede() { start_++; }
+};
+
+/**
+ * A polymerase-like object that degrades RNA.
+ */
+class Rnase : public Polymerase {
+ public:
+  Rnase(int footprint, int speed);
+  void Move();
+  void MoveBack();
 };
 
 /**
