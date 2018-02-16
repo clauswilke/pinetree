@@ -142,6 +142,19 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    * Vector of polymerases currently on this polymer.
    */
   PolymeraseManager polymerases_;
+  /**
+   * Total count of promoters/terminators on polymer.
+   */
+  int total_elements_;
+  /**
+   * Running count of promoters or terminators that have been marked as
+   * degraded.
+   */
+  int degraded_elements_;
+  /**
+   * Should this polymer be degraded?
+   */
+  bool degrade_ = false;
 
   std::vector<Interval<Promoter::Ptr>> binding_intervals_;
   std::vector<Interval<Terminator::Ptr>> release_intervals_;
