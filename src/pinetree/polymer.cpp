@@ -496,6 +496,7 @@ void Genome::AddGene(const std::string &name, int start, int stop,
   rbs->gene(name);
   transcript_rbs_intervals_.emplace_back(rbs->start(), rbs->stop(), rbs);
   bindings_[name + "_rbs"] = binding;
+  // TODO: add binding for degradation site here
   auto stop_codon =
       std::make_shared<Terminator>("stop_codon", stop - 1, stop, term);
   stop_codon->set_reading_frame(start % 3);

@@ -108,6 +108,7 @@ void Simulation::Initialize() {
       }
     }
   }
+  // TODO: Add Rnase binding site reaction here.
 }
 
 void Simulation::CountTermination(const std::string &name) {
