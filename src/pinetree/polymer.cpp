@@ -121,7 +121,6 @@ void Polymer::Initialize() {
     // We don't need to log anything here because covered promoters are
     // invisible to SpeciesTracker.
   }
-
   // Make sure all unmasked sites are uncovered
   results.clear();
   binding_sites_.findContained(start_, mask_start, results);
@@ -496,7 +495,6 @@ void Genome::AddGene(const std::string &name, int start, int stop,
   rbs->gene(name);
   transcript_rbs_intervals_.emplace_back(rbs->start(), rbs->stop(), rbs);
   bindings_[name + "_rbs"] = binding;
-  // TODO: add binding for degradation site here
   auto stop_codon =
       std::make_shared<Terminator>("stop_codon", stop - 1, stop, term);
   stop_codon->set_reading_frame(start % 3);
@@ -529,6 +527,15 @@ Transcript::Ptr Genome::BuildTranscript(int start, int stop) {
     int istop = interval.stop;
     auto elem = interval.value;
     rbs_intervals.emplace_back(istart, istop, elem->Clone());
+  }
+
+  // Add __rnase_site
+  if (transcript_degradation_rate_ != 0) {
+    rbs_intervals.emplace_back(
+        start, start + 35,
+        std::make_shared<Promoter>(
+            "__rnase_site", start, stop + 35,
+            std::map<std::string, double>{{"__rnase", 0}}));
   }
 
   std::vector<Interval<Terminator::Ptr>> term_results;

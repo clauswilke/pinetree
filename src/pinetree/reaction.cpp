@@ -62,7 +62,7 @@ double Bind::CalculatePropensity() {
          tracker.species(promoter_name_);
 }
 
-void Bind::Execute() {
+void Bind::ChooseAndBindPolymer() {
   auto &tracker = SpeciesTracker::Instance();
   auto weights = std::vector<double>();
   for (const auto &polymer : tracker.FindPolymers(promoter_name_)) {
@@ -73,10 +73,19 @@ void Bind::Execute() {
   auto new_pol = std::make_shared<Polymerase>(pol_template_);
   polymer->Bind(new_pol, promoter_name_);
   tracker.propensity_signal_.Emit(polymer->index());
-  // Polymer should handle decrementing promoter
-  // tracker.Increment(promoter_name_, -1);
-  tracker.Increment(pol_name_, -1);
 }
+
+void Bind::Execute() {
+  ChooseAndBindPolymer();
+  // Polymer should handle decrementing promoter
+  SpeciesTracker::Instance().Increment(pol_name_, -1);
+}
+
+BindRnase::BindRnase(double rate_constant, double volume,
+                     const Rnase &rnase_template)
+    : Bind(rate_constant, volume, "__rnase_site", rnase_template) {}
+
+void BindRnase::Execute() { ChooseAndBindPolymer(); }
 
 void Bridge::index(int index) {
   index_ = index;

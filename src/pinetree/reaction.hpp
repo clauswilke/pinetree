@@ -118,7 +118,8 @@ class Bind : public Reaction {
    * Decrement reactants, choose polymer to bind, construct a new polymerase,
    * and bind the polymerase to the polymer.
    */
-  void Execute();
+  virtual void Execute();
+  void ChooseAndBindPolymer();
 
  private:
   /**
@@ -137,6 +138,12 @@ class Bind : public Reaction {
    * Polymerase object to be copied and bound to Polymer upon execution.
    */
   const Polymerase pol_template_;
+};
+
+class BindRnase : public Bind {
+ public:
+  BindRnase(double rate_constant, double volume, const Rnase &rnase_template);
+  void Execute();
 };
 
 /**

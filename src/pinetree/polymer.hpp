@@ -305,6 +305,9 @@ class Genome : public Polymer {
                int rbs_stop, double rbs_strength);
   void AddWeights(const std::vector<double> &transcript_weights);
   const std::map<std::string, std::map<std::string, double>> &bindings();
+  const double &transcript_degradation_rate() {
+    return transcript_degradation_rate_;
+  }
   /**
    * Convenience typedefs
    */
@@ -326,9 +329,10 @@ class Genome : public Polymer {
   IntervalTree<Terminator::Ptr> transcript_stop_sites_;
   std::vector<double> transcript_weights_;
   std::map<std::string, std::map<std::string, double>> bindings_;
+  double transcript_degradation_rate_ = 0.0;
   /**
-   * Build a transcript object corresponding to start and stop positions within
-   * this genome.
+   * Build a transcript object corresponding to start and stop positions
+   * within this genome.
    *
    * NOTE: Assumes that elements are already ordered by start position.
    *

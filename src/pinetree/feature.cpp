@@ -34,6 +34,12 @@ void Polymerase::MoveBack() {
   stop_--;
 }
 
+Rnase::Rnase(int footprint, int speed)
+    : Polymerase("__rnase", footprint, speed) {}
+
+void Rnase::Move() { stop_++; }
+void Rnase::MoveBack() { stop_--; }
+
 Mask::Mask(const std::string &name, int start, int stop,
            const std::map<std::string, double> &interactions)
     : Feature(name, start, stop, interactions) {}

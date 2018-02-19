@@ -107,6 +107,12 @@ void Simulation::Initialize() {
         }
       }
     }
+    if (genome->transcript_degradation_rate() != 0.0) {
+      // TODO: user defined Rnase speed
+      auto rnase_template = Rnase(35, 30);
+      auto reaction = std::make_shared<BindRnase>(
+          genome->transcript_degradation_rate(), cell_volume_, rnase_template);
+    }
   }
   // TODO: Add Rnase binding site reaction here.
 }
