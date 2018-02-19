@@ -294,7 +294,8 @@ class Genome : public Polymer {
    * @param mask polymer mask (i.e. protion of genome that has not yet entered
    *  the cell)
    */
-  Genome(const std::string &name, int length);
+  Genome(const std::string &name, int length,
+         double transcript_degradation_rate);
   void Initialize();
   void AddMask(int start, const std::vector<std::string> &interactions);
   void AddPromoter(const std::string &name, int start, int stop,

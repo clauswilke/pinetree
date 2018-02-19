@@ -120,7 +120,8 @@ PYBIND11_MODULE(core, m) {
   // Polymers, genomes, and transcripts
   py::class_<Polymer, Polymer::Ptr>(m, "Polymer");
   py::class_<Genome, Polymer, Genome::Ptr>(m, "Genome")
-      .def(py::init<const std::string &, int>(), "name"_a, "length"_a)
+      .def(py::init<const std::string &, int, double>(), "name"_a, "length"_a,
+           "transcript_degradation_rate"_a = 0.0)
       .def("add_mask", &Genome::AddMask, "start"_a, "interactions"_a)
       .def("add_weights", &Genome::AddWeights, "weights"_a)
       .def("add_promoter", &Genome::AddPromoter, "name"_a, "start"_a, "stop"_a,

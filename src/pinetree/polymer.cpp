@@ -118,8 +118,13 @@ void Polymer::Initialize() {
     SpeciesTracker::Instance().Add(interval.value->name(), shared_from_this());
     interval.value->Cover();
     interval.value->ResetState();
+    if (interval.value->name() == "__rnase_site") {
+      std::cout << "rnase_site covered" << std::endl;
+    }
     // We don't need to log anything here because covered promoters are
     // invisible to SpeciesTracker.
+    // TODO: REMOVE THIS AFTER DEBUGGING
+    // LogCover(interval.value->name());
   }
   // Make sure all unmasked sites are uncovered
   results.clear();
@@ -130,6 +135,10 @@ void Polymer::Initialize() {
     interval.value->Uncover();
     interval.value->ResetState();
     LogUncover(interval.value->name());
+  }
+
+  for (auto elem : uncovered_) {
+    std::cout << elem.first + " " + std::to_string(elem.second) << std::endl;
   }
 }
 
@@ -309,7 +318,12 @@ void Polymer::CheckBehind(int old_start, int new_start) {
   std::vector<Interval<Promoter::Ptr>> results;
   binding_sites_.findOverlapping(old_start, new_start + 1, results);
   for (auto &interval : results) {
+    std::cout << interval.value->name() + " " +
+                     std::to_string(interval.value->stop()) + " " +
+                     std::to_string(new_start)
+              << std::endl;
     if (interval.value->stop() < new_start) {
+      std::cout << interval.value->name() << std::endl;
       interval.value->Uncover();
       if (interval.value->WasUncovered()) {
         // Record changes that species was covered
@@ -446,7 +460,10 @@ void Transcript::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
   pol->set_reading_frame(pol->start() % 3);
 }
 
-Genome::Genome(const std::string &name, int length) : Polymer(name, 1, length) {
+Genome::Genome(const std::string &name, int length,
+               double transcript_degradation_rate = 0.0)
+    : Polymer(name, 1, length),
+      transcript_degradation_rate_(transcript_degradation_rate) {
   transcript_weights_ = std::vector<double>(length, 1.0);
 }
 
@@ -531,11 +548,13 @@ Transcript::Ptr Genome::BuildTranscript(int start, int stop) {
 
   // Add __rnase_site
   if (transcript_degradation_rate_ != 0) {
+    std::cout << "Adding degradation site" << std::endl;
     rbs_intervals.emplace_back(
-        start, start + 35,
+        start + 1, start + 1 + 10,
         std::make_shared<Promoter>(
-            "__rnase_site", start, stop + 35,
-            std::map<std::string, double>{{"__rnase", 0}}));
+            "__rnase_site", start + 1, start + 1 + 10,
+            std::map<std::string, double>{
+                {"__rnase", transcript_degradation_rate_}}));
   }
 
   std::vector<Interval<Terminator::Ptr>> term_results;

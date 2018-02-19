@@ -85,7 +85,15 @@ BindRnase::BindRnase(double rate_constant, double volume,
                      const Rnase &rnase_template)
     : Bind(rate_constant, volume, "__rnase_site", rnase_template) {}
 
-void BindRnase::Execute() { ChooseAndBindPolymer(); }
+void BindRnase::Execute() {
+  ChooseAndBindPolymer();
+  std::cout << "Degrade!" << std::endl;
+}
+
+double BindRnase::CalculatePropensity() {
+  auto &tracker = SpeciesTracker::Instance();
+  return rate_constant_ * tracker.species(promoter_name_);
+}
 
 void Bridge::index(int index) {
   index_ = index;
@@ -93,6 +101,7 @@ void Bridge::index(int index) {
 }
 
 Bridge::Bridge(Polymer::Ptr polymer) : polymer_(polymer) {
+  std::cout << "initializing..." << std::endl;
   polymer_->Initialize();
 }
 

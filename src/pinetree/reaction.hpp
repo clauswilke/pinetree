@@ -113,7 +113,7 @@ class Bind : public Reaction {
    *
    * @return propensity of this reaction
    */
-  double CalculatePropensity();
+  virtual double CalculatePropensity();
   /**
    * Decrement reactants, choose polymer to bind, construct a new polymerase,
    * and bind the polymerase to the polymer.
@@ -121,7 +121,7 @@ class Bind : public Reaction {
   virtual void Execute();
   void ChooseAndBindPolymer();
 
- private:
+ protected:
   /**
    * Rate constant of this reaction.
    */
@@ -144,6 +144,7 @@ class BindRnase : public Bind {
  public:
   BindRnase(double rate_constant, double volume, const Rnase &rnase_template);
   void Execute();
+  double CalculatePropensity();
 };
 
 /**
