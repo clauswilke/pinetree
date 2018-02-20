@@ -99,7 +99,7 @@ void Simulation::Initialize() {
         if (promoter_name.second.count(pol.name()) != 0) {
           double rate_constant = promoter_name.second[pol.name()];
           Polymerase pol_template = Polymerase(pol);
-          auto reaction = std::make_shared<Bind>(
+          auto reaction = std::make_shared<BindPolymerase>(
               rate_constant, cell_volume_, promoter_name.first, pol_template);
           auto &tracker = SpeciesTracker::Instance();
           tracker.Add(promoter_name.first, reaction);

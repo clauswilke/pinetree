@@ -163,7 +163,7 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
   /**
    * Mask corresponding to this polymer. Controls which elements are hidden.
    */
-  Mask mask_ = Mask("mask", 0, 0, std::map<std::string, double>());
+  Mask mask_ = Mask(0, 0, std::map<std::string, double>());
   /**
    * Cached count of uncovered elements on this polymer, used by Simulation.
    */

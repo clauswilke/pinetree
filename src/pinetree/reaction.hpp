@@ -106,20 +106,19 @@ class Bind : public Reaction {
    * @param pol_template Polymerase object that will get copied and bound to
    *  Polymer upon execution of this reaction
    */
-  Bind(double rate_constant, double volume, const std::string &promoter_name,
-       const Polymerase &pol_template);
+  Bind(double rate_constant, double volume, const std::string &promoter_name);
   /**
    * Calculate propensity of binding reaction.
    *
    * @return propensity of this reaction
    */
-  virtual double CalculatePropensity();
+  virtual double CalculatePropensity() = 0;
   /**
    * Decrement reactants, choose polymer to bind, construct a new polymerase,
    * and bind the polymerase to the polymer.
    */
-  virtual void Execute();
-  void ChooseAndBindPolymer();
+  virtual void Execute() = 0;
+  Polymer::Ptr ChoosePolymer();
 
  protected:
   /**
@@ -130,10 +129,17 @@ class Bind : public Reaction {
    * Name of promoter involved in this binding reaction.
    */
   const std::string promoter_name_;
-  /**
-   * Name of polymerase involved in this binding reaction.
-   */
-  const std::string pol_name_;
+};
+
+class BindPolymerase : public Bind {
+ public:
+  BindPolymerase(double rate_constant, double volume,
+                 const std::string &promoter_name,
+                 const Polymerase &pol_template);
+  void Execute();
+  double CalculatePropensity();
+
+ private:
   /**
    * Polymerase object to be copied and bound to Polymer upon execution.
    */
@@ -145,6 +151,12 @@ class BindRnase : public Bind {
   BindRnase(double rate_constant, double volume, const Rnase &rnase_template);
   void Execute();
   double CalculatePropensity();
+
+ private:
+  /**
+   * Polymerase object to be copied and bound to Polymer upon execution.
+   */
+  const Rnase pol_template_;
 };
 
 /**

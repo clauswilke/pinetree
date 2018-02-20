@@ -44,11 +44,8 @@ void SpeciesReaction::Execute() {
 }
 
 Bind::Bind(double rate_constant, double volume,
-           const std::string &promoter_name, const Polymerase &pol_template)
-    : rate_constant_(rate_constant),
-      promoter_name_(promoter_name),
-      pol_name_(pol_template.name()),
-      pol_template_(pol_template) {
+           const std::string &promoter_name)
+    : rate_constant_(rate_constant), promoter_name_(promoter_name) {
   // Check volume
   if (volume <= 0) {
     throw std::runtime_error("Reaction volume cannot be zero.");
@@ -56,13 +53,7 @@ Bind::Bind(double rate_constant, double volume,
   rate_constant_ = rate_constant_ / (AVAGADRO * volume);
 }
 
-double Bind::CalculatePropensity() {
-  auto &tracker = SpeciesTracker::Instance();
-  return rate_constant_ * tracker.species(pol_name_) *
-         tracker.species(promoter_name_);
-}
-
-void Bind::ChooseAndBindPolymer() {
+Polymer::Ptr Bind::ChoosePolymer() {
   auto &tracker = SpeciesTracker::Instance();
   auto weights = std::vector<double>();
   for (const auto &polymer : tracker.FindPolymers(promoter_name_)) {
@@ -70,23 +61,39 @@ void Bind::ChooseAndBindPolymer() {
   }
   Polymer::Ptr polymer =
       Random::WeightedChoice(tracker.FindPolymers(promoter_name_), weights);
-  auto new_pol = std::make_shared<Polymerase>(pol_template_);
-  polymer->Bind(new_pol, promoter_name_);
-  tracker.propensity_signal_.Emit(polymer->index());
+  return polymer;
 }
 
-void Bind::Execute() {
-  ChooseAndBindPolymer();
+BindPolymerase::BindPolymerase(double rate_constant, double volume,
+                               const std::string &promoter_name,
+                               const Polymerase &pol_template)
+    : Bind(rate_constant, volume, promoter_name), pol_template_(pol_template) {}
+
+double BindPolymerase::CalculatePropensity() {
+  auto &tracker = SpeciesTracker::Instance();
+  return rate_constant_ * tracker.species(pol_template_.name()) *
+         tracker.species(promoter_name_);
+}
+
+void BindPolymerase::Execute() {
+  auto polymer = ChoosePolymer();
+  auto new_pol = std::make_shared<Polymerase>(pol_template_);
+  polymer->Bind(new_pol, promoter_name_);
+  SpeciesTracker::Instance().propensity_signal_.Emit(polymer->index());
   // Polymer should handle decrementing promoter
   SpeciesTracker::Instance().Increment(pol_name_, -1);
 }
 
 BindRnase::BindRnase(double rate_constant, double volume,
                      const Rnase &rnase_template)
-    : Bind(rate_constant, volume, "__rnase_site", rnase_template) {}
+    : Bind(rate_constant, volume, "__rnase_site"),
+      pol_template_(rnase_template) {}
 
 void BindRnase::Execute() {
-  ChooseAndBindPolymer();
+  auto polymer = ChoosePolymer();
+  auto new_pol = std::make_shared<Rnase>(pol_template_);
+  polymer->Bind(new_pol, promoter_name_);
+  tracker.propensity_signal_.Emit(polymer->index());
   std::cout << "Degrade!" << std::endl;
 }
 

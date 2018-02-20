@@ -52,6 +52,7 @@ class FixedElement : public std::enable_shared_from_this<FixedElement> {
   std::string const &name() const { return name_; }
   int start() const { return start_; }
   int stop() const { return stop_; }
+  std::string const &type() const { return type_; }
 
  protected:
   /**
@@ -181,6 +182,7 @@ class Terminator : public FixedElement {
 
 class MobileElement : std::enable_shared_from_this<MobileElement> {
  public:
+  MobileElement(const std::string &name, int footprint, int speed);
   std::string const &name() const { return name_; }
   int start() const { return start_; }
   int stop() const { return stop_; }
@@ -221,66 +223,67 @@ class MobileElement : std::enable_shared_from_this<MobileElement> {
   double speed_;
 };
 
-/**
- * A generic feature in or on `Polymer`. Designed to be extended
- * by `Terminator`, `Promoter`, `Polymerase`, etc.
- *
- * TODO: make abstract?
- */
-class Feature : public std::enable_shared_from_this<Feature> {
- public:
-  /**
-   * Default constructor of Feature
-   * @param name a (unique?) name for this feature
-   * @param start start position of this feature within polymer
-   * @param stop stop position of this feature within polymer
-   * @param interactions list of names of other features that this feature
-   *                     interacts with
-   */
-  Feature(const std::string &name, int start, int stop,
-          const std::map<std::string, double> &interactions);
-  /**
-   * Getters and setters.
-   */
-  std::string const &name() const { return name_; }
-  int start() const { return start_; }
-  int stop() const { return stop_; }
-  void set_start(int start) { start_ = start; }
-  void set_stop(int stop) { stop_ = stop; }
-  std::string const &type() const { return type_; }
-  /**
-   * Check to see if some other feature interacts with this feature.
-   * @param  name name of a feature object
-   * @return      TRUE if features interact
-   */
-  virtual bool CheckInteraction(const std::string &name);
-  std::map<std::string, double> const &interactions() const {
-    return interactions_;
-  }
+// /**
+//  * A generic feature in or on `Polymer`. Designed to be extended
+//  * by `Terminator`, `Promoter`, `Polymerase`, etc.
+//  *
+//  * TODO: make abstract?
+//  */
+// class Feature : public std::enable_shared_from_this<Feature> {
+//  public:
+//   /**
+//    * Default constructor of Feature
+//    * @param name a (unique?) name for this feature
+//    * @param start start position of this feature within polymer
+//    * @param stop stop position of this feature within polymer
+//    * @param interactions list of names of other features that this feature
+//    *                     interacts with
+//    */
+//   Feature(const std::string &name, int start, int stop,
+//           const std::map<std::string, double> &interactions);
+//   /**
+//    * Getters and setters.
+//    */
+//   std::string const &name() const { return name_; }
+//   int start() const { return start_; }
+//   int stop() const { return stop_; }
+//   void set_start(int start) { start_ = start; }
+//   void set_stop(int stop) { stop_ = stop; }
+//   std::string const &type() const { return type_; }
+//   /**
+//    * Check to see if some other feature interacts with this feature.
+//    * @param  name name of a feature object
+//    * @return      TRUE if features interact
+//    */
+//   virtual bool CheckInteraction(const std::string &name);
+//   std::map<std::string, double> const &interactions() const {
+//     return interactions_;
+//   }
 
- protected:
-  /**
-   * Name of this feature.
-   */
-  std::string name_;
-  /**
-   * The type of this feature (e.g. "promoter", "terminator", etc.)
-   */
-  std::string type_;
-  /**
-   * The start site of the feature. Usually the most upstream site position.
-   */
-  int start_;
-  /**
-   * The stop site of the feature. Usually the most downstream site position.
-   */
-  int stop_;
-  /**
-   * Vector of names of other features/polymerases that this feature interacts
-   * with.
-   */
-  std::map<std::string, double> interactions_;
-};
+//  protected:
+//   /**
+//    * Name of this feature.
+//    */
+//   std::string name_;
+//   /**
+//    * The type of this feature (e.g. "promoter", "terminator", etc.)
+//    */
+//   std::string type_;
+//   /**
+//    * The start site of the feature. Usually the most upstream site position.
+//    */
+//   int start_;
+//   /**
+//    * The stop site of the feature. Usually the most downstream site position.
+//    */
+//   int stop_;
+//   /**
+//    * Vector of names of other features/polymerases that this feature
+//    interacts
+//    * with.
+//    */
+//   std::map<std::string, double> interactions_;
+// };
 
 /**
  * A molecule that binds to `Polymer` and moves.
@@ -330,13 +333,21 @@ class Mask : public MobileElement {
   /**
    * Only constructor for Mask.
    */
-  Mask(const std::string &name, int start, int stop,
-       const std::map<std::string, double> &interactions);
+  Mask(int start, int stop, const std::map<std::string, double> &interactions);
   /**
    * Shift mask backwards one position.
    */
   void Move() { start_++; }
   void MoveBack() { start_--; }
+
+  bool CheckInteraction(const std::string &name);
+
+ private:
+  /**
+   * Vector of names of other features/polymerases that this feature interacts
+   * with.
+   */
+  std::map<std::string, double> interactions_;
 };
 
 /**
@@ -345,8 +356,8 @@ class Mask : public MobileElement {
 class Rnase : public MobileElement {
  public:
   Rnase(int footprint, int speed);
-  void Move();
-  void MoveBack();
+  void Move() { stop_++; }
+  void MoveBack() { stop_--; }
 };
 
 /**
@@ -452,61 +463,62 @@ class Rnase : public MobileElement {
 //   Promoter::Ptr Clone() const;
 // };
 
-class Terminator : public Element {
- public:
-  /**
-   * Only constructor for Terminator.
-   *
-   * @param name name of terminator
-   * @param start start position of terminator
-   * @param stop stop position of terminator
-   * @param interactions list of features that this terminator interacts with
-   */
-  Terminator(const std::string &name, int start, int stop,
-             const std::map<std::string, double> &interactions);
-  /**
-   * Some convenience typedefs.
-   */
-  typedef std::shared_ptr<Terminator> Ptr;
-  typedef std::vector<std::shared_ptr<Terminator>> VecPtr;
+// class Terminator : public Element {
+//  public:
+//   /**
+//    * Only constructor for Terminator.
+//    *
+//    * @param name name of terminator
+//    * @param start start position of terminator
+//    * @param stop stop position of terminator
+//    * @param interactions list of features that this terminator interacts with
+//    */
+//   Terminator(const std::string &name, int start, int stop,
+//              const std::map<std::string, double> &interactions);
+//   /**
+//    * Some convenience typedefs.
+//    */
+//   typedef std::shared_ptr<Terminator> Ptr;
+//   typedef std::vector<std::shared_ptr<Terminator>> VecPtr;
 
-  Terminator::Ptr Clone() const;
-  /**
-   * Check to see if feature interacts with this terminator and is in the
-   * correct reading frame.
-   *
-   * @param name name of other feature
-   * @param reading_frame reading frame of of interacting feature
-   *
-   * @return bool true if feature interacts with terminator
-   */
-  bool CheckInteraction(const std::string &name, int reading_frame);
-  /**
-   * Getters and setters
-   */
-  int reading_frame() const { return reading_frame_; }
-  void set_reading_frame(int reading_frame) { reading_frame_ = reading_frame; }
-  bool readthrough() const { return readthrough_; }
-  void set_readthrough(bool readthrough) { readthrough_ = readthrough; }
-  double efficiency(const std::string &pol_name) {
-    return interactions_[pol_name];
-  }
+//   Terminator::Ptr Clone() const;
+//   /**
+//    * Check to see if feature interacts with this terminator and is in the
+//    * correct reading frame.
+//    *
+//    * @param name name of other feature
+//    * @param reading_frame reading frame of of interacting feature
+//    *
+//    * @return bool true if feature interacts with terminator
+//    */
+//   bool CheckInteraction(const std::string &name, int reading_frame);
+//   /**
+//    * Getters and setters
+//    */
+//   int reading_frame() const { return reading_frame_; }
+//   void set_reading_frame(int reading_frame) { reading_frame_ = reading_frame;
+//   } bool readthrough() const { return readthrough_; } void
+//   set_readthrough(bool readthrough) { readthrough_ = readthrough; } double
+//   efficiency(const std::string &pol_name) {
+//     return interactions_[pol_name];
+//   }
 
- private:
-  /**
-   * Name of gene that this terminator terminates on. This is the value that
-   * will get reported to the species tracker.
-   */
-  std::string gene_;
-  /**
-   * Readthrough state of terminator. True if a polymerase is reading through it
-   * and false otherwise.
-   */
-  bool readthrough_;
-  /**
-   * Reading frame for terminator.
-   */
-  int reading_frame_;
-};
+//  private:
+//   /**
+//    * Name of gene that this terminator terminates on. This is the value that
+//    * will get reported to the species tracker.
+//    */
+//   std::string gene_;
+//   /**
+//    * Readthrough state of terminator. True if a polymerase is reading through
+//    it
+//    * and false otherwise.
+//    */
+//   bool readthrough_;
+//   /**
+//    * Reading frame for terminator.
+//    */
+//   int reading_frame_;
+// };
 
 #endif  // SRC_FEATURE_HPP_

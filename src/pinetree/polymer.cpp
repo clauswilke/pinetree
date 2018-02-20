@@ -99,7 +99,7 @@ Polymer::Polymer(const std::string &name, int start, int stop)
   weights_ = std::vector<double>(stop - start + 1, 1.0);
   polymerases_ = PolymeraseManager(weights_);
   std::map<std::string, double> interaction_map;
-  mask_ = Mask("mask", stop_ + 1, stop_, interaction_map);
+  mask_ = Mask(stop_ + 1, stop_, interaction_map);
 }
 
 void Polymer::Initialize() {
@@ -194,8 +194,7 @@ void Polymer::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
   // Cover promoter in cache
   LogCover(elem->name());
   // Report some data to tracker
-  if (elem->interactions().count("ribosome") == 1 &&
-      elem->type() == "promoter") {
+  if (elem->CheckInteraction("ribosome")) {
     auto &tracker = SpeciesTracker::Instance();
     tracker.IncrementRibo(elem->gene(), 1);
   }
@@ -219,7 +218,7 @@ void Polymer::Execute() {
 void Polymer::ShiftMask() {
   if (mask_.start() <= mask_.stop()) {
     int old_start = mask_.start();
-    mask_.Recede();
+    mask_.Move();
     CheckBehind(old_start, mask_.start());
   }
 }
@@ -360,7 +359,7 @@ void Polymer::CheckBehind(int old_start, int new_start) {
         LogUncover(interval.value->name());
         // Is this a new transcript?
         if (!interval.value->first_exposure() &&
-            interval.value->interactions().count("ribosome") == 1) {
+            interval.value->CheckInteraction("ribosome")) {
           SpeciesTracker::Instance().IncrementTranscript(interval.value->gene(),
                                                          1);
           interval.value->first_exposure(true);
@@ -515,7 +514,7 @@ void Genome::AddMask(int start, const std::vector<std::string> &interactions) {
   for (auto name : interactions) {
     interaction_map[name] = 1.0;
   }
-  mask_ = Mask("mask", start, stop_, interaction_map);
+  mask_ = Mask(start, stop_, interaction_map);
 }
 
 void Genome::AddPromoter(const std::string &name, int start, int stop,
@@ -604,12 +603,12 @@ Transcript::Ptr Genome::BuildTranscript(int start, int stop) {
   }
 
   Transcript::Ptr transcript;
-  Mask mask = Mask("mask", start, stop, std::map<std::string, double>());
+  Mask mask = Mask(start, stop, std::map<std::string, double>());
   // We need to used the standard shared_ptr constructor here because the
   // constructor of Transcript needs to know its address in memory to wire
   // signals appropriately.
-  transcript = std::make_shared<Transcript>("rna", start, stop_, rbs_intervals,
-                                            stop_site_intervals, mask,
-                                            transcript_weights_);
+  transcript = std::make_shared<Transcript>("__rna", start, stop_,
+                                            rbs_intervals, stop_site_intervals,
+                                            mask, transcript_weights_);
   return transcript;
 }
