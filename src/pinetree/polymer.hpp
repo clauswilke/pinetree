@@ -185,6 +185,7 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    * @param pol pointer to polymerase object
    */
   void CheckAhead(int old_stop, int new_stop);
+  void CheckAheadRnase(int old_stop, int new_stop);
   /**
    * Recover all elements that a given polymerase should be covering,
    * and trigger actions if there has been a change in state (for example,

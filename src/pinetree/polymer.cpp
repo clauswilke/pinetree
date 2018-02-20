@@ -272,7 +272,7 @@ void Polymer::Move(int pol_index) {
   }
   // Check if polymerase has run into a terminator
   bool terminating = CheckTermination(pol_index);
-  if (terminating) {
+  if (terminating && pol->name() != "__rnase") {
     std::vector<Interval<Promoter::Ptr>> results;
     binding_sites_.findOverlapping(old_start, pol->stop(), results);
     for (auto &interval : results) {
@@ -293,7 +293,14 @@ void Polymer::Move(int pol_index) {
 
   // Check for new covered and uncovered elements
   CheckBehind(old_start, pol->start());
-  CheckAhead(old_stop, pol->stop());
+  if (pol->name() == "__rnase") {
+    std::cout << "Checking ahead RNase " + std::to_string(pol->start()) + ", " +
+                     std::to_string(pol->stop())
+              << std::endl;
+    CheckAheadRnase(old_stop, pol->stop());
+  } else {
+    CheckAhead(old_stop, pol->stop());
+  }
 
   // Update propensity for new codon (TODO: make its own function)
   polymerases_.UpdatePropensity(pol_index);
@@ -314,11 +321,34 @@ void Polymer::CheckAhead(int old_stop, int new_stop) {
   }
 }
 
+void Polymer::CheckAheadRnase(int old_stop, int new_stop) {
+  std::vector<Interval<Promoter::Ptr>> results;
+  binding_sites_.findOverlapping(old_stop + 1, new_stop, results);
+  for (auto &interval : results) {
+    if (interval.value->start() < new_stop) {
+      interval.value->Cover();
+      if (interval.value->WasCovered()) {
+        // Record changes that species was covered
+        LogCover(interval.value->name());
+        std::cout << "Decrementing transcript " + interval.value->gene() +
+                         interval.value->name() +
+                         std::to_string(SpeciesTracker::Instance().transcripts(
+                             interval.value->gene()))
+                  << std::endl;
+        SpeciesTracker::Instance().IncrementTranscript(interval.value->gene(),
+                                                       -1);
+      }
+      interval.value->ResetState();
+    }
+  }
+}
+
 void Polymer::CheckBehind(int old_start, int new_start) {
   std::vector<Interval<Promoter::Ptr>> results;
   binding_sites_.findOverlapping(old_start, new_start + 1, results);
   for (auto &interval : results) {
     std::cout << interval.value->name() + " " +
+                     std::to_string(interval.value->start()) +
                      std::to_string(interval.value->stop()) + " " +
                      std::to_string(new_start)
               << std::endl;
@@ -359,9 +389,15 @@ void Polymer::CheckBehind(int old_start, int new_start) {
 bool Polymer::CheckTermination(int pol_index) {
   auto pol = polymerases_.GetPol(pol_index);
   if (pol->stop() >= stop_) {
-    termination_signal_.Emit(index_, pol->name(), "NA");
-    polymerases_.Delete(pol_index);
-    return true;
+    if (pol->name() == "__rnase") {
+      std::cout << "rnase ran off end of transcript" << std::endl;
+      polymerases_.Delete(pol_index);
+      return true;
+    } else {
+      termination_signal_.Emit(index_, pol->name(), "NA");
+      polymerases_.Delete(pol_index);
+      return true;
+    }
   }
   std::vector<Interval<Terminator::Ptr>> results;
   release_sites_.findOverlapping(pol->start(), pol->stop(), results);
