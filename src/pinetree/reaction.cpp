@@ -50,7 +50,6 @@ Bind::Bind(double rate_constant, double volume,
   if (volume <= 0) {
     throw std::runtime_error("Reaction volume cannot be zero.");
   }
-  rate_constant_ = rate_constant_ / (AVAGADRO * volume);
 }
 
 Polymer::Ptr Bind::ChoosePolymer() {
@@ -67,7 +66,9 @@ Polymer::Ptr Bind::ChoosePolymer() {
 BindPolymerase::BindPolymerase(double rate_constant, double volume,
                                const std::string &promoter_name,
                                const Polymerase &pol_template)
-    : Bind(rate_constant, volume, promoter_name), pol_template_(pol_template) {}
+    : Bind(rate_constant, volume, promoter_name), pol_template_(pol_template) {
+  rate_constant_ = rate_constant_ / (AVAGADRO * volume);
+}
 
 double BindPolymerase::CalculatePropensity() {
   auto &tracker = SpeciesTracker::Instance();

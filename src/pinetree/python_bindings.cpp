@@ -129,5 +129,6 @@ PYBIND11_MODULE(core, m) {
       .def("add_terminator", &Genome::AddTerminator, "name"_a, "start"_a,
            "stop"_a, "efficiency"_a)
       .def("add_gene", &Genome::AddGene, "name"_a, "start"_a, "stop"_a,
-           "rbs_start"_a, "rbs_stop"_a, "rbs_strength"_a);
+           "rbs_start"_a, "rbs_stop"_a, "rbs_strength"_a)
+      .def("add_rnase_site", &Genome::AddRnaseSite, "start"_a, "stop"_a);
 }

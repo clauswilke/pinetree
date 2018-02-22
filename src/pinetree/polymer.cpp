@@ -483,7 +483,7 @@ bool Polymer::CheckPolCollisions(int pol_index) {
   if ((this_pol->stop() >= next_pol->start()) &&
       (next_pol->stop() >= this_pol->start())) {
     // Error checking. TODO: Can this be removed?
-    if (this_pol->stop() > next_pol->start()) {
+    if (this_pol->stop() - next_pol->start() > 1) {
       std::string err = "Polymerase " + this_pol->name() +
                         " (start: " + std::to_string(this_pol->start()) +
                         ", stop: " + std::to_string(this_pol->stop()) +
@@ -581,6 +581,15 @@ void Genome::AddGene(const std::string &name, int start, int stop,
   stop_codon->gene(name);
   transcript_stop_site_intervals_.emplace_back(stop_codon->start(),
                                                stop_codon->stop(), stop_codon);
+}
+
+void Genome::AddRnaseSite(int start, int stop) {
+  auto binding =
+      std::map<std::string, double>{{"__rnase", transcript_degradation_rate_}};
+  auto rnase_site =
+      std::make_shared<Promoter>("__rnase_site", start, stop, binding);
+  transcript_rbs_intervals_.emplace_back(rnase_site->start(),
+                                         rnase_site->stop(), rnase_site);
 }
 
 void Genome::AddWeights(const std::vector<double> &transcript_weights) {
