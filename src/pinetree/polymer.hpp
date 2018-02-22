@@ -12,15 +12,15 @@
 
 class Polymer;
 
-class PolymeraseManager {
+class MobileElementManager {
  public:
-  PolymeraseManager(const std::vector<double> &weights);
-  void Insert(std::shared_ptr<Polymerase> pol,
+  MobileElementManager(const std::vector<double> &weights);
+  void Insert(std::shared_ptr<MobileElement> pol,
               std::shared_ptr<Polymer> polymer);
   void Delete(int index);
   int Choose();
   bool ValidIndex(int index) { return index < polymerases_.size(); };
-  std::shared_ptr<Polymerase> GetPol(int index);
+  std::shared_ptr<MobileElement> GetPol(int index);
   std::shared_ptr<Polymer> GetAttached(int index);
   void UpdatePropensity(int index);
   double prop_sum() { return prop_sum_; }
@@ -28,7 +28,8 @@ class PolymeraseManager {
  private:
   double prop_sum_ = 0;
   std::vector<double> prop_list_;
-  std::vector<std::pair<std::shared_ptr<Polymerase>, std::shared_ptr<Polymer>>>
+  std::vector<
+      std::pair<std::shared_ptr<MobileElement>, std::shared_ptr<Polymer>>>
       polymerases_;
   std::vector<double> weights_;
 };
@@ -83,7 +84,7 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    * @param pol polymerase object (pointer)
    * @param promoter_name the name of a promoter that pol will bind
    */
-  virtual void Bind(Polymerase::Ptr pol, const std::string &promoter_name);
+  virtual void Bind(MobileElement::Ptr pol, const std::string &promoter_name);
   /**
    * Select a polymerase to move next and deal with terminations.
    */
@@ -141,7 +142,7 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
   /**
    * Vector of polymerases currently on this polymer.
    */
-  PolymeraseManager polymerases_;
+  MobileElementManager polymerases_;
   /**
    * Total count of promoters/terminators on polymer.
    */
@@ -176,9 +177,9 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    * propensity for the next movement of that polymerase.
    */
   std::vector<double> weights_;
-  Promoter::Ptr FindBindingSite(Polymerase::Ptr pol,
+  Promoter::Ptr FindBindingSite(MobileElement::Ptr pol,
                                 const std::string &promoter_name);
-  virtual void Attach(Polymerase::Ptr pol);
+  virtual void Attach(MobileElement::Ptr pol);
   /**
    * Temporarily uncover all elements covered by a given polymerase.
    *
@@ -211,7 +212,7 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    *
    * @return true if this pol will collide with mask (but not shift mask)
    */
-  bool CheckMaskCollisions(Polymerase::Ptr pol);
+  bool CheckMaskCollisions(MobileElement::Ptr pol);
   /**
    * Check for collisions between polymerases.
    *
@@ -268,7 +269,7 @@ class Transcript : public Polymer {
    * @param pol polymerase (ribosome) object pointer
    * @param promoter_name name of RBS to bind (typically just "rbs")
    */
-  void Bind(Polymerase::Ptr pol, const std::string &promoter_name);
+  void Bind(MobileElement::Ptr pol, const std::string &promoter_name);
   /**
    * Hack-y redeclaration of ShiftMask so that Signal doesn't complain about
    * mismatched types.
@@ -321,7 +322,7 @@ class Genome : public Polymer {
    * @param pol pointer to polymerase to bind
    * @param promoter name of promoter to which this polymerase binds
    */
-  void Attach(Polymerase::Ptr pol);
+  void Attach(MobileElement::Ptr pol);
   Signal<Transcript::Ptr> transcript_signal_;
 
  private:

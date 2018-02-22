@@ -5,17 +5,18 @@
 
 #include <iostream>
 
-PolymeraseManager::PolymeraseManager(const std::vector<double> &weights)
+MobileElementManager::MobileElementManager(const std::vector<double> &weights)
     : weights_(weights) {}
 
-void PolymeraseManager::Insert(Polymerase::Ptr pol, Polymer::Ptr polymer) {
+void MobileElementManager::Insert(MobileElement::Ptr pol,
+                                  Polymer::Ptr polymer) {
   // Find where in vector polymerase should insert; use a lambda function
   // to make comparison between polymerase pointers
   auto pol_polymer = std::make_pair(pol, polymer);
   auto it =
       std::upper_bound(polymerases_.begin(), polymerases_.end(), pol_polymer,
-                       [](std::pair<Polymerase::Ptr, Polymer::Ptr> a,
-                          std::pair<Polymerase::Ptr, Polymer::Ptr> b) {
+                       [](std::pair<MobileElement::Ptr, Polymer::Ptr> a,
+                          std::pair<MobileElement::Ptr, Polymer::Ptr> b) {
                          return a.first->start() < b.first->start();
                        });
   // Record position for prop_list_
@@ -34,7 +35,7 @@ void PolymeraseManager::Insert(Polymerase::Ptr pol, Polymer::Ptr polymer) {
   }
 }
 
-void PolymeraseManager::Delete(int index) {
+void MobileElementManager::Delete(int index) {
   prop_sum_ -= prop_list_[index];
   polymerases_.erase(polymerases_.begin() + index);
   prop_list_.erase(prop_list_.begin() + index);
@@ -43,7 +44,7 @@ void PolymeraseManager::Delete(int index) {
   }
 }
 
-void PolymeraseManager::UpdatePropensity(int index) {
+void MobileElementManager::UpdatePropensity(int index) {
   auto pol = GetPol(index);
   int weight_index = pol->stop() - 1;
   if (weight_index >= weights_.size() || weight_index < 0) {
@@ -56,21 +57,21 @@ void PolymeraseManager::UpdatePropensity(int index) {
   prop_list_[index] = new_speed;
 }
 
-Polymerase::Ptr PolymeraseManager::GetPol(int index) {
+MobileElement::Ptr MobileElementManager::GetPol(int index) {
   if (index >= polymerases_.size()) {
     throw std::range_error("Polymerase index out of range.");
   }
   return polymerases_[index].first;
 }
 
-Polymer::Ptr PolymeraseManager::GetAttached(int index) {
+Polymer::Ptr MobileElementManager::GetAttached(int index) {
   if (index >= polymerases_.size()) {
     throw std::range_error("Polymerase index out of range.");
   }
   return polymerases_[index].second;
 }
 
-int PolymeraseManager::Choose() {
+int MobileElementManager::Choose() {
   if (prop_list_.size() == 0) {
     std::string err =
         "There are no active polymerases on polymer (propensity sum: " +
@@ -95,9 +96,9 @@ Polymer::Polymer(const std::string &name, int start, int stop)
     : name_(name),
       start_(start),
       stop_(stop),
-      polymerases_(PolymeraseManager(std::vector<double>())) {
+      polymerases_(MobileElementManager(std::vector<double>())) {
   weights_ = std::vector<double>(stop - start + 1, 1.0);
-  polymerases_ = PolymeraseManager(weights_);
+  polymerases_ = MobileElementManager(weights_);
   std::map<std::string, double> interaction_map;
   mask_ = Mask(stop_ + 1, stop_, interaction_map);
 }
@@ -142,7 +143,7 @@ void Polymer::Initialize() {
   }
 }
 
-Promoter::Ptr Polymer::FindBindingSite(Polymerase::Ptr pol,
+Promoter::Ptr Polymer::FindBindingSite(MobileElement::Ptr pol,
                                        const std::string &promoter_name) {
   // Make a list of free promoters that pol can bind
   bool found = false;
@@ -174,35 +175,48 @@ Promoter::Ptr Polymer::FindBindingSite(Polymerase::Ptr pol,
   return elem;
 }
 
-void Polymer::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
+void Polymer::Bind(MobileElement::Ptr pol, const std::string &promoter_name) {
   // Find a free promoter to bind to
   auto elem = FindBindingSite(pol, promoter_name);
   // Update polymerase coordinates
   // (TODO: refactor; pol doesn't need to expose footprint/stop position)
   pol->set_start(elem->start());
   pol->set_stop(elem->start() + pol->footprint() - 1);
+  pol->set_reading_frame(elem->reading_frame());
   // More error checking.
   if (pol->stop() >= mask_.start()) {
-    std::string err = "Polymerase " + pol->name() +
+    std::string err = "MobileElement " + pol->name() +
                       " will overlap with mask upon promoter binding. This may "
                       "cause the polymerase to stall and produce unexpected "
                       "behavior.";
     throw std::runtime_error(err);
   }
-  elem->Cover();
-  elem->ResetState();
-  // Cover promoter in cache
-  LogCover(elem->name());
-  // Report some data to tracker
-  if (elem->CheckInteraction("ribosome")) {
-    auto &tracker = SpeciesTracker::Instance();
-    tracker.IncrementRibo(elem->gene(), 1);
+  std::vector<Interval<Promoter::Ptr>> results;
+  binding_sites_.findOverlapping(pol->start(), pol->stop(), results);
+  for (auto &interval : results) {
+    interval.value->Cover();
+    if (interval.value->WasCovered()) {
+      // Cover promoter in cache
+      LogCover(interval.value->name());
+    }
+    interval.value->ResetState();
+    // Report some data to tracker
+    if (pol->name() != "__rnase" &&
+        interval.value->CheckInteraction("ribosome")) {
+      auto &tracker = SpeciesTracker::Instance();
+      tracker.IncrementRibo(interval.value->gene(), 1);
+    }
+    if (pol->name() == "__rnase" &&
+        interval.value->CheckInteraction("ribosome")) {
+      auto &tracker = SpeciesTracker::Instance();
+      tracker.IncrementTranscript(interval.value->gene(), -1);
+    }
   }
   // Add polymerase to this polymer
   Attach(pol);
 }
 
-void Polymer::Attach(Polymerase::Ptr pol) {
+void Polymer::Attach(MobileElement::Ptr pol) {
   polymerases_.Insert(pol, Polymer::Ptr());
 }
 
@@ -219,6 +233,7 @@ void Polymer::ShiftMask() {
   if (mask_.start() <= mask_.stop()) {
     int old_start = mask_.start();
     mask_.Move();
+    std::cout << "CheckBehind mask" << std::endl;
     CheckBehind(old_start, mask_.start());
   }
 }
@@ -291,6 +306,9 @@ void Polymer::Move(int pol_index) {
   }
 
   // Check for new covered and uncovered elements
+  if (pol->name() == "ribosome") {
+    std::cout << "CheckBehind pol" << std::endl;
+  }
   CheckBehind(old_start, pol->start());
   if (pol->name() == "__rnase") {
     std::cout << "Checking ahead RNase " + std::to_string(pol->start()) + ", " +
@@ -309,7 +327,8 @@ void Polymer::CheckAhead(int old_stop, int new_stop) {
   std::vector<Interval<Promoter::Ptr>> results;
   binding_sites_.findOverlapping(old_stop + 1, new_stop, results);
   for (auto &interval : results) {
-    if (interval.value->start() < new_stop) {
+    if (interval.value->start() < new_stop &&
+        interval.value->start() >= old_stop) {
       interval.value->Cover();
       if (interval.value->WasCovered()) {
         // Record changes that species was covered
@@ -334,8 +353,10 @@ void Polymer::CheckAheadRnase(int old_stop, int new_stop) {
                          std::to_string(SpeciesTracker::Instance().transcripts(
                              interval.value->gene()))
                   << std::endl;
-        SpeciesTracker::Instance().IncrementTranscript(interval.value->gene(),
-                                                       -1);
+        if (interval.value->gene() != "") {
+          SpeciesTracker::Instance().IncrementTranscript(interval.value->gene(),
+                                                         -1);
+        }
       }
       interval.value->ResetState();
     }
@@ -355,6 +376,9 @@ void Polymer::CheckBehind(int old_start, int new_start) {
       std::cout << interval.value->name() << std::endl;
       interval.value->Uncover();
       if (interval.value->WasUncovered()) {
+        if (interval.value->CheckInteraction("ribosome")) {
+          std::cout << "RBS uncovered!" << std::endl;
+        }
         // Record changes that species was covered
         LogUncover(interval.value->name());
         // Is this a new transcript?
@@ -404,8 +428,10 @@ bool Polymer::CheckTermination(int pol_index) {
     if (interval.value->CheckInteraction(pol->name(), pol->reading_frame()) &&
         !interval.value->readthrough()) {
       // terminate
+      std::cout << pol->name() + " " + interval.value->name() << std::endl;
       double random_num = Random::random();
       if (random_num <= interval.value->efficiency(pol->name())) {
+        std::cout << pol->name() + " terminating" << std::endl;
         // Fire Emit signal until entire terminator is uncovered
         // Coordinates are inclusive, so must add 1 after calculating
         // difference
@@ -427,7 +453,7 @@ bool Polymer::CheckTermination(int pol_index) {
   return false;
 }
 
-bool Polymer::CheckMaskCollisions(Polymerase::Ptr pol) {
+bool Polymer::CheckMaskCollisions(MobileElement::Ptr pol) {
   // Is there still a mask, and does it overlap polymerase?
   if (mask_.start() <= stop_ && pol->stop() >= mask_.start()) {
     if (pol->stop() - mask_.start() > 0) {
@@ -482,17 +508,18 @@ Transcript::Transcript(
     : Polymer(name, start, stop) {
   mask_ = mask;
   weights_ = weights;
-  polymerases_ = PolymeraseManager(weights_);
+  polymerases_ = MobileElementManager(weights_);
   binding_intervals_ = rbs_intervals;
   release_intervals_ = stop_site_intervals;
 }
 
-void Transcript::Bind(Polymerase::Ptr pol, const std::string &promoter_name) {
+void Transcript::Bind(MobileElement::Ptr pol,
+                      const std::string &promoter_name) {
   // Bind polymerase just like in parent Polymer
   Polymer::Bind(pol, promoter_name);
   // Set the reading frame of the polymerase
   // TODO: should the reading frame be set by the polymerase start position?
-  pol->set_reading_frame(pol->start() % 3);
+  // pol->set_reading_frame(pol->start() % 3);
 }
 
 Genome::Genome(const std::string &name, int length,
@@ -545,6 +572,7 @@ void Genome::AddGene(const std::string &name, int start, int stop,
   auto rbs =
       std::make_shared<Promoter>(name + "_rbs", rbs_start, rbs_stop, binding);
   rbs->gene(name);
+  rbs->set_reading_frame(start % 3);
   transcript_rbs_intervals_.emplace_back(rbs->start(), rbs->stop(), rbs);
   bindings_[name + "_rbs"] = binding;
   auto stop_codon =
@@ -564,7 +592,7 @@ void Genome::AddWeights(const std::vector<double> &transcript_weights) {
   transcript_weights_ = transcript_weights;
 }
 
-void Genome::Attach(Polymerase::Ptr pol) {
+void Genome::Attach(MobileElement::Ptr pol) {
   Transcript::Ptr transcript = BuildTranscript(pol->stop(), stop_);
   polymerases_.Insert(pol, transcript);
   transcript_signal_.Emit(transcript);

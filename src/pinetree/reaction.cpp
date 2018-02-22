@@ -81,7 +81,7 @@ void BindPolymerase::Execute() {
   polymer->Bind(new_pol, promoter_name_);
   SpeciesTracker::Instance().propensity_signal_.Emit(polymer->index());
   // Polymer should handle decrementing promoter
-  SpeciesTracker::Instance().Increment(pol_name_, -1);
+  SpeciesTracker::Instance().Increment(new_pol->name(), -1);
 }
 
 BindRnase::BindRnase(double rate_constant, double volume,
@@ -93,7 +93,7 @@ void BindRnase::Execute() {
   auto polymer = ChoosePolymer();
   auto new_pol = std::make_shared<Rnase>(pol_template_);
   polymer->Bind(new_pol, promoter_name_);
-  tracker.propensity_signal_.Emit(polymer->index());
+  SpeciesTracker::Instance().propensity_signal_.Emit(polymer->index());
   std::cout << "Degrade!" << std::endl;
 }
 

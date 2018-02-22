@@ -15,7 +15,8 @@ FixedElement::FixedElement(const std::string &name, int start, int stop,
       interactions_(interactions),
       covered_(0),
       old_covered_(0),
-      type_("") {}
+      type_(""),
+      reading_frame_(-1) {}
 
 Promoter::Promoter(const std::string &name, int start, int stop,
                    const std::map<std::string, double> &interactions)
@@ -36,12 +37,19 @@ Terminator::Terminator(const std::string &name, int start, int stop,
                        const std::map<std::string, double> &interactions)
     : FixedElement(name, start, stop, interactions) {
   readthrough_ = false;
-  reading_frame_ = -1;
   type_ = "__terminator";
 }
 
 bool Terminator::CheckInteraction(const std::string &name, int reading_frame) {
-  return (reading_frame == reading_frame_ && interactions_.count(name));
+  if (interactions_.count(name) == 1) {
+    if (reading_frame_ == -1) {
+      return true;
+    }
+    if (reading_frame == reading_frame_) {
+      return true;
+    }
+  }
+  return false;
 }
 
 Terminator::Ptr Terminator::Clone() const {
@@ -49,7 +57,7 @@ Terminator::Ptr Terminator::Clone() const {
 }
 
 MobileElement::MobileElement(const std::string &name, int footprint, int speed)
-    : name_(name), footprint_(footprint), speed_(speed) {}
+    : name_(name), footprint_(footprint), speed_(speed), reading_frame_(-1) {}
 
 Polymerase::Polymerase(const std::string &name, int footprint, int speed)
     : MobileElement(name, footprint, speed) {

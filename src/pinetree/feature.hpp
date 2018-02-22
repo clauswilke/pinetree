@@ -53,6 +53,8 @@ class FixedElement : public std::enable_shared_from_this<FixedElement> {
   int start() const { return start_; }
   int stop() const { return stop_; }
   std::string const &type() const { return type_; }
+  int reading_frame() const { return reading_frame_; }
+  void set_reading_frame(int reading_frame) { reading_frame_ = reading_frame; }
 
  protected:
   /**
@@ -89,6 +91,10 @@ class FixedElement : public std::enable_shared_from_this<FixedElement> {
    * Used to cache old covering count to then test for changes in state.
    */
   int old_covered_;
+  /**
+   * Reading frame for terminator.
+   */
+  int reading_frame_;
 };
 
 /**
@@ -160,8 +166,6 @@ class Terminator : public FixedElement {
   /**
    * Getters and setters
    */
-  int reading_frame() const { return reading_frame_; }
-  void set_reading_frame(int reading_frame) { reading_frame_ = reading_frame; }
   bool readthrough() const { return readthrough_; }
   void set_readthrough(bool readthrough) { readthrough_ = readthrough; }
   double efficiency(const std::string &pol_name) {
@@ -174,14 +178,16 @@ class Terminator : public FixedElement {
    * and false otherwise.
    */
   bool readthrough_;
-  /**
-   * Reading frame for terminator.
-   */
-  int reading_frame_;
 };
 
-class MobileElement : std::enable_shared_from_this<MobileElement> {
+class MobileElement : public std::enable_shared_from_this<MobileElement> {
  public:
+  /**
+   * Some convenience typedefs.
+   */
+  typedef std::shared_ptr<MobileElement> Ptr;
+  typedef std::vector<std::shared_ptr<MobileElement>> VecPtr;
+
   MobileElement(const std::string &name, int footprint, int speed);
   std::string const &name() const { return name_; }
   int start() const { return start_; }
@@ -190,6 +196,11 @@ class MobileElement : std::enable_shared_from_this<MobileElement> {
   void set_stop(int stop) { stop_ = stop; }
   double speed() const { return speed_; }
   int footprint() const { return footprint_; }
+  /**
+   * Getters and setters.
+   */
+  int reading_frame() const { return reading_frame_; }
+  void set_reading_frame(int reading_frame) { reading_frame_ = reading_frame; }
   /**
    * Move one position forward.
    */
@@ -221,6 +232,10 @@ class MobileElement : std::enable_shared_from_this<MobileElement> {
    * Speed in bp/s.
    */
   double speed_;
+  /**
+   * Reading frame of polymerase (0, 1, or 2).
+   */
+  int reading_frame_;
 };
 
 // /**
@@ -303,11 +318,6 @@ class Polymerase : public MobileElement {
   typedef std::shared_ptr<Polymerase> Ptr;
   typedef std::vector<std::shared_ptr<Polymerase>> VecPtr;
   /**
-   * Getters and setters.
-   */
-  int reading_frame() const { return reading_frame_; }
-  void set_reading_frame(int reading_frame) { reading_frame_ = reading_frame; }
-  /**
    * Move one position forward.
    */
   void Move();
@@ -315,12 +325,6 @@ class Polymerase : public MobileElement {
    * Move one positioin back.
    */
   void MoveBack();
-
- private:
-  /**
-   * Reading frame of polymerase (0, 1, or 2).
-   */
-  int reading_frame_;
 };
 
 /**

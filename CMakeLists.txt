@@ -25,7 +25,7 @@ set(SOURCES
     "${SOURCE_DIR}/reaction.cpp")
 set(TESTS ${SOURCES}
     "${TEST_DIR}/test_main.cpp"
-    "${TEST_DIR}/test_feature.cpp"
+    # "${TEST_DIR}/test_feature.cpp"
     # "${TEST_DIR}/test_polymer.cpp"
     "${TEST_DIR}/test_choices.cpp"
     "${TEST_DIR}/test_signals.cpp"
