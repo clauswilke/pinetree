@@ -73,7 +73,7 @@ class FixedElement : public std::enable_shared_from_this<FixedElement> {
   int start() const { return start_; }
   int stop() const { return stop_; }
   int reading_frame() const { return reading_frame_; }
-  void set_reading_frame(int reading_frame) { reading_frame_ = reading_frame; }
+  void reading_frame(int reading_frame) { reading_frame_ = reading_frame; }
 
  protected:
   /**
@@ -94,7 +94,7 @@ class FixedElement : public std::enable_shared_from_this<FixedElement> {
    */
   std::map<std::string, double> interactions_;
   /**
-   * Name of gene that this terminator terminates on. This is the value that
+   * Name of gene associated with this FixedElement. This is the value that
    * will get reported to the species tracker.
    */
   std::string gene_;
@@ -123,7 +123,8 @@ class Promoter : public FixedElement {
    * @param name name of promoter
    * @param start start position of promoter
    * @param stop stop position of promoter (also transcription start site)
-   * @param interactions vector of polymerases that interact with this promoter
+   * @param interactions name--binding-strength map of polymerases that
+   *                     interact with this promoter
    */
   Promoter(const std::string &name, int start, int stop,
            const std::map<std::string, double> &interactions);
@@ -137,12 +138,23 @@ class Promoter : public FixedElement {
   typedef std::shared_ptr<Promoter> Ptr;
   typedef std::vector<std::shared_ptr<Promoter>> VecPtr;
   /**
-   * Check to see if covering state has changed and fire appropriate signals.
+   * Create a deep copy of Promoter. Used by Polymer when creating transcripts *
+   * from a transcript template.
+   *
+   * @return std::shared_ptr<Promoter> pointer to deep copy of Promoter
    */
   Promoter::Ptr Clone() const;
-
+  /**
+   * Check to see if Promoter interacts with the MobileElement (name).
+   *
+   * @param name name of MobileElement
+   *
+   * @return bool true if MobileElement interacts with Promoter
+   */
   bool CheckInteraction(const std::string &name);
-
+  /**
+   * Getters and setters
+   */
   bool first_exposure() { return first_exposure_; }
   void first_exposure(bool first_exposure) { first_exposure_ = first_exposure; }
 

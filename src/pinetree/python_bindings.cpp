@@ -15,14 +15,23 @@ PYBIND11_MODULE(core, m) {
     -----------------------
     .. currentmodule:: pinetree
   )doc");
-  py::class_<FixedElement, std::shared_ptr<FixedElement>>(m, "FixedElement",
-                                                          R"doc(
-            Abstract parent class of Promoter and Terminator. For internal use
-            only.
 
-            )doc");
+  py::class_<Promoter, std::shared_ptr<Promoter>>(m, "Promoter",
+                                                  R"doc(
+            Promoter class that corresponds to both promoters and ribosome 
+            binding sites. For internal use only.
 
-  py::class_<Simulation, std::shared_ptr<Simulation>>(m, "Simulation", R"doc(
+            )doc")
+      .def(py::init<std::string, int, int, std::map<std::string, double>>())
+      .def("reset_state", &FixedElement::ResetState)
+      .def("was_uncovered", &FixedElement::WasUncovered)
+      .def("was_covered", &FixedElement::WasCovered)
+      .def("cover", &FixedElement::Cover)
+      .def("uncover", &FixedElement::Uncover)
+      .def("is_covered", &FixedElement::IsCovered);
+
+  py::class_<Simulation, std::shared_ptr<Simulation>>(m, "Simulation",
+                                                      R"doc(
             
             Define and run a gene expression simulation.
             

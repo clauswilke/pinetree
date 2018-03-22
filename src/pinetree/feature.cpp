@@ -15,7 +15,13 @@ FixedElement::FixedElement(const std::string &name, int start, int stop,
       interactions_(interactions),
       covered_(0),
       old_covered_(0),
-      reading_frame_(-1) {}
+      reading_frame_(-1) {
+  if (start_ < 0 || stop_ < 0) {
+    throw std::invalid_argument(
+        "Fixed element '" + name_ +
+        "' has a negative start and/or stop coordinate.");
+  }
+}
 
 FixedElement::~FixedElement(){};
 

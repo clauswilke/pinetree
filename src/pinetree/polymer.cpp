@@ -572,12 +572,12 @@ void Genome::AddGene(const std::string &name, int start, int stop,
   auto rbs =
       std::make_shared<Promoter>(name + "_rbs", rbs_start, rbs_stop, binding);
   rbs->gene(name);
-  rbs->set_reading_frame(start % 3);
+  rbs->reading_frame(start % 3);
   transcript_rbs_intervals_.emplace_back(rbs->start(), rbs->stop(), rbs);
   bindings_[name + "_rbs"] = binding;
   auto stop_codon =
       std::make_shared<Terminator>("stop_codon", stop - 1, stop, term);
-  stop_codon->set_reading_frame(start % 3);
+  stop_codon->reading_frame(start % 3);
   stop_codon->gene(name);
   transcript_stop_site_intervals_.emplace_back(stop_codon->start(),
                                                stop_codon->stop(), stop_codon);
