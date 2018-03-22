@@ -15,13 +15,13 @@ FixedElement::FixedElement(const std::string &name, int start, int stop,
       interactions_(interactions),
       covered_(0),
       old_covered_(0),
-      type_(""),
       reading_frame_(-1) {}
+
+FixedElement::~FixedElement(){};
 
 Promoter::Promoter(const std::string &name, int start, int stop,
                    const std::map<std::string, double> &interactions)
     : FixedElement(name, start, stop, interactions) {
-  type_ = "__promoter";
   first_exposure_ = false;
 }
 
@@ -37,7 +37,6 @@ Terminator::Terminator(const std::string &name, int start, int stop,
                        const std::map<std::string, double> &interactions)
     : FixedElement(name, start, stop, interactions) {
   readthrough_ = false;
-  type_ = "__terminator";
 }
 
 bool Terminator::CheckInteraction(const std::string &name, int reading_frame) {

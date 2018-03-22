@@ -15,6 +15,12 @@ PYBIND11_MODULE(core, m) {
     -----------------------
     .. currentmodule:: pinetree
   )doc");
+  py::class_<FixedElement, std::shared_ptr<FixedElement>>(m, "FixedElement",
+                                                          R"doc(
+            Abstract parent class of Promoter and Terminator. For internal use
+            only.
+
+            )doc");
 
   py::class_<Simulation, std::shared_ptr<Simulation>>(m, "Simulation", R"doc(
             

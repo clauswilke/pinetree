@@ -10,8 +10,16 @@
 #include "IntervalTree.h"
 #include "feature.hpp"
 
+/**
+ * Hack-y forward declaration.
+ */
 class Polymer;
 
+/**
+ * Manages all MobileElements (e.g., polymerases and ribosomes) on a Polymer.
+ * MobileElements are maintained in order. This class also tracks the total
+ * propensity of all the MobileElements.
+ */
 class MobileElementManager {
  public:
   MobileElementManager(const std::vector<double> &weights);
