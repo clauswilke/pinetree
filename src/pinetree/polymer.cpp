@@ -106,7 +106,7 @@ Polymer::Polymer(const std::string &name, int start, int stop)
 void Polymer::Initialize() {
   // Construct invterval trees
   binding_sites_ = IntervalTree<BindingSite::Ptr>(binding_intervals_);
-  release_sites_ = IntervalTree<Terminator::Ptr>(release_intervals_);
+  release_sites_ = IntervalTree<ReleaseSite::Ptr>(release_intervals_);
   std::vector<Interval<BindingSite::Ptr>> results;
 
   // Cover all masked sites
@@ -393,7 +393,7 @@ void Polymer::CheckBehind(int old_start, int new_start) {
     }
   }
 
-  std::vector<Interval<Terminator::Ptr>> term_results;
+  std::vector<Interval<ReleaseSite::Ptr>> term_results;
   release_sites_.findOverlapping(old_start, new_start + 1, term_results);
   for (auto &interval : term_results) {
     if (interval.value->stop() < new_start) {
@@ -422,7 +422,7 @@ bool Polymer::CheckTermination(int pol_index) {
       return true;
     }
   }
-  std::vector<Interval<Terminator::Ptr>> results;
+  std::vector<Interval<ReleaseSite::Ptr>> results;
   release_sites_.findOverlapping(pol->start(), pol->stop(), results);
   for (auto &interval : results) {
     if (interval.value->CheckInteraction(pol->name(), pol->reading_frame()) &&
@@ -503,7 +503,7 @@ bool Polymer::CheckPolCollisions(int pol_index) {
 Transcript::Transcript(
     const std::string &name, int start, int stop,
     const std::vector<Interval<BindingSite::Ptr>> &rbs_intervals,
-    const std::vector<Interval<Terminator::Ptr>> &stop_site_intervals,
+    const std::vector<Interval<ReleaseSite::Ptr>> &stop_site_intervals,
     const Mask &mask, const std::vector<double> &weights)
     : Polymer(name, start, stop) {
   mask_ = mask;
@@ -533,7 +533,7 @@ void Genome::Initialize() {
   Polymer::Initialize();
   transcript_rbs_ = IntervalTree<BindingSite::Ptr>(transcript_rbs_intervals_);
   transcript_stop_sites_ =
-      IntervalTree<Terminator::Ptr>(transcript_stop_site_intervals_);
+      IntervalTree<ReleaseSite::Ptr>(transcript_stop_site_intervals_);
 }
 
 void Genome::AddMask(int start, const std::vector<std::string> &interactions) {
@@ -558,8 +558,8 @@ const std::map<std::string, std::map<std::string, double>> &Genome::bindings() {
 
 void Genome::AddTerminator(const std::string &name, int start, int stop,
                            const std::map<std::string, double> &efficiency) {
-  Terminator::Ptr terminator =
-      std::make_shared<Terminator>(name, start, stop, efficiency);
+  ReleaseSite::Ptr terminator =
+      std::make_shared<ReleaseSite>(name, start, stop, efficiency);
   // New code for IntervalTree
   release_intervals_.emplace_back(start, stop, terminator);
 }
@@ -576,7 +576,7 @@ void Genome::AddGene(const std::string &name, int start, int stop,
   transcript_rbs_intervals_.emplace_back(rbs->start(), rbs->stop(), rbs);
   bindings_[name + "_rbs"] = binding;
   auto stop_codon =
-      std::make_shared<Terminator>("stop_codon", stop - 1, stop, term);
+      std::make_shared<ReleaseSite>("stop_codon", stop - 1, stop, term);
   stop_codon->reading_frame(start % 3);
   stop_codon->gene(name);
   transcript_stop_site_intervals_.emplace_back(stop_codon->start(),
@@ -629,8 +629,8 @@ Transcript::Ptr Genome::BuildTranscript(int start, int stop) {
                 {"__rnase", transcript_degradation_rate_}}));
   }
 
-  std::vector<Interval<Terminator::Ptr>> term_results;
-  std::vector<Interval<Terminator::Ptr>> stop_site_intervals;
+  std::vector<Interval<ReleaseSite::Ptr>> term_results;
+  std::vector<Interval<ReleaseSite::Ptr>> stop_site_intervals;
   transcript_stop_sites_.findContained(start, stop, term_results);
   for (auto &interval : term_results) {
     int istart = interval.start;

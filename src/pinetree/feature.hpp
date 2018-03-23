@@ -107,7 +107,7 @@ class FixedElement : public std::enable_shared_from_this<FixedElement> {
    */
   int old_covered_;
   /**
-   * Reading frame for terminator.
+   * Reading frame for FixedElement.
    */
   int reading_frame_;
 };
@@ -166,42 +166,42 @@ class BindingSite : public FixedElement {
   bool first_exposure_;
 };
 
-class Terminator : public FixedElement {
+class ReleaseSite : public FixedElement {
  public:
   /**
-   * Only constructor for Terminator.
+   * Only constructor for ReleaseSite.
    *
-   * @param name name of terminator
-   * @param start start position of terminator
-   * @param stop stop position of terminator
-   * @param interactions list of features that this terminator interacts with
+   * @param name name of ReleaseSite
+   * @param start start position of ReleaseSite
+   * @param stop stop position of ReleaseSite
+   * @param interactions list of features that this ReleaseSite interacts with
    */
-  Terminator(const std::string &name, int start, int stop,
-             const std::map<std::string, double> &interactions);
+  ReleaseSite(const std::string &name, int start, int stop,
+              const std::map<std::string, double> &interactions);
   /**
-   * Terminator does not create or accept any new resources (i.e. pointers).
+   * ReleaseSite does not create or accept any new resources (i.e. pointers).
    */
-  ~Terminator(){};
+  ~ReleaseSite(){};
   /**
    * Some convenience typedefs.
    */
-  typedef std::shared_ptr<Terminator> Ptr;
-  typedef std::vector<std::shared_ptr<Terminator>> VecPtr;
+  typedef std::shared_ptr<ReleaseSite> Ptr;
+  typedef std::vector<std::shared_ptr<ReleaseSite>> VecPtr;
   /**
-   * Create a deep copy of Terminator. Used by Polymer when creating
+   * Create a deep copy of ReleaseSite. Used by Polymer when creating
    * transcripts from a transcript template.
    *
    * @return std::shared_ptr<BindingSite> pointer to deep copy of BindingSite
    */
-  Terminator::Ptr Clone() const;
+  ReleaseSite::Ptr Clone() const;
   /**
-   * Check to see if feature interacts with this terminator and is in the
+   * Check to see if feature interacts with this ReleaseSite and is in the
    * correct reading frame.
    *
    * @param name name of other feature
    * @param reading_frame reading frame of of interacting feature
    *
-   * @return bool true if feature interacts with terminator
+   * @return bool true if feature interacts with ReleaseSite
    */
   bool CheckInteraction(const std::string &name, int reading_frame);
   /**
@@ -215,8 +215,8 @@ class Terminator : public FixedElement {
 
  private:
   /**
-   * Readthrough state of terminator. True if a polymerase is reading through it
-   * and false otherwise.
+   * Readthrough state of ReleaseSite. True if a polymerase is reading through
+   * it and false otherwise.
    */
   bool readthrough_;
 };

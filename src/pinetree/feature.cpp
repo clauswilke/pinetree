@@ -39,13 +39,13 @@ BindingSite::Ptr BindingSite::Clone() const {
   return std::make_shared<BindingSite>(*this);
 }
 
-Terminator::Terminator(const std::string &name, int start, int stop,
-                       const std::map<std::string, double> &interactions)
+ReleaseSite::ReleaseSite(const std::string &name, int start, int stop,
+                         const std::map<std::string, double> &interactions)
     : FixedElement(name, start, stop, interactions) {
   readthrough_ = false;
 }
 
-bool Terminator::CheckInteraction(const std::string &name, int reading_frame) {
+bool ReleaseSite::CheckInteraction(const std::string &name, int reading_frame) {
   if (interactions_.count(name) == 1) {
     if (reading_frame_ == -1) {
       return true;
@@ -57,8 +57,8 @@ bool Terminator::CheckInteraction(const std::string &name, int reading_frame) {
   return false;
 }
 
-Terminator::Ptr Terminator::Clone() const {
-  return std::make_shared<Terminator>(*this);
+ReleaseSite::Ptr ReleaseSite::Clone() const {
+  return std::make_shared<ReleaseSite>(*this);
 }
 
 MobileElement::MobileElement(const std::string &name, int footprint, int speed)

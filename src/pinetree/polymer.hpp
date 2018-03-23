@@ -166,9 +166,9 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
   bool degrade_ = false;
 
   std::vector<Interval<BindingSite::Ptr>> binding_intervals_;
-  std::vector<Interval<Terminator::Ptr>> release_intervals_;
+  std::vector<Interval<ReleaseSite::Ptr>> release_intervals_;
   IntervalTree<BindingSite::Ptr> binding_sites_;
-  IntervalTree<Terminator::Ptr> release_sites_;
+  IntervalTree<ReleaseSite::Ptr> release_sites_;
   /**
    * Mask corresponding to this polymer. Controls which elements are hidden.
    */
@@ -265,7 +265,7 @@ class Transcript : public Polymer {
    */
   Transcript(const std::string &name, int start, int stop,
              const std::vector<Interval<BindingSite::Ptr>> &rbs_intervals,
-             const std::vector<Interval<Terminator::Ptr>> &stop_site_intervals,
+             const std::vector<Interval<ReleaseSite::Ptr>> &stop_site_intervals,
              const Mask &mask, const std::vector<double> &weights);
   /**
    * Convenience typdefs.
@@ -336,9 +336,9 @@ class Genome : public Polymer {
 
  private:
   std::vector<Interval<BindingSite::Ptr>> transcript_rbs_intervals_;
-  std::vector<Interval<Terminator::Ptr>> transcript_stop_site_intervals_;
+  std::vector<Interval<ReleaseSite::Ptr>> transcript_stop_site_intervals_;
   IntervalTree<BindingSite::Ptr> transcript_rbs_;
-  IntervalTree<Terminator::Ptr> transcript_stop_sites_;
+  IntervalTree<ReleaseSite::Ptr> transcript_stop_sites_;
   std::vector<double> transcript_weights_;
   std::map<std::string, std::map<std::string, double>> bindings_;
   double transcript_degradation_rate_ = 0.0;
