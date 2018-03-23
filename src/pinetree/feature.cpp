@@ -25,18 +25,18 @@ FixedElement::FixedElement(const std::string &name, int start, int stop,
 
 FixedElement::~FixedElement(){};
 
-Promoter::Promoter(const std::string &name, int start, int stop,
-                   const std::map<std::string, double> &interactions)
+BindingSite::BindingSite(const std::string &name, int start, int stop,
+                         const std::map<std::string, double> &interactions)
     : FixedElement(name, start, stop, interactions) {
   first_exposure_ = false;
 }
 
-bool Promoter::CheckInteraction(const std::string &name) {
+bool BindingSite::CheckInteraction(const std::string &name) {
   return interactions_.count(name);
 }
 
-Promoter::Ptr Promoter::Clone() const {
-  return std::make_shared<Promoter>(*this);
+BindingSite::Ptr BindingSite::Clone() const {
+  return std::make_shared<BindingSite>(*this);
 }
 
 Terminator::Terminator(const std::string &name, int start, int stop,

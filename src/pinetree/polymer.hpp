@@ -165,9 +165,9 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    */
   bool degrade_ = false;
 
-  std::vector<Interval<Promoter::Ptr>> binding_intervals_;
+  std::vector<Interval<BindingSite::Ptr>> binding_intervals_;
   std::vector<Interval<Terminator::Ptr>> release_intervals_;
-  IntervalTree<Promoter::Ptr> binding_sites_;
+  IntervalTree<BindingSite::Ptr> binding_sites_;
   IntervalTree<Terminator::Ptr> release_sites_;
   /**
    * Mask corresponding to this polymer. Controls which elements are hidden.
@@ -185,8 +185,8 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    * propensity for the next movement of that polymerase.
    */
   std::vector<double> weights_;
-  Promoter::Ptr FindBindingSite(MobileElement::Ptr pol,
-                                const std::string &promoter_name);
+  BindingSite::Ptr FindBindingSite(MobileElement::Ptr pol,
+                                   const std::string &promoter_name);
   virtual void Attach(MobileElement::Ptr pol);
   /**
    * Temporarily uncover all elements covered by a given polymerase.
@@ -264,7 +264,7 @@ class Transcript : public Polymer {
    *  of the transcript
    */
   Transcript(const std::string &name, int start, int stop,
-             const std::vector<Interval<Promoter::Ptr>> &rbs_intervals,
+             const std::vector<Interval<BindingSite::Ptr>> &rbs_intervals,
              const std::vector<Interval<Terminator::Ptr>> &stop_site_intervals,
              const Mask &mask, const std::vector<double> &weights);
   /**
@@ -335,9 +335,9 @@ class Genome : public Polymer {
   Signal<Transcript::Ptr> transcript_signal_;
 
  private:
-  std::vector<Interval<Promoter::Ptr>> transcript_rbs_intervals_;
+  std::vector<Interval<BindingSite::Ptr>> transcript_rbs_intervals_;
   std::vector<Interval<Terminator::Ptr>> transcript_stop_site_intervals_;
-  IntervalTree<Promoter::Ptr> transcript_rbs_;
+  IntervalTree<BindingSite::Ptr> transcript_rbs_;
   IntervalTree<Terminator::Ptr> transcript_stop_sites_;
   std::vector<double> transcript_weights_;
   std::map<std::string, std::map<std::string, double>> bindings_;

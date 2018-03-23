@@ -16,19 +16,20 @@ PYBIND11_MODULE(core, m) {
     .. currentmodule:: pinetree
   )doc");
 
-  py::class_<Promoter, std::shared_ptr<Promoter>>(m, "Promoter",
-                                                  R"doc(
-            Promoter class that corresponds to both promoters and ribosome 
+  py::class_<BindingSite, std::shared_ptr<BindingSite>>(m, "BindingSite",
+                                                        R"doc(
+            BindingSite class that corresponds to both promoters and ribosome 
             binding sites. For internal use only.
 
             )doc")
       .def(py::init<std::string, int, int, std::map<std::string, double>>())
-      .def("reset_state", &FixedElement::ResetState)
-      .def("was_uncovered", &FixedElement::WasUncovered)
-      .def("was_covered", &FixedElement::WasCovered)
-      .def("cover", &FixedElement::Cover)
-      .def("uncover", &FixedElement::Uncover)
-      .def("is_covered", &FixedElement::IsCovered);
+      .def("reset_state", &BindingSite::ResetState)
+      .def("was_uncovered", &BindingSite::WasUncovered)
+      .def("was_covered", &BindingSite::WasCovered)
+      .def("cover", &BindingSite::Cover)
+      .def("uncover", &BindingSite::Uncover)
+      .def("is_covered", &BindingSite::IsCovered)
+      .def("check_interaction", &BindingSite::CheckInteraction);
 
   py::class_<Simulation, std::shared_ptr<Simulation>>(m, "Simulation",
                                                       R"doc(

@@ -113,43 +113,44 @@ class FixedElement : public std::enable_shared_from_this<FixedElement> {
 };
 
 /**
- * A promoter class
+ * A BindingSite class for both promoters and ribosome binding sites
  */
-class Promoter : public FixedElement {
+class BindingSite : public FixedElement {
  public:
   /**
-   * The only constructor for Promoter.
+   * The only constructor for BindingSite.
    *
-   * @param name name of promoter
-   * @param start start position of promoter
-   * @param stop stop position of promoter (also transcription start site)
-   * @param interactions name--binding-strength map of polymerases that
-   *                     interact with this promoter
+   * @param name name of BindingSite
+   * @param start start position of BindingSite
+   * @param stop stop position of BindingSite (also transcription/translation
+   *             start site)
+   * @param interactions name--binding-strength map of MobileElements that
+   *                     interact with this BindingSite
    */
-  Promoter(const std::string &name, int start, int stop,
-           const std::map<std::string, double> &interactions);
+  BindingSite(const std::string &name, int start, int stop,
+              const std::map<std::string, double> &interactions);
   /**
-   * Promoter does not create or accept any new resources (i.e. pointers).
+   * BindingSite does not create or accept any new resources (i.e. pointers).
    */
-  ~Promoter(){};
+  ~BindingSite(){};
   /**
    * Some convenience typedefs.
    */
-  typedef std::shared_ptr<Promoter> Ptr;
-  typedef std::vector<std::shared_ptr<Promoter>> VecPtr;
+  typedef std::shared_ptr<BindingSite> Ptr;
+  typedef std::vector<std::shared_ptr<BindingSite>> VecPtr;
   /**
-   * Create a deep copy of Promoter. Used by Polymer when creating transcripts *
-   * from a transcript template.
+   * Create a deep copy of BindingSite. Used by Polymer when creating
+   * transcripts from a transcript template.
    *
-   * @return std::shared_ptr<Promoter> pointer to deep copy of Promoter
+   * @return std::shared_ptr<BindingSite> pointer to deep copy of BindingSite
    */
-  Promoter::Ptr Clone() const;
+  BindingSite::Ptr Clone() const;
   /**
-   * Check to see if Promoter interacts with the MobileElement (name).
+   * Check to see if BindingSite interacts with the MobileElement (name).
    *
    * @param name name of MobileElement
    *
-   * @return bool true if MobileElement interacts with Promoter
+   * @return bool true if MobileElement interacts with BindingSite
    */
   bool CheckInteraction(const std::string &name);
   /**
@@ -186,7 +187,12 @@ class Terminator : public FixedElement {
    */
   typedef std::shared_ptr<Terminator> Ptr;
   typedef std::vector<std::shared_ptr<Terminator>> VecPtr;
-
+  /**
+   * Create a deep copy of Terminator. Used by Polymer when creating
+   * transcripts from a transcript template.
+   *
+   * @return std::shared_ptr<BindingSite> pointer to deep copy of BindingSite
+   */
   Terminator::Ptr Clone() const;
   /**
    * Check to see if feature interacts with this terminator and is in the

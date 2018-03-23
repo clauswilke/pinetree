@@ -105,9 +105,9 @@ Polymer::Polymer(const std::string &name, int start, int stop)
 
 void Polymer::Initialize() {
   // Construct invterval trees
-  binding_sites_ = IntervalTree<Promoter::Ptr>(binding_intervals_);
+  binding_sites_ = IntervalTree<BindingSite::Ptr>(binding_intervals_);
   release_sites_ = IntervalTree<Terminator::Ptr>(release_intervals_);
-  std::vector<Interval<Promoter::Ptr>> results;
+  std::vector<Interval<BindingSite::Ptr>> results;
 
   // Cover all masked sites
   int mask_start = mask_.start();
@@ -143,12 +143,12 @@ void Polymer::Initialize() {
   }
 }
 
-Promoter::Ptr Polymer::FindBindingSite(MobileElement::Ptr pol,
-                                       const std::string &promoter_name) {
+BindingSite::Ptr Polymer::FindBindingSite(MobileElement::Ptr pol,
+                                          const std::string &promoter_name) {
   // Make a list of free promoters that pol can bind
   bool found = false;
-  Promoter::VecPtr promoter_choices;
-  std::vector<Interval<Promoter::Ptr>> results;
+  BindingSite::VecPtr promoter_choices;
+  std::vector<Interval<BindingSite::Ptr>> results;
   binding_sites_.findOverlapping(start_, mask_.start(), results);
   for (auto &interval : results) {
     if (interval.value->name() == promoter_name &&
@@ -165,7 +165,7 @@ Promoter::Ptr Polymer::FindBindingSite(MobileElement::Ptr pol,
     throw std::runtime_error(err);
   }
   // Randomly select promoter.
-  Promoter::Ptr elem = Random::WeightedChoice(promoter_choices);
+  BindingSite::Ptr elem = Random::WeightedChoice(promoter_choices);
   // More error checking.
   if (!elem->CheckInteraction(pol->name())) {
     std::string err = "Polymerase " + pol->name() +
@@ -191,7 +191,7 @@ void Polymer::Bind(MobileElement::Ptr pol, const std::string &promoter_name) {
                       "behavior.";
     throw std::runtime_error(err);
   }
-  std::vector<Interval<Promoter::Ptr>> results;
+  std::vector<Interval<BindingSite::Ptr>> results;
   binding_sites_.findOverlapping(pol->start(), pol->stop(), results);
   for (auto &interval : results) {
     interval.value->Cover();
@@ -287,7 +287,7 @@ void Polymer::Move(int pol_index) {
   // Check if polymerase has run into a terminator
   bool terminating = CheckTermination(pol_index);
   if (terminating && pol->name() != "__rnase") {
-    std::vector<Interval<Promoter::Ptr>> results;
+    std::vector<Interval<BindingSite::Ptr>> results;
     binding_sites_.findOverlapping(old_start, pol->stop(), results);
     for (auto &interval : results) {
       interval.value->Uncover();
@@ -324,7 +324,7 @@ void Polymer::Move(int pol_index) {
 }
 
 void Polymer::CheckAhead(int old_stop, int new_stop) {
-  std::vector<Interval<Promoter::Ptr>> results;
+  std::vector<Interval<BindingSite::Ptr>> results;
   binding_sites_.findOverlapping(old_stop + 1, new_stop, results);
   for (auto &interval : results) {
     if (interval.value->start() < new_stop &&
@@ -340,7 +340,7 @@ void Polymer::CheckAhead(int old_stop, int new_stop) {
 }
 
 void Polymer::CheckAheadRnase(int old_stop, int new_stop) {
-  std::vector<Interval<Promoter::Ptr>> results;
+  std::vector<Interval<BindingSite::Ptr>> results;
   binding_sites_.findOverlapping(old_stop + 1, new_stop, results);
   for (auto &interval : results) {
     if (interval.value->start() < new_stop) {
@@ -364,7 +364,7 @@ void Polymer::CheckAheadRnase(int old_stop, int new_stop) {
 }
 
 void Polymer::CheckBehind(int old_start, int new_start) {
-  std::vector<Interval<Promoter::Ptr>> results;
+  std::vector<Interval<BindingSite::Ptr>> results;
   binding_sites_.findOverlapping(old_start, new_start + 1, results);
   for (auto &interval : results) {
     std::cout << interval.value->name() + " " +
@@ -502,7 +502,7 @@ bool Polymer::CheckPolCollisions(int pol_index) {
 
 Transcript::Transcript(
     const std::string &name, int start, int stop,
-    const std::vector<Interval<Promoter::Ptr>> &rbs_intervals,
+    const std::vector<Interval<BindingSite::Ptr>> &rbs_intervals,
     const std::vector<Interval<Terminator::Ptr>> &stop_site_intervals,
     const Mask &mask, const std::vector<double> &weights)
     : Polymer(name, start, stop) {
@@ -531,7 +531,7 @@ Genome::Genome(const std::string &name, int length,
 
 void Genome::Initialize() {
   Polymer::Initialize();
-  transcript_rbs_ = IntervalTree<Promoter::Ptr>(transcript_rbs_intervals_);
+  transcript_rbs_ = IntervalTree<BindingSite::Ptr>(transcript_rbs_intervals_);
   transcript_stop_sites_ =
       IntervalTree<Terminator::Ptr>(transcript_stop_site_intervals_);
 }
@@ -546,8 +546,8 @@ void Genome::AddMask(int start, const std::vector<std::string> &interactions) {
 
 void Genome::AddPromoter(const std::string &name, int start, int stop,
                          const std::map<std::string, double> &interactions) {
-  Promoter::Ptr promoter =
-      std::make_shared<Promoter>(name, start, stop, interactions);
+  BindingSite::Ptr promoter =
+      std::make_shared<BindingSite>(name, start, stop, interactions);
   binding_intervals_.emplace_back(start, stop, promoter);
   bindings_[name] = interactions;
 }
@@ -569,8 +569,8 @@ void Genome::AddGene(const std::string &name, int start, int stop,
                      int rbs_start, int rbs_stop, double rbs_strength) {
   auto binding = std::map<std::string, double>{{"ribosome", rbs_strength}};
   auto term = std::map<std::string, double>{{"ribosome", 1.0}};
-  auto rbs =
-      std::make_shared<Promoter>(name + "_rbs", rbs_start, rbs_stop, binding);
+  auto rbs = std::make_shared<BindingSite>(name + "_rbs", rbs_start, rbs_stop,
+                                           binding);
   rbs->gene(name);
   rbs->reading_frame(start % 3);
   transcript_rbs_intervals_.emplace_back(rbs->start(), rbs->stop(), rbs);
@@ -587,7 +587,7 @@ void Genome::AddRnaseSite(int start, int stop) {
   auto binding =
       std::map<std::string, double>{{"__rnase", transcript_degradation_rate_}};
   auto rnase_site =
-      std::make_shared<Promoter>("__rnase_site", start, stop, binding);
+      std::make_shared<BindingSite>("__rnase_site", start, stop, binding);
   transcript_rbs_intervals_.emplace_back(rnase_site->start(),
                                          rnase_site->stop(), rnase_site);
 }
@@ -608,8 +608,8 @@ void Genome::Attach(MobileElement::Ptr pol) {
 }
 
 Transcript::Ptr Genome::BuildTranscript(int start, int stop) {
-  std::vector<Interval<Promoter::Ptr>> prom_results;
-  std::vector<Interval<Promoter::Ptr>> rbs_intervals;
+  std::vector<Interval<BindingSite::Ptr>> prom_results;
+  std::vector<Interval<BindingSite::Ptr>> rbs_intervals;
   transcript_rbs_.findContained(start, stop, prom_results);
   for (auto &interval : prom_results) {
     int istart = interval.start;
@@ -623,7 +623,7 @@ Transcript::Ptr Genome::BuildTranscript(int start, int stop) {
     std::cout << "Adding degradation site" << std::endl;
     rbs_intervals.emplace_back(
         start + 1, start + 1 + 10,
-        std::make_shared<Promoter>(
+        std::make_shared<BindingSite>(
             "__rnase_site", start + 1, start + 1 + 10,
             std::map<std::string, double>{
                 {"__rnase", transcript_degradation_rate_}}));
