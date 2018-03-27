@@ -29,6 +29,13 @@ BindingSite::BindingSite(const std::string &name, int start, int stop,
                          const std::map<std::string, double> &interactions)
     : FixedElement(name, start, stop, interactions) {
   first_exposure_ = false;
+  for (auto const &item : interactions) {
+    if (item.second < 0) {
+      throw std::invalid_argument(
+          "Binding site '" + name_ +
+          "' must have non-negative interaction rate constants.");
+    }
+  }
 }
 
 bool BindingSite::CheckInteraction(const std::string &name) {
@@ -43,6 +50,13 @@ ReleaseSite::ReleaseSite(const std::string &name, int start, int stop,
                          const std::map<std::string, double> &interactions)
     : FixedElement(name, start, stop, interactions) {
   readthrough_ = false;
+  for (auto const &item : interactions) {
+    if (item.second < 0 || item.second > 1) {
+      throw std::invalid_argument(
+          "Release site '" + name_ +
+          "' must have efficiency values between 0.0 and 1.0.");
+    }
+  }
 }
 
 bool ReleaseSite::CheckInteraction(const std::string &name, int reading_frame) {
@@ -62,11 +76,23 @@ ReleaseSite::Ptr ReleaseSite::Clone() const {
 }
 
 MobileElement::MobileElement(const std::string &name, int footprint, int speed)
-    : name_(name), footprint_(footprint), speed_(speed), reading_frame_(-1) {}
+    : name_(name), footprint_(footprint), speed_(speed), reading_frame_(-1) {
+  start_ = 0;
+  stop_ = start_ + footprint_;
+  if (footprint_ < 0) {
+    throw std::invalid_argument("Mobile element '" + name_ +
+                                "' has a negative footprint size.");
+  }
+  if (speed_ < 0) {
+    throw std::invalid_argument("Mobile element '" + name_ +
+                                "' has a negative average speed.");
+  }
+}
+
+MobileElement::~MobileElement(){};
 
 Polymerase::Polymerase(const std::string &name, int footprint, int speed)
     : MobileElement(name, footprint, speed) {
-  type_ = "__polymerase";
   reading_frame_ = -1;
 }
 
@@ -76,16 +102,20 @@ void Polymerase::Move() {
 }
 
 void Polymerase::MoveBack() {
-  start_--;
-  stop_--;
+  if (start_ > 0) {
+    start_--;
+    stop_--;
+  } else {
+    throw std::runtime_error(
+        "Attempting to assign negative start position to Polymerase object '" +
+        name_ + "'.");
+  }
 }
-
-Rnase::Rnase(int footprint, int speed)
-    : MobileElement("__rnase", footprint, speed) {}
 
 Mask::Mask(int start, int stop,
            const std::map<std::string, double> &interactions)
-    : MobileElement("__mask", 0, 0), interactions_(interactions) {
+    : MobileElement("__mask", stop - start + 1, 0),
+      interactions_(interactions) {
   start_ = start;
   stop_ = stop;
 }
@@ -93,3 +123,17 @@ Mask::Mask(int start, int stop,
 bool Mask::CheckInteraction(const std::string &name) {
   return interactions_.count(name);
 }
+
+void Mask::MoveBack() {
+  if (start_ > 0) {
+    start_--;
+    footprint_++;
+  } else {
+    throw std::runtime_error(
+        "Attempting to assign negative start position to Mask object '" +
+        name_ + "'.");
+  }
+}
+
+Rnase::Rnase(int footprint, int speed)
+    : MobileElement("__rnase", footprint, speed) {}

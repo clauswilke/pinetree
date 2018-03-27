@@ -122,7 +122,7 @@ TEST_CASE("Terminator construction", "[Terminator]") {
   REQUIRE(!term.readthrough());
   REQUIRE(term.reading_frame() == -1);
   // Test for reading frame checking
-  term.set_reading_frame(1);
+  term.reading_frame(1);
   REQUIRE(term.CheckInteraction("ecolipol", 1));
   REQUIRE(!term.CheckInteraction("ecolipol", 0));
   REQUIRE(!term.CheckInteraction("nopol", 1));

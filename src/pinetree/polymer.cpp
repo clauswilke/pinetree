@@ -180,9 +180,9 @@ void Polymer::Bind(MobileElement::Ptr pol, const std::string &promoter_name) {
   auto elem = FindBindingSite(pol, promoter_name);
   // Update polymerase coordinates
   // (TODO: refactor; pol doesn't need to expose footprint/stop position)
-  pol->set_start(elem->start());
-  pol->set_stop(elem->start() + pol->footprint() - 1);
-  pol->set_reading_frame(elem->reading_frame());
+  pol->start(elem->start());
+  pol->stop(elem->start() + pol->footprint() - 1);
+  pol->reading_frame(elem->reading_frame());
   // More error checking.
   if (pol->stop() >= mask_.start()) {
     std::string err = "MobileElement " + pol->name() +
@@ -402,7 +402,7 @@ void Polymer::CheckBehind(int old_start, int new_start) {
         // Record changes that species was covered
         // LogUncover(interval.value->name());
         // Is this a terminator being uncovered?
-        interval.value->set_readthrough(false);
+        interval.value->readthrough(false);
       }
       interval.value->ResetState();
     }
@@ -446,7 +446,7 @@ bool Polymer::CheckTermination(int pol_index) {
         polymerases_.Delete(pol_index);
         return true;
       } else {
-        interval.value->set_readthrough(true);
+        interval.value->readthrough(true);
       }
     }
   }
@@ -517,9 +517,6 @@ void Transcript::Bind(MobileElement::Ptr pol,
                       const std::string &promoter_name) {
   // Bind polymerase just like in parent Polymer
   Polymer::Bind(pol, promoter_name);
-  // Set the reading frame of the polymerase
-  // TODO: should the reading frame be set by the polymerase start position?
-  // pol->set_reading_frame(pol->start() % 3);
 }
 
 Genome::Genome(const std::string &name, int length,

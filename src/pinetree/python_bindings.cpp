@@ -29,7 +29,55 @@ PYBIND11_MODULE(core, m) {
       .def("cover", &BindingSite::Cover)
       .def("uncover", &BindingSite::Uncover)
       .def("is_covered", &BindingSite::IsCovered)
-      .def("check_interaction", &BindingSite::CheckInteraction);
+      .def("clone", &BindingSite::Clone)
+      .def("check_interaction", &BindingSite::CheckInteraction)
+      .def_property(
+          "first_exposure",
+          (bool (BindingSite::*)(void) const) & BindingSite::first_exposure,
+          (void (BindingSite::*)(bool)) & BindingSite::first_exposure);
+
+  py::class_<ReleaseSite, std::shared_ptr<ReleaseSite>>(m, "ReleaseSite",
+                                                        R"doc(
+            ReleaseSite class that corresponds to both terminators and stop codons. For internal use only.
+
+            )doc")
+      .def(py::init<std::string, int, int, std::map<std::string, double>>())
+      .def("reset_state", &ReleaseSite::ResetState)
+      .def("was_uncovered", &ReleaseSite::WasUncovered)
+      .def("was_covered", &ReleaseSite::WasCovered)
+      .def("cover", &ReleaseSite::Cover)
+      .def("uncover", &ReleaseSite::Uncover)
+      .def("is_covered", &ReleaseSite::IsCovered)
+      .def("clone", &ReleaseSite::Clone)
+      .def("check_interaction", &ReleaseSite::CheckInteraction)
+      .def_property(
+          "readthrough",
+          (bool (ReleaseSite::*)(void) const) & ReleaseSite::readthrough,
+          (void (ReleaseSite::*)(bool)) & ReleaseSite::readthrough)
+      .def("efficiency", &ReleaseSite::efficiency);
+
+  py::class_<Polymerase, std::shared_ptr<Polymerase>>(m, "Polymerase",
+                                                      R"doc(
+            Polymerase class that corresponds to both biological polymerases and ribosomes. For internal use only.
+
+            )doc")
+      .def(py::init<std::string, int, int>())
+      .def("move", &Polymerase::Move)
+      .def("move_back", &Polymerase::MoveBack)
+      .def_property("start",
+                    (int (Polymerase::*)(void) const) & Polymerase::start,
+                    (void (Polymerase::*)(int)) & Polymerase::start)
+      .def_property("stop",
+                    (int (Polymerase::*)(void) const) & Polymerase::stop,
+                    (void (Polymerase::*)(int)) & Polymerase::stop)
+      .def_property_readonly(
+          "speed", (int (Polymerase::*)(void) const) & Polymerase::speed)
+      .def_property_readonly("footprint", (int (Polymerase::*)(void) const) &
+                                              Polymerase::footprint)
+      .def_property(
+          "reading_frame",
+          (int (Polymerase::*)(void) const) & Polymerase::reading_frame,
+          (void (Polymerase::*)(int)) & Polymerase::reading_frame);
 
   py::class_<Simulation, std::shared_ptr<Simulation>>(m, "Simulation",
                                                       R"doc(

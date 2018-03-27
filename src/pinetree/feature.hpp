@@ -156,7 +156,7 @@ class BindingSite : public FixedElement {
   /**
    * Getters and setters
    */
-  bool first_exposure() { return first_exposure_; }
+  bool first_exposure() const { return first_exposure_; }
   void first_exposure(bool first_exposure) { first_exposure_ = first_exposure; }
 
  private:
@@ -166,6 +166,9 @@ class BindingSite : public FixedElement {
   bool first_exposure_;
 };
 
+/**
+ * ReleaseSite class for terminators and stop codons
+ */
 class ReleaseSite : public FixedElement {
  public:
   /**
@@ -208,7 +211,7 @@ class ReleaseSite : public FixedElement {
    * Getters and setters
    */
   bool readthrough() const { return readthrough_; }
-  void set_readthrough(bool readthrough) { readthrough_ = readthrough; }
+  void readthrough(bool readthrough) { readthrough_ = readthrough; }
   double efficiency(const std::string &pol_name) {
     return interactions_[pol_name];
   }
@@ -221,27 +224,29 @@ class ReleaseSite : public FixedElement {
   bool readthrough_;
 };
 
+/**
+ * Abstract class for all elements capable of moving on a polymer. This includes
+ * polymerase, ribosomes, masks, and RNases.
+ */
 class MobileElement : public std::enable_shared_from_this<MobileElement> {
  public:
+  /**
+   * The only constructor for MobileElement.
+   *
+   * @param name name of this mobile element
+   * @param footprint footpring of this mobile element in base pairs
+   * @param speed average speed of this polymerase in bp/s
+   */
+  MobileElement(const std::string &name, int footprint, int speed);
+  /**
+   * Force child classes to explicitly define a destructor.
+   */
+  virtual ~MobileElement() = 0;
   /**
    * Some convenience typedefs.
    */
   typedef std::shared_ptr<MobileElement> Ptr;
   typedef std::vector<std::shared_ptr<MobileElement>> VecPtr;
-
-  MobileElement(const std::string &name, int footprint, int speed);
-  std::string const &name() const { return name_; }
-  int start() const { return start_; }
-  int stop() const { return stop_; }
-  void set_start(int start) { start_ = start; }
-  void set_stop(int stop) { stop_ = stop; }
-  double speed() const { return speed_; }
-  int footprint() const { return footprint_; }
-  /**
-   * Getters and setters.
-   */
-  int reading_frame() const { return reading_frame_; }
-  void set_reading_frame(int reading_frame) { reading_frame_ = reading_frame; }
   /**
    * Move one position forward.
    */
@@ -250,13 +255,25 @@ class MobileElement : public std::enable_shared_from_this<MobileElement> {
    * Move one positioin back.
    */
   virtual void MoveBack() = 0;
+  /**
+   * Getters and setters.
+   */
+  std::string const &name() const { return name_; }
+  int start() const { return start_; }
+  int stop() const { return stop_; }
+  void start(int start) { start_ = start; }
+  void stop(int stop) { stop_ = stop; }
+  double speed() const { return speed_; }
+  int footprint() const { return footprint_; }
+  int reading_frame() const { return reading_frame_; }
+  void reading_frame(int reading_frame) { reading_frame_ = reading_frame; }
 
  protected:
   /**
    * Name of this feature.
    */
   std::string name_;
-  std::string type_;
+
   /**
    * The start site of the feature. Usually the most upstream site position.
    */
@@ -280,17 +297,23 @@ class MobileElement : public std::enable_shared_from_this<MobileElement> {
 };
 
 /**
- * A molecule that binds to `Polymer` and moves.
+ * A molecule that binds to `Polymer` and moves. This may be either a ribosome
+ * or a polymerase.
  */
 class Polymerase : public MobileElement {
  public:
   /**
    * The only constructor for Polymerase.
+   *
    * @param name name of polymerase (unique?)
    * @param footprint polymerase footprint
    * @param speed speed of polymerase
    */
   Polymerase(const std::string &name, int footprint, int speed);
+  /**
+   * Polymerase does not create or accept any new resources (i.e. pointers)
+   */
+  ~Polymerase(){};
   /**
    * Some typedefs to make code less verbose
    */
@@ -318,9 +341,16 @@ class Mask : public MobileElement {
    */
   Mask(int start, int stop, const std::map<std::string, double> &interactions);
   /**
+   * Mask does not create or accept any new resources (i.e. pointers)
+   */
+  ~Mask(){};
+  /**
    * Shift mask backwards one position.
    */
-  void Move() { start_++; }
+  void Move() {
+    start_++;
+    footprint_--;
+  }
   void MoveBack() { start_--; }
 
   bool CheckInteraction(const std::string &name);
@@ -339,6 +369,7 @@ class Mask : public MobileElement {
 class Rnase : public MobileElement {
  public:
   Rnase(int footprint, int speed);
+  ~Rnase(){};
   void Move() { stop_++; }
   void MoveBack() { stop_--; }
 };
