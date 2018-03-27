@@ -111,5 +111,11 @@ class TestPolymeraseMethods(unittest.TestCase):
             pol.move_back()
 
 
+class TestMaskMethods(unittest.TestCase):
+    def test_interaction(self):
+        mask = pt.Mask(1, 10, {"rnapol": 1.0})
+        self.assertTrue(mask.check_interaction("rnapol"))
+
+
 if __name__ == '__main__':
     unittest.main()

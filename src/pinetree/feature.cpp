@@ -120,6 +120,9 @@ Mask::Mask(int start, int stop,
   stop_ = stop;
 }
 
+/**
+ * TODO: refactor to make vector rather than map
+ */
 bool Mask::CheckInteraction(const std::string &name) {
   return interactions_.count(name);
 }

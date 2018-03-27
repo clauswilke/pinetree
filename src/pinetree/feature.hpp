@@ -345,14 +345,25 @@ class Mask : public MobileElement {
    */
   ~Mask(){};
   /**
-   * Shift mask backwards one position.
+   * Shift start position of mask forwards one position (uncovering more of
+   * the polymer).
    */
   void Move() {
     start_++;
     footprint_--;
   }
-  void MoveBack() { start_--; }
-
+  /**
+   * Shift start position of mask backward one position, covering more of the
+   * polymer
+   */
+  void MoveBack();
+  /**
+   * Does this polymerase interact with this mask?
+   *
+   * @param name name of polymerase
+   *
+   * @return bool true if elements interact
+   */
   bool CheckInteraction(const std::string &name);
 
  private:
@@ -364,14 +375,35 @@ class Mask : public MobileElement {
 };
 
 /**
- * A polymerase-like object that degrades RNA.
+ * A polymerase-like object that degrades RNA from 5' to 3' end.
  */
 class Rnase : public MobileElement {
  public:
+  /**
+   * The only constructor for Rnase
+   *
+   * @param footprint footprint of Rnase
+   * @param speed average speed that Rnase degrades polymer
+   */
   Rnase(int footprint, int speed);
+  /**
+   * Rnase does not create or accept any new resources (i.e. pointers)
+   */
   ~Rnase(){};
-  void Move() { stop_++; }
-  void MoveBack() { stop_--; }
+  /**
+   * Move the Rnase one step forward (i.e. degrade more polymer)
+   */
+  void Move() {
+    stop_++;
+    footprint_++;
+  }
+  /**
+   * Move Rnase back.
+   */
+  void MoveBack() {
+    stop_--;
+    footprint_--;
+  }
 };
 
 #endif  // SRC_FEATURE_HPP_

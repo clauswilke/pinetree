@@ -79,6 +79,48 @@ PYBIND11_MODULE(core, m) {
           (int (Polymerase::*)(void) const) & Polymerase::reading_frame,
           (void (Polymerase::*)(int)) & Polymerase::reading_frame);
 
+  py::class_<Mask, std::shared_ptr<Mask>>(m, "Mask",
+                                          R"doc(
+            Mask class that corresponds to polymers that are still undergoing 
+            synthesis. For internal use only.
+
+            )doc")
+      .def(py::init<int, int, std::map<std::string, double>>())
+      .def("move", &Mask::Move)
+      .def("move_back", &Mask::MoveBack)
+      .def_property("start", (int (Mask::*)(void) const) & Mask::start,
+                    (void (Mask::*)(int)) & Mask::start)
+      .def_property("stop", (int (Mask::*)(void) const) & Mask::stop,
+                    (void (Mask::*)(int)) & Mask::stop)
+      .def_property_readonly("speed", (int (Mask::*)(void) const) & Mask::speed)
+      .def_property_readonly("footprint",
+                             (int (Mask::*)(void) const) & Mask::footprint)
+      .def_property("reading_frame",
+                    (int (Mask::*)(void) const) & Mask::reading_frame,
+                    (void (Mask::*)(int)) & Mask::reading_frame)
+      .def("check_interaction", &Mask::CheckInteraction);
+
+  py::class_<Rnase, std::shared_ptr<Rnase>>(m, "Rnase",
+                                            R"doc(
+            Rnase class that corresponds to polymers that are being degraded 
+            from 5' to 3' end. For internal use only.
+
+            )doc")
+      .def(py::init<int, int>())
+      .def("move", &Rnase::Move)
+      .def("move_back", &Rnase::MoveBack)
+      .def_property("start", (int (Rnase::*)(void) const) & Rnase::start,
+                    (void (Rnase::*)(int)) & Rnase::start)
+      .def_property("stop", (int (Rnase::*)(void) const) & Rnase::stop,
+                    (void (Rnase::*)(int)) & Rnase::stop)
+      .def_property_readonly("speed",
+                             (int (Rnase::*)(void) const) & Rnase::speed)
+      .def_property_readonly("footprint",
+                             (int (Rnase::*)(void) const) & Rnase::footprint)
+      .def_property("reading_frame",
+                    (int (Rnase::*)(void) const) & Rnase::reading_frame,
+                    (void (Rnase::*)(int)) & Rnase::reading_frame);
+
   py::class_<Simulation, std::shared_ptr<Simulation>>(m, "Simulation",
                                                       R"doc(
             
