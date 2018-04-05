@@ -37,13 +37,14 @@ extensions = [
     'sphinx.ext.intersphinx',
     'sphinx.ext.autosummary',
     'sphinx.ext.napoleon',
-    'breathe'
+    'breathe',
+    'sphinx.ext.mathjax'
 ]
 
 autosummary_generate = True
 autoclass_content = "both"
 
-breathe_projects = { "pinetree": "_build/doxygenxml/" }
+breathe_projects = {"pinetree": "_build/doxygenxml/"}
 breathe_default_project = "pinetree"
 breathe_domain_by_extension = {'hpp': 'cpp'}
 
@@ -167,6 +168,7 @@ texinfo_documents = [
      'Miscellaneous'),
 ]
 
+
 def generate_doxygen_xml(app):
     build_dir = '_build'
     if not os.path.exists(build_dir):
@@ -184,6 +186,3 @@ def generate_doxygen_xml(app):
 def setup(app):
     """Add hook for building doxygen xml when needed"""
     app.connect("builder-inited", generate_doxygen_xml)
-
-
-
