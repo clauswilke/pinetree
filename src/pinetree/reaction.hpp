@@ -94,7 +94,7 @@ class SpeciesReaction : public Reaction {
 };
 
 /**
- * Bind a polymerase to a polymer.
+ * Bind a mobile element to a polymer.
  */
 class Bind : public Reaction {
  public:
@@ -118,6 +118,11 @@ class Bind : public Reaction {
    * and bind the polymerase to the polymer.
    */
   virtual void Execute() = 0;
+  /**
+   * Randomly select a polymer to bind that has an open promoter/binding site.
+   *
+   * @return pointer to polymer
+   */
   Polymer::Ptr ChoosePolymer();
 
  protected:
@@ -131,12 +136,28 @@ class Bind : public Reaction {
   const std::string promoter_name_;
 };
 
+/**
+ * Bind a Polymerase to a polymer.
+ */
 class BindPolymerase : public Bind {
  public:
+  /**
+   * Only constructor for BindPolymerase.
+   *
+   * @param rate_constant binding rate constant
+   * @param volume volume that in which reaction occurs
+   * @param pol_template polymerase object to construct upon binding
+   */
   BindPolymerase(double rate_constant, double volume,
                  const std::string &promoter_name,
                  const Polymerase &pol_template);
+  /**
+   * Bind the polymerase.
+   */
   void Execute();
+  /**
+   * Calculate the propensity of binding occurring.
+   */
   double CalculatePropensity();
 
  private:
@@ -146,10 +167,26 @@ class BindPolymerase : public Bind {
   const Polymerase pol_template_;
 };
 
+/**
+ * Bind an RNase to a polymer.
+ */
 class BindRnase : public Bind {
  public:
+  /**
+   * Only constructor of BindRnase.
+   *
+   * @param rate_constant rate constant of binding reaction
+   * @param volume volume in which reaction occurs
+   * @param rnase_template Rnase to construct upon binding
+   */
   BindRnase(double rate_constant, double volume, const Rnase &rnase_template);
+  /**
+   * Bind Rnase to open binding site.
+   */
   void Execute();
+  /**
+   * Calculate propensity of binding reaction occurring.
+   */
   double CalculatePropensity();
 
  private:
@@ -163,15 +200,15 @@ class BindRnase : public Bind {
  * A thin wrapper for Polymer so it can participate in species-level reaction
  * processing.
  */
-class Bridge : public Reaction {
+class PolymerWrapper : public Reaction {
  public:
   /**
-   * Only constructor for Bridge.
+   * Only constructor for PolymerWrapper.
    *
    * @param polymer pointer to polymer object that this reaction is
    *  encapsulating
    */
-  Bridge(Polymer::Ptr polymer);
+  PolymerWrapper(Polymer::Ptr polymer);
   /**
    * Retrieve total propensity of all reactions tha tmay occur within this
    * polymer.
@@ -183,7 +220,9 @@ class Bridge : public Reaction {
    * Execute reaction within polymer (e.g. typically moving a polymerase)
    */
   void Execute();
-
+  /**
+   * Getters and setters
+   */
   void index(int index);
   int index() const { return index_; }
 

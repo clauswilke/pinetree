@@ -103,14 +103,14 @@ double BindRnase::CalculatePropensity() {
   return rate_constant_ * tracker.species(promoter_name_);
 }
 
-void Bridge::index(int index) {
+void PolymerWrapper::index(int index) {
   index_ = index;
   polymer_->index(index);
 }
 
-Bridge::Bridge(Polymer::Ptr polymer) : polymer_(polymer) {
+PolymerWrapper::PolymerWrapper(Polymer::Ptr polymer) : polymer_(polymer) {
   std::cout << "initializing..." << std::endl;
   polymer_->Initialize();
 }
 
-void Bridge::Execute() { polymer_->Execute(); }
+void PolymerWrapper::Execute() { polymer_->Execute(); }

@@ -65,9 +65,9 @@ void Simulation::AddPolymerase(const std::string &name, int footprint,
 }
 
 void Simulation::RegisterPolymer(Polymer::Ptr polymer) {
-  // Encapsulate polymer in Bridge reaction and add to reaction list
-  auto bridge = std::make_shared<Bridge>(polymer);
-  gillespie_.LinkReaction(bridge);
+  // Encapsulate polymer in PolymerWrapper reaction and add to reaction list
+  auto wrapper = std::make_shared<PolymerWrapper>(polymer);
+  gillespie_.LinkReaction(wrapper);
 }
 
 void Simulation::RegisterGenome(Genome::Ptr genome) {
