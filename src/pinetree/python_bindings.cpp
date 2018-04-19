@@ -2,6 +2,7 @@
 #include <pybind11/stl.h>
 #include "choices.hpp"
 #include "feature.hpp"
+#include "reaction.hpp"
 #include "polymer.hpp"
 #include "simulation.hpp"
 #include "tracker.hpp"
@@ -120,6 +121,22 @@ PYBIND11_MODULE(core, m) {
       .def_property("reading_frame",
                     (int (Rnase::*)(void) const) & Rnase::reading_frame,
                     (void (Rnase::*)(int)) & Rnase::reading_frame);
+  
+  py::class_<SpeciesReaction, std::shared_ptr<SpeciesReaction>>(m, 
+            "SpeciesReaction", 
+            R"doc(
+            
+            Defines reactions between two or fewer species (with stoichiometries
+             of 1). For internal use only.
+            
+            )doc")
+      .def(py::init<double, double, 
+           std::vector<std::string>, std::vector<std::string>>())
+      .def("caculate_propensity", &SpeciesReaction::CalculatePropensity)
+      .def("execute", &SpeciesReaction::Execute)
+      .def_property_readonly("reactants", (std::vector<std::string> (SpeciesReaction::*)(void) const) & SpeciesReaction::reactants)
+      .def_property_readonly("products", (std::vector<std::string> (SpeciesReaction::*)(void) const) & SpeciesReaction::products);
+
 
   py::class_<Simulation, std::shared_ptr<Simulation>>(m, "Simulation",
                                                       R"doc(

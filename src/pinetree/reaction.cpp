@@ -12,12 +12,20 @@ SpeciesReaction::SpeciesReaction(double rate_constant, double volume,
       products_(products) {
   // Error checking
   if (reactants_.size() > 2) {
-    throw std::runtime_error(
-        "Simulation does not support reactions with "
+    throw std::invalid_argument(
+        "Pinetree does not support reactions with "
         "more than two reactant species.");
   }
+  if (reactants_.size() == 0 && products_.size() == 0) {
+    throw std::invalid_argument(
+        "You must specify at least one product or reactant.");
+  }
+  if (rate_constant <= 0)
+  {
+    throw std::invalid_argument("Reaction rate constant cannot be zero.");
+  }
   if (volume <= 0) {
-    throw std::runtime_error("Reaction volume cannot be zero.");
+    throw std::invalid_argument("Reaction volume cannot be zero.");
   }
   // Rate constant has to be transformed from macroscopic to mesoscopic
   // TODO: make more sophisticated and support different stoichiometries
@@ -95,7 +103,6 @@ void BindRnase::Execute() {
   auto new_pol = std::make_shared<Rnase>(pol_template_);
   polymer->Bind(new_pol, promoter_name_);
   SpeciesTracker::Instance().propensity_signal_.Emit(polymer->index());
-  std::cout << "Degrade!" << std::endl;
 }
 
 double BindRnase::CalculatePropensity() {
@@ -109,7 +116,6 @@ void PolymerWrapper::index(int index) {
 }
 
 PolymerWrapper::PolymerWrapper(Polymer::Ptr polymer) : polymer_(polymer) {
-  std::cout << "initializing..." << std::endl;
   polymer_->Initialize();
 }
 
