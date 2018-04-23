@@ -12,6 +12,8 @@ def execute(output):
     plasmid = pt.Genome(name="T7", length=305,
                         transcript_degradation_rate=1e-2)
 
+#    plasmid = pt.Genome(name="T7", length=305)
+
     plasmid.add_promoter(name="phi1", start=1, stop=10,
                          interactions={"rnapol": 2e8})
     plasmid.add_terminator(name="t1", start=304, stop=305,
@@ -24,7 +26,7 @@ def execute(output):
     #                        efficiency={"rnapol": 1.0})
     plasmid.add_gene(name="proteinY", start=120, stop=199,
                      rbs_start=(120 - 10), rbs_stop=120, rbs_strength=1e7)
-    plasmid.add_rnase_site(210, 220)
+    # plasmid.add_rnase_site(210, 220)
     plasmid.add_promoter(name="phi3", start=200, stop=209,
                          interactions={"rnapol": 2e8})
     plasmid.add_gene(name="proteinZ", start=220, stop=300,

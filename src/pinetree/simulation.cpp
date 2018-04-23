@@ -67,6 +67,7 @@ void Simulation::AddPolymerase(const std::string &name, int footprint,
 void Simulation::RegisterPolymer(Polymer::Ptr polymer) {
   // Encapsulate polymer in PolymerWrapper reaction and add to reaction list
   auto wrapper = std::make_shared<PolymerWrapper>(polymer);
+  polymer->wrapper(wrapper);
   gillespie_.LinkReaction(wrapper);
 }
 

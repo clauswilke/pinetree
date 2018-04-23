@@ -11,6 +11,7 @@ SpeciesReaction::SpeciesReaction(double rate_constant, double volume,
       reactants_(reactants),
       products_(products) {
   // Error checking
+  old_prop_ = 0;
   if (reactants_.size() > 2) {
     throw std::invalid_argument(
         "Pinetree does not support reactions with "
@@ -34,11 +35,16 @@ SpeciesReaction::SpeciesReaction(double rate_constant, double volume,
 }
 
 double SpeciesReaction::CalculatePropensity() {
-  double propensity = rate_constant_;
-  for (const auto &reactant : reactants_) {
-    propensity *= SpeciesTracker::Instance().species(reactant);
+  if (remove_ == true) {
+    old_prop_ = 0;
   }
-  return propensity;
+  double new_prop = rate_constant_;
+  for (const auto &reactant : reactants_) {
+    new_prop *= SpeciesTracker::Instance().species(reactant);
+  }
+  double prop_diff = new_prop - old_prop_;
+  old_prop_ = new_prop;
+  return prop_diff;
 }
 
 void SpeciesReaction::Execute() {
@@ -53,6 +59,7 @@ void SpeciesReaction::Execute() {
 Bind::Bind(double rate_constant, double volume,
            const std::string &promoter_name)
     : rate_constant_(rate_constant), promoter_name_(promoter_name) {
+  old_prop_ = 0;
   // Check volume
   if (volume <= 0) {
     throw std::runtime_error("Reaction volume cannot be zero.");
@@ -79,15 +86,18 @@ BindPolymerase::BindPolymerase(double rate_constant, double volume,
 
 double BindPolymerase::CalculatePropensity() {
   auto &tracker = SpeciesTracker::Instance();
-  return rate_constant_ * tracker.species(pol_template_.name()) *
-         tracker.species(promoter_name_);
+  double new_prop = rate_constant_ * tracker.species(pol_template_.name()) *
+                    tracker.species(promoter_name_);
+  double prop_diff = new_prop - old_prop_;
+  old_prop_ = new_prop;
+  return prop_diff;
 }
 
 void BindPolymerase::Execute() {
   auto polymer = ChoosePolymer();
   auto new_pol = std::make_shared<Polymerase>(pol_template_);
   polymer->Bind(new_pol, promoter_name_);
-  SpeciesTracker::Instance().propensity_signal_.Emit(polymer->index());
+  SpeciesTracker::Instance().propensity_signal_.Emit(polymer->wrapper());
   // Polymer should handle decrementing promoter
   SpeciesTracker::Instance().Increment(new_pol->name(), -1);
 }
@@ -101,12 +111,28 @@ void BindRnase::Execute() {
   auto polymer = ChoosePolymer();
   auto new_pol = std::make_shared<Rnase>(pol_template_);
   polymer->Bind(new_pol, promoter_name_);
-  SpeciesTracker::Instance().propensity_signal_.Emit(polymer->index());
+  SpeciesTracker::Instance().propensity_signal_.Emit(polymer->wrapper());
 }
 
 double BindRnase::CalculatePropensity() {
+  if (remove_ == true) {
+    old_prop_ = 0;
+  }
   auto &tracker = SpeciesTracker::Instance();
-  return rate_constant_ * tracker.species(promoter_name_);
+  double new_prop = rate_constant_ * tracker.species(promoter_name_);
+  double prop_diff = new_prop - old_prop_;
+  old_prop_ = new_prop;
+  return prop_diff;
+}
+
+PolymerWrapper::PolymerWrapper(Polymer::Ptr polymer) : polymer_(polymer) {
+  old_prop_ = 0;
+  polymer_->Initialize();
+}
+
+PolymerWrapper::~PolymerWrapper() {
+  polymer_->Unlink();
+  std::cout << "Destroying polymer wrapper." << std::endl;
 }
 
 void PolymerWrapper::index(int index) {
@@ -114,17 +140,10 @@ void PolymerWrapper::index(int index) {
   polymer_->index(index);
 }
 
-PolymerWrapper::PolymerWrapper(Polymer::Ptr polymer) : polymer_(polymer) {
-  polymer_->Initialize();
-}
-
-PolymerWrapper::~PolymerWrapper() {
-  // Destroy polymer
-}
-
 void PolymerWrapper::Execute() {
   polymer_->Execute();
-  if (polymer_->degrade() == true) {
+  if (polymer_->degrade() == true && polymer_->attached() == false) {
     remove_ = true;
+    std::cout << "Removing polymer wrapper...\n" << std::endl;
   }
 }

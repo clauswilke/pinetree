@@ -40,7 +40,7 @@ void SpeciesTracker::Increment(const std::string &species_name,
   }
   if (species_map_.count(species_name) > 0) {
     for (const auto &reaction : species_map_[species_name]) {
-      propensity_signal_.Emit(reaction->index());
+      propensity_signal_.Emit(reaction);
     }
   }
   if (species_[species_name] < 0) {
@@ -107,21 +107,21 @@ void SpeciesTracker::Remove(const std::string &promoter_name,
   }
 }
 
-void SpeciesTracker::TerminateTranscription(int polymer_index,
-                                            const std::string &pol_name,
-                                            const std::string &gene_name) {
+void SpeciesTracker::TerminateTranscription(
+    std::shared_ptr<PolymerWrapper> wrapper, const std::string &pol_name,
+    const std::string &gene_name) {
   Increment(pol_name, 1);
-  propensity_signal_.Emit(polymer_index);
+  propensity_signal_.Emit(wrapper);
   // CountTermination("transcript");
 }
 
-void SpeciesTracker::TerminateTranslation(int polymer_index,
-                                          const std::string &pol_name,
-                                          const std::string &gene_name) {
+void SpeciesTracker::TerminateTranslation(
+    std::shared_ptr<PolymerWrapper> wrapper, const std::string &pol_name,
+    const std::string &gene_name) {
   Increment(pol_name, 1);
   Increment(gene_name, 1);
   IncrementRibo(gene_name, -1);
-  propensity_signal_.Emit(polymer_index);
+  propensity_signal_.Emit(wrapper);
   // CountTermination(gene_name);
 }
 

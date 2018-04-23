@@ -16,9 +16,9 @@ class Gillespie {
    */
   void DeleteReaction(int index);
   /**
-   * Update propensity of a reaction at a given index.
+   * Update propensity of a reaction.
    */
-  void UpdatePropensity(int index);
+  void UpdatePropensity(Reaction::Ptr reaction);
   /**
    * Execute one iteration of the gillespie algorithm.
    */

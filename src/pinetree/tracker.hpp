@@ -88,7 +88,8 @@ class SpeciesTracker {
    * @param gene_name name of last gene on the polymerase encountered (not
    *  currently used, but may be used in future)
    */
-  void TerminateTranscription(int polymer_index, const std::string &pol_name,
+  void TerminateTranscription(std::shared_ptr<PolymerWrapper> wrapper,
+                              const std::string &pol_name,
                               const std::string &gene_name);
   /**
    * Update propensities and species counts after translation has terminated.
@@ -97,7 +98,8 @@ class SpeciesTracker {
    * @param pol_name name of ribosome completing transcription
    * @param protein_name name of newly-synthesized protein
    */
-  void TerminateTranslation(int polymer_index, const std::string &pol_name,
+  void TerminateTranslation(std::shared_ptr<PolymerWrapper> wrapper,
+                            const std::string &pol_name,
                             const std::string &protein_name);
   /**
    * Get polymers that contain a given promoter.
@@ -130,7 +132,7 @@ class SpeciesTracker {
   /**
    * Signal to fire when propensity needs to be updated.
    */
-  Signal<int> propensity_signal_;
+  Signal<std::shared_ptr<Reaction>> propensity_signal_;
 
  private:
   /**

@@ -104,11 +104,31 @@ Polymer::Polymer(const std::string &name, int start, int stop)
 }
 
 Polymer::~Polymer() {
-  // TODO: error check to make sure nothing is uncovered
+  // Error check to make sure nothing is uncovered
   // and no polymerases are bound
+  std::cout << "Begin destroying polymer." << std::endl;
+  polymerases_.Delete(0);
+  if (polymerases_.prop_sum() != 0) {
+    throw std::runtime_error(
+        "Attempting to destruct Polymer object with Polymerases still "
+        "attached." +
+        std::to_string(polymerases_.prop_sum()));
+  }
+  for (auto const &site : uncovered_) {
+    if (site.second != 0) {
+      throw std::runtime_error(
+          "Attempting to destruct Polymer object with uncovered binding "
+          "sites.");
+    }
+  }
+}
+
+void Polymer::Unlink() {
+  // Remove all pointers to polymer from promoter-polymer map
   std::vector<Interval<BindingSite::Ptr>> results;
   binding_sites_.findOverlapping(start_, stop_, results);
   for (auto &interval : results) {
+    std::cout << "Destroying " + interval.value->name() + " \n" << std::endl;
     SpeciesTracker::Instance().Remove(interval.value->name(),
                                       shared_from_this());
   }
@@ -312,13 +332,10 @@ void Polymer::Move(int pol_index) {
 
   // Check for new covered and uncovered elements
   if (pol->name() == "ribosome") {
-    std::cout << "CheckBehind pol" << std::endl;
+    // std::cout << "CheckBehind pol" << std::endl;
   }
   CheckBehind(old_start, pol->start());
   if (pol->name() == "__rnase") {
-    std::cout << "Checking ahead RNase " + std::to_string(pol->start()) + ", " +
-                     std::to_string(pol->stop())
-              << std::endl;
     CheckAheadRnase(old_stop, pol->stop());
   } else {
     CheckAhead(old_stop, pol->stop());
@@ -353,11 +370,11 @@ void Polymer::CheckAheadRnase(int old_stop, int new_stop) {
       if (interval.value->WasCovered()) {
         // Record changes that species was covered
         LogCover(interval.value->name());
-        std::cout << "Decrementing transcript " + interval.value->gene() +
-                         interval.value->name() +
-                         std::to_string(SpeciesTracker::Instance().transcripts(
-                             interval.value->gene()))
-                  << std::endl;
+        // std::cout << "Decrementing transcript " + interval.value->gene() +
+        //                  interval.value->name() +
+        //                  std::to_string(SpeciesTracker::Instance().transcripts(
+        //                      interval.value->gene()))
+        //           << std::endl;
         if (interval.value->gene() != "") {
           SpeciesTracker::Instance().IncrementTranscript(interval.value->gene(),
                                                          -1);
@@ -372,17 +389,17 @@ void Polymer::CheckBehind(int old_start, int new_start) {
   std::vector<Interval<BindingSite::Ptr>> results;
   binding_sites_.findOverlapping(old_start, new_start + 1, results);
   for (auto &interval : results) {
-    std::cout << interval.value->name() + " " +
-                     std::to_string(interval.value->start()) +
-                     std::to_string(interval.value->stop()) + " " +
-                     std::to_string(new_start)
-              << std::endl;
+    // std::cout << interval.value->name() + " " +
+    //                  std::to_string(interval.value->start()) +
+    //                  std::to_string(interval.value->stop()) + " " +
+    //                  std::to_string(new_start)
+    //           << std::endl;
     if (interval.value->stop() < new_start) {
-      std::cout << interval.value->name() << std::endl;
+      // std::cout << interval.value->name() << std::endl;
       interval.value->Uncover();
       if (interval.value->WasUncovered()) {
         if (interval.value->CheckInteraction("ribosome")) {
-          std::cout << "RBS uncovered!" << std::endl;
+          // std::cout << "RBS uncovered!" << std::endl;
         }
         // Record changes that species was covered
         LogUncover(interval.value->name());
@@ -418,11 +435,12 @@ bool Polymer::CheckTermination(int pol_index) {
   auto pol = polymerases_.GetPol(pol_index);
   if (pol->stop() >= stop_) {
     if (pol->name() == "__rnase") {
-      std::cout << "rnase ran off end of transcript" << std::endl;
+      // std::cout << "rnase ran off end of transcript" << std::endl;
       polymerases_.Delete(pol_index);
+      degrade_ = true;
       return true;
     } else {
-      termination_signal_.Emit(index_, pol->name(), "NA");
+      termination_signal_.Emit(wrapper(), pol->name(), "NA");
       polymerases_.Delete(pol_index);
       return true;
     }
@@ -433,10 +451,10 @@ bool Polymer::CheckTermination(int pol_index) {
     if (interval.value->CheckInteraction(pol->name(), pol->reading_frame()) &&
         !interval.value->readthrough()) {
       // terminate
-      std::cout << pol->name() + " " + interval.value->name() << std::endl;
+      // std::cout << pol->name() + " " + interval.value->name() << std::endl;
       double random_num = Random::random();
       if (random_num <= interval.value->efficiency(pol->name())) {
-        std::cout << pol->name() + " terminating" << std::endl;
+        // std::cout << pol->name() + " terminating" << std::endl;
         // Fire Emit signal until entire terminator is uncovered
         // Coordinates are inclusive, so must add 1 after calculating
         // difference
@@ -446,8 +464,10 @@ bool Polymer::CheckTermination(int pol_index) {
           for (int i = 0; i < dist; i++) {
             transcript->ShiftMask();
           }
+          transcript->attached(false);
         }
-        termination_signal_.Emit(index_, pol->name(), interval.value->gene());
+        termination_signal_.Emit(wrapper(), pol->name(),
+                                 interval.value->gene());
         polymerases_.Delete(pol_index);
         return true;
       } else {
@@ -470,6 +490,15 @@ bool Polymer::CheckMaskCollisions(MobileElement::Ptr pol) {
     if (mask_.CheckInteraction(pol->name())) {
       ShiftMask();
     } else {
+      if (pol->name() == "__rnase" && attached_ == false) {
+        degrade_ = true;
+        if (polymerases_.prop_sum() - 30 != 0) {
+          throw std::runtime_error(
+              "Attempting to mark Polymer for degradation Polymerases still "
+              "attached." +
+              std::to_string(polymerases_.prop_sum()));
+        }
+      }
       return true;
     }
   }
@@ -516,6 +545,7 @@ Transcript::Transcript(
   polymerases_ = MobileElementManager(weights_);
   binding_intervals_ = rbs_intervals;
   release_intervals_ = stop_site_intervals;
+  attached_ = true;
 }
 
 void Transcript::Bind(MobileElement::Ptr pol,

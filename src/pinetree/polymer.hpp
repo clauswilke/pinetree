@@ -14,6 +14,8 @@
  * Hack-y forward declaration.
  */
 class Polymer;
+class PolymerWrapper;
+class Reaction;
 
 /**
  * Manages all MobileElements (e.g., polymerases and ribosomes) on a Polymer.
@@ -80,6 +82,7 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    * polymerases on here.
    */
   ~Polymer();
+  void Unlink();
   /**
    * Some convenience typedefs.
    */
@@ -134,13 +137,20 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
   int start() const { return start_; }
   int stop() const { return stop_; }
   bool degrade() { return degrade_; }
+  bool attached() { return attached_; }
+  void attached(bool attached) { attached_ = attached; }
+  void wrapper(std::shared_ptr<PolymerWrapper> wrapper) { wrapper_ = wrapper; }
+  std::shared_ptr<PolymerWrapper> wrapper() { return wrapper_.lock(); }
 
   /**
    * Signal to fire when a polymerase terminates.
    */
-  Signal<int, const std::string &, const std::string &> termination_signal_;
+  Signal<std::shared_ptr<PolymerWrapper>, const std::string &,
+         const std::string &>
+      termination_signal_;
 
  protected:
+  std::weak_ptr<PolymerWrapper> wrapper_;
   int index_;
   /**
    * Name of polymer
@@ -171,6 +181,7 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    * Should this polymer be degraded?
    */
   bool degrade_ = false;
+  bool attached_ = false;
 
   std::vector<Interval<BindingSite::Ptr>> binding_intervals_;
   std::vector<Interval<ReleaseSite::Ptr>> release_intervals_;

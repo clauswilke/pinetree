@@ -13,22 +13,38 @@ void Gillespie::LinkReaction(Reaction::Ptr reaction) {
 }
 
 void Gillespie::DeleteReaction(int index) {
+  if (index >= reactions_.size() || index < 0) {
+    throw std::range_error(
+        "Gillespie: Reaction index out of range for reaction deletion.");
+  }
   // Update alpha sum
-  alpha_sum_ -= alpha_list_[index];
+  alpha_sum_ -= reactions_[index]->CalculatePropensity();
   // Remove from alpha list
   alpha_list_.erase(alpha_list_.begin() + index);
   // Remove from reactions list
   reactions_.erase(reactions_.begin() + index);
 }
 
-void Gillespie::UpdatePropensity(int index) {
-  if (index >= reactions_.size() || index >= alpha_list_.size() || index < 0) {
-    throw std::range_error("Gillespie: Reaction index out of range.");
+void Gillespie::UpdatePropensity(Reaction::Ptr reaction) {
+  // if (index >= reactions_.size() || index >= alpha_list_.size() || index < 0)
+  // {
+  //  throw std::range_error(
+  //      "Gillespie: Reaction index out of range for propensity update.");
+  // }
+  // double new_prop = reactions_[index]->CalculatePropensity();
+  // double diff = new_prop - alpha_list_[index];
+  // alpha_sum_ += diff;
+  // alpha_list_[index] = new_prop;
+  double alpha_diff = reaction->CalculatePropensity();
+  auto it = std::find(reactions_.begin(), reactions_.end(), reaction);
+  if (it != reactions_.end()) {
+    auto index = std::distance(reactions_.begin(), it);
+    alpha_list_[index] += alpha_diff;
+  } else {
+    throw std::runtime_error(
+        "Attempting to update propensity of invalid reaction.");
   }
-  double new_prop = reactions_[index]->CalculatePropensity();
-  double diff = new_prop - alpha_list_[index];
-  alpha_sum_ += diff;
-  alpha_list_[index] = new_prop;
+  alpha_sum_ += alpha_diff;
 }
 
 void Gillespie::Iterate() {
@@ -52,8 +68,10 @@ void Gillespie::Iterate() {
   // Randomly select next reaction to execute, weighted by propensities
   auto next_reaction = Random::WeightedChoiceIndex(reactions_, alpha_list_);
   reactions_[next_reaction]->Execute();
-  UpdatePropensity(next_reaction);
+  std::cout << std::to_string(alpha_list_[next_reaction]) << std::endl;
+  UpdatePropensity(reactions_[next_reaction]);
   if (reactions_[next_reaction]->remove() == true) {
+    std::cout << std::to_string(alpha_list_[next_reaction]) << std::endl;
     DeleteReaction(next_reaction);
   }
   iteration_++;
@@ -67,12 +85,12 @@ void Gillespie::Initialize() {
   }
   // Update all propensities
   for (int i = 0; i < reactions_.size(); i++) {
-    UpdatePropensity(i);
+    UpdatePropensity(reactions_[i]);
   }
   // Make sure prop sum is starting from 0, sum over all propensities.
-  alpha_sum_ = 0;
-  for (const auto &alpha : alpha_list_) {
-    alpha_sum_ += alpha;
-  }
+  // alpha_sum_ = 0;
+  // for (const auto &alpha : alpha_list_) {
+  //  alpha_sum_ += alpha;
+  // }
   initialized_ = true;
 }

@@ -43,6 +43,8 @@ class Reaction : public std::enable_shared_from_this<Reaction> {
    * The index of this reaction in the reaction list maintained by Model.
    */
   int index_;
+
+  double old_prop_ = 0;
   /**
    * Flag to mark reaction for removal.
    */
@@ -73,7 +75,7 @@ class SpeciesReaction : public Reaction {
    */
   typedef std::shared_ptr<SpeciesReaction> Ptr;
   /**
-   * Calculate propensity of this reaction.
+   * Calculate *change* in propensity of this reaction.
    *
    * @return propensity of reaction
    */
@@ -229,7 +231,14 @@ class PolymerWrapper : public Reaction {
    *
    * @return total propensity of reactions within polymer
    */
-  double CalculatePropensity() { return polymer_->prop_sum(); }
+  double CalculatePropensity() {
+    if (remove_ == true) {
+      old_prop_ = 0;
+    }
+    double new_prop = polymer_->prop_sum() - old_prop_;
+    old_prop_ = polymer_->prop_sum();
+    return new_prop;
+  }
   /**
    * Execute reaction within polymer (e.g. typically moving a polymerase)
    */
