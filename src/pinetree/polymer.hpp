@@ -75,6 +75,12 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    */
   Polymer(const std::string &name, int start, int stop);
   /**
+   * Remove from promoter-polymer lap. Error checking to make sure this
+   * polymer is no longer linked to a polymerase. Make sure there are no
+   * polymerases on here.
+   */
+  ~Polymer();
+  /**
    * Some convenience typedefs.
    */
   typedef std::shared_ptr<Polymer> Ptr;

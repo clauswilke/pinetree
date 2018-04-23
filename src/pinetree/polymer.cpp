@@ -103,6 +103,17 @@ Polymer::Polymer(const std::string &name, int start, int stop)
   mask_ = Mask(stop_ + 1, stop_, interaction_map);
 }
 
+Polymer::~Polymer() {
+  // TODO: error check to make sure nothing is uncovered
+  // and no polymerases are bound
+  std::vector<Interval<BindingSite::Ptr>> results;
+  binding_sites_.findOverlapping(start_, stop_, results);
+  for (auto &interval : results) {
+    SpeciesTracker::Instance().Remove(interval.value->name(),
+                                      shared_from_this());
+  }
+}
+
 void Polymer::Initialize() {
   // Construct invterval trees
   binding_sites_ = IntervalTree<BindingSite::Ptr>(binding_intervals_);
@@ -115,17 +126,12 @@ void Polymer::Initialize() {
   binding_sites_.findOverlapping(mask_start, mask_stop, results);
 
   for (auto &interval : results) {
-    // TODO: move to bridge reaction
+    // TODO: move to wrapper reaction
     SpeciesTracker::Instance().Add(interval.value->name(), shared_from_this());
     interval.value->Cover();
     interval.value->ResetState();
-    if (interval.value->name() == "__rnase_site") {
-      std::cout << "rnase_site covered" << std::endl;
-    }
     // We don't need to log anything here because covered promoters are
     // invisible to SpeciesTracker.
-    // TODO: REMOVE THIS AFTER DEBUGGING
-    // LogCover(interval.value->name());
   }
   // Make sure all unmasked sites are uncovered
   results.clear();
@@ -233,7 +239,6 @@ void Polymer::ShiftMask() {
   if (mask_.start() <= mask_.stop()) {
     int old_start = mask_.start();
     mask_.Move();
-    std::cout << "CheckBehind mask" << std::endl;
     CheckBehind(old_start, mask_.start());
   }
 }

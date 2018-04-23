@@ -96,6 +96,17 @@ void SpeciesTracker::Add(const std::string &promoter_name,
   }
 }
 
+void SpeciesTracker::Remove(const std::string &promoter_name,
+                            Polymer::Ptr polymer) {
+  if (promoter_map_.count(promoter_name) != 0) {
+    auto it = std::find(promoter_map_[promoter_name].begin(),
+                        promoter_map_[promoter_name].end(), polymer);
+    if (it != promoter_map_[promoter_name].end()) {
+      promoter_map_[promoter_name].erase(it);
+    }
+  }
+}
+
 void SpeciesTracker::TerminateTranscription(int polymer_index,
                                             const std::string &pol_name,
                                             const std::string &gene_name) {

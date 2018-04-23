@@ -81,7 +81,6 @@ void Simulation::RegisterGenome(Genome::Ptr genome) {
 
 void Simulation::RegisterTranscript(Transcript::Ptr transcript) {
   RegisterPolymer(transcript);
-  std::cout << "transcript registered" << std::endl;
   transcript->termination_signal_.ConnectMember(
       &SpeciesTracker::Instance(), &SpeciesTracker::TerminateTranslation);
 }
@@ -111,17 +110,14 @@ void Simulation::Initialize() {
     if (genome->transcript_degradation_rate() != 0.0) {
       // TODO: user defined Rnase speed
       auto rnase_template = Rnase(10, 30);
-      std::cout << "Adding reaction..." << std::endl;
       auto reaction = std::make_shared<BindRnase>(
           genome->transcript_degradation_rate(), cell_volume_, rnase_template);
       auto &tracker = SpeciesTracker::Instance();
-      std::cout << "adding rnase reaction..." << std::endl;
       tracker.Add("__rnase_site", reaction);
       tracker.Add("__rnase", reaction);
       gillespie_.LinkReaction(reaction);
     }
   }
-  // TODO: Add Rnase binding site reaction here.
 }
 
 void Simulation::CountTermination(const std::string &name) {

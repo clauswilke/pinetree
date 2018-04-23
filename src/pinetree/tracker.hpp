@@ -73,6 +73,13 @@ class SpeciesTracker {
    */
   void Add(const std::string &promoter_name, Polymer::Ptr polymer);
   /**
+   * Remove a promoter-polymer pair from promoter-polymer map.
+   *
+   * @param promter_name of promoter
+   * @param polymer polymer object that contains the named promoter (pointer)
+   */
+  void Remove(const std::string &promoter_name, Polymer::Ptr polymer);
+  /**
    * Update propensities and species counts after transcription has
    * terminated.
    *
