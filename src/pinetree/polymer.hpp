@@ -127,6 +127,7 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
   int uncovered(const std::string &name) { return uncovered_[name]; }
   int start() const { return start_; }
   int stop() const { return stop_; }
+  bool degrade() { return degrade_; }
 
   /**
    * Signal to fire when a polymerase terminates.

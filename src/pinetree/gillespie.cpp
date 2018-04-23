@@ -12,6 +12,15 @@ void Gillespie::LinkReaction(Reaction::Ptr reaction) {
   }
 }
 
+void Gillespie::DeleteReaction(int index) {
+  // Update alpha sum
+  alpha_sum_ -= alpha_list_[index];
+  // Remove from alpha list
+  alpha_list_.erase(alpha_list_.begin() + index);
+  // Remove from reactions list
+  reactions_.erase(reactions_.begin() + index);
+}
+
 void Gillespie::UpdatePropensity(int index) {
   if (index >= reactions_.size() || index >= alpha_list_.size() || index < 0) {
     throw std::range_error("Gillespie: Reaction index out of range.");
@@ -44,6 +53,9 @@ void Gillespie::Iterate() {
   auto next_reaction = Random::WeightedChoiceIndex(reactions_, alpha_list_);
   reactions_[next_reaction]->Execute();
   UpdatePropensity(next_reaction);
+  if (reactions_[next_reaction]->remove() == true) {
+    DeleteReaction(next_reaction);
+  }
   iteration_++;
 }
 

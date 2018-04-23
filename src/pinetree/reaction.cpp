@@ -20,8 +20,7 @@ SpeciesReaction::SpeciesReaction(double rate_constant, double volume,
     throw std::invalid_argument(
         "You must specify at least one product or reactant.");
   }
-  if (rate_constant <= 0)
-  {
+  if (rate_constant <= 0) {
     throw std::invalid_argument("Reaction rate constant cannot be zero.");
   }
   if (volume <= 0) {
@@ -119,4 +118,13 @@ PolymerWrapper::PolymerWrapper(Polymer::Ptr polymer) : polymer_(polymer) {
   polymer_->Initialize();
 }
 
-void PolymerWrapper::Execute() { polymer_->Execute(); }
+PolymerWrapper::~PolymerWrapper() {
+  // Destroy polymer
+}
+
+void PolymerWrapper::Execute() {
+  polymer_->Execute();
+  if (polymer_->degrade() == true) {
+    remove_ = true;
+  }
+}

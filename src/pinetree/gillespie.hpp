@@ -12,6 +12,10 @@ class Gillespie {
    */
   void LinkReaction(Reaction::Ptr reaction);
   /**
+   * Remove Reaction object from reaction queue.
+   */
+  void DeleteReaction(int index);
+  /**
    * Update propensity of a reaction at a given index.
    */
   void UpdatePropensity(int index);

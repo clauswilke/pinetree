@@ -27,6 +27,12 @@ class Reaction : public std::enable_shared_from_this<Reaction> {
    */
   virtual void Execute() = 0;
   /**
+   * Should this reaction be removed from the reaction queue?
+   *
+   * @return true if reaction should be removed
+   */
+  bool remove() { return remove_; }
+  /**
    * Some getters and setters.
    */
   virtual int index() const { return index_; }
@@ -34,9 +40,13 @@ class Reaction : public std::enable_shared_from_this<Reaction> {
 
  protected:
   /**
-   * The index of this reaction in the reaction list maintained by Simulation.
+   * The index of this reaction in the reaction list maintained by Model.
    */
   int index_;
+  /**
+   * Flag to mark reaction for removal.
+   */
+  bool remove_ = false;
 };
 
 /**
@@ -209,6 +219,10 @@ class PolymerWrapper : public Reaction {
    *  encapsulating
    */
   PolymerWrapper(Polymer::Ptr polymer);
+  /**
+   * Make sure polymer that this object is wrapping is properly destroyed.
+   */
+  ~PolymerWrapper();
   /**
    * Retrieve total propensity of all reactions tha tmay occur within this
    * polymer.
