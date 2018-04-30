@@ -33,6 +33,7 @@ void MobileElementManager::Insert(MobileElement::Ptr pol,
   if (prop_list_.size() != polymerases_.size()) {
     throw std::runtime_error("Prop list not correct size.");
   }
+  // Keep running count of non-RNAse mobile elements
   if (pol->name() != "__rnase") {
     pol_count_ += 1;
   }
@@ -40,6 +41,7 @@ void MobileElementManager::Insert(MobileElement::Ptr pol,
 
 void MobileElementManager::Delete(int index) {
   prop_sum_ -= prop_list_[index];
+  // Keep running count of non-RNAse mobile elements
   if (polymerases_[index].first->name() != "__rnase") {
     pol_count_ -= 1;
   }

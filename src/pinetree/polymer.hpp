@@ -91,7 +91,9 @@ class MobileElementManager {
    */
   double prop_sum_ = 0;
   /**
-   * Total number of polymerases (anything except RNases)
+   * Total number of polymerases (anything except RNases). Used to make sure
+   * that there are no active polymerases left on the polymer before degrading
+   * polymer.
    */
   int pol_count_ = 0;
   /**
