@@ -132,7 +132,7 @@ PolymerWrapper::PolymerWrapper(Polymer::Ptr polymer) : polymer_(polymer) {
 
 PolymerWrapper::~PolymerWrapper() {
   polymer_->Unlink();
-  std::cout << "Destroying polymer wrapper." << std::endl;
+  // std::cout << "Destroying polymer wrapper." << std::endl;
 }
 
 void PolymerWrapper::index(int index) {
@@ -144,6 +144,6 @@ void PolymerWrapper::Execute() {
   polymer_->Execute();
   if (polymer_->degrade() == true && polymer_->attached() == false) {
     remove_ = true;
-    std::cout << "Removing polymer wrapper...\n" << std::endl;
+    // std::cout << "Removing polymer wrapper...\n" << std::endl;
   }
 }

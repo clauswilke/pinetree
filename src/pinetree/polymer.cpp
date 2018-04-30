@@ -112,7 +112,8 @@ Polymer::Polymer(const std::string &name, int start, int stop)
 Polymer::~Polymer() {
   // Error check to make sure nothing is uncovered
   // and no polymerases are bound
-  std::cout << "Begin destroying polymer." << std::endl;
+  //
+  // std::cout << "Begin destroying polymer." << std::endl;
   polymerases_.Delete(0);
   if (polymerases_.prop_sum() != 0) {
     throw std::runtime_error(
@@ -134,7 +135,7 @@ void Polymer::Unlink() {
   std::vector<Interval<BindingSite::Ptr>> results;
   binding_sites_.findOverlapping(start_, stop_, results);
   for (auto &interval : results) {
-    std::cout << "Destroying " + interval.value->name() + " \n" << std::endl;
+    // std::cout << "Destroying " + interval.value->name() + " \n" << std::endl;
     SpeciesTracker::Instance().Remove(interval.value->name(),
                                       shared_from_this());
   }
@@ -173,9 +174,9 @@ void Polymer::Initialize() {
     total_elements_ += 1;
   }
 
-  for (auto elem : uncovered_) {
-    std::cout << elem.first + " " + std::to_string(elem.second) << std::endl;
-  }
+  // for (auto elem : uncovered_) {
+  //  std::cout << elem.first + " " + std::to_string(elem.second) << std::endl;
+  // }
 }
 
 BindingSite::Ptr Polymer::FindBindingSite(MobileElement::Ptr pol,
@@ -659,7 +660,7 @@ Transcript::Ptr Genome::BuildTranscript(int start, int stop) {
 
   // Add __rnase_site
   if (transcript_degradation_rate_ != 0) {
-    std::cout << "Adding degradation site" << std::endl;
+    // std::cout << "Adding degradation site" << std::endl;
     rbs_intervals.emplace_back(
         start + 1, start + 1 + 10,
         std::make_shared<BindingSite>(
