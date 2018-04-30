@@ -2,8 +2,8 @@
 #include <pybind11/stl.h>
 #include "choices.hpp"
 #include "feature.hpp"
-#include "reaction.hpp"
 #include "polymer.hpp"
+#include "reaction.hpp"
 #include "simulation.hpp"
 #include "tracker.hpp"
 
@@ -121,22 +121,50 @@ PYBIND11_MODULE(core, m) {
       .def_property("reading_frame",
                     (int (Rnase::*)(void) const) & Rnase::reading_frame,
                     (void (Rnase::*)(int)) & Rnase::reading_frame);
-  
-  py::class_<SpeciesReaction, std::shared_ptr<SpeciesReaction>>(m, 
-            "SpeciesReaction", 
-            R"doc(
+
+  py::class_<SpeciesReaction, std::shared_ptr<SpeciesReaction>>(
+      m, "SpeciesReaction",
+      R"doc(
             
             Defines reactions between two or fewer species (with stoichiometries
              of 1). For internal use only.
             
             )doc")
-      .def(py::init<double, double, 
-           std::vector<std::string>, std::vector<std::string>>())
+      .def(py::init<double, double, std::vector<std::string>,
+                    std::vector<std::string>>())
       .def("caculate_propensity", &SpeciesReaction::CalculatePropensity)
       .def("execute", &SpeciesReaction::Execute)
-      .def_property_readonly("reactants", (std::vector<std::string> (SpeciesReaction::*)(void) const) & SpeciesReaction::reactants)
-      .def_property_readonly("products", (std::vector<std::string> (SpeciesReaction::*)(void) const) & SpeciesReaction::products);
+      .def_property_readonly(
+          "reactants",
+          (std::vector<std::string>(SpeciesReaction::*)(void) const) &
+              SpeciesReaction::reactants)
+      .def_property_readonly(
+          "products",
+          (std::vector<std::string>(SpeciesReaction::*)(void) const) &
+              SpeciesReaction::products);
 
+  py::class_<MobileElementManager, std::shared_ptr<MobileElementManager>>(
+      m, "MobileElementManager",
+      R"doc(
+
+      Manages MobileElements (polymerases, ribosomes, RNases) on a Polymer. For
+      internal use only.
+  
+      )doc")
+      .def(py::init<std::vector<double>>())
+      .def("insert", &MobileElementManager::Insert)
+      .def("delete", &MobileElementManager::Delete)
+      .def("choose", &MobileElementManager::Choose)
+      .def("valid_index", &MobileElementManager::ValidIndex)
+      .def("get_pol", &MobileElementManager::GetPol)
+      .def("get_attached", &MobileElementManager::GetAttached)
+      .def("update_propensity", &MobileElementManager::UpdatePropensity)
+      .def_property_readonly("prop_sum",
+                             (double (MobileElementManager::*)(void)) &
+                                 MobileElementManager::prop_sum)
+      .def_property_readonly("pol_count",
+                             (int (MobileElementManager::*)(void)) &
+                                 MobileElementManager::pol_count);
 
   py::class_<Simulation, std::shared_ptr<Simulation>>(m, "Simulation",
                                                       R"doc(
