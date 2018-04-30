@@ -19,30 +19,94 @@ class Reaction;
 
 /**
  * Manages all MobileElements (e.g., polymerases and ribosomes) on a Polymer.
- * MobileElements are maintained in order. This class also tracks the total
- * propensity of all the MobileElements.
+ * MobileElements are maintained in order. It also tracks any polymers
+ * (transcripts) that may be attached to a polymerase. This class also tracks
+ * the total propensity of all the MobileElements.
  */
 class MobileElementManager {
  public:
+  /**
+   * Only constructor of MobileElementManager
+   *
+   * @param weights Base-pair specific movement weights.
+   */
   MobileElementManager(const std::vector<double> &weights);
+  /**
+   * Insert an MobileElement-Polymer pair while maintaining order of
+   * MobileElements
+   *
+   * @param pol polymerase
+   * @param polymer polymer that may be attached to MobileElement
+   */
   void Insert(std::shared_ptr<MobileElement> pol,
               std::shared_ptr<Polymer> polymer);
+  /**
+   * Delete a polymerase by index.
+   *
+   * @param index Index of polymerase-polymer pair
+   */
   void Delete(int index);
+  /**
+   * Return a randomly selected MobileElement, weighted by speed and base-pair
+   * specific weights.
+   *
+   * @return index of MobileElement-Polymer pair
+   */
   int Choose();
+  /**
+   * Is this a valid index?
+   *
+   * @param index Index of MobileElement-Polymer pair
+   * @return true if index is valid
+   */
   bool ValidIndex(int index) { return index < polymerases_.size(); };
+  /**
+   * Get a Polymer at a given index.
+   *
+   * @return pointer to MobileElement
+   */
   std::shared_ptr<MobileElement> GetPol(int index);
+  /**
+   * Get an attached Polymer at a given index.
+   *
+   * @param index of MobileElement-Polymer pair
+   * @return pointer to Polymer
+   */
   std::shared_ptr<Polymer> GetAttached(int index);
+  /**
+   * Update movement propensity of MobileElement at a given index.
+   *
+   * @param index Index of MobileElement-Polymer pair
+   */
   void UpdatePropensity(int index);
+  /**
+   * Getters and setters.
+   */
   double prop_sum() { return prop_sum_; }
   int pol_count() { return pol_count_; }
 
  private:
+  /**
+   * Total propensity sum of all MobileElements being tracked
+   */
   double prop_sum_ = 0;
+  /**
+   * Total number of polymerases (anything except RNases)
+   */
   int pol_count_ = 0;
+  /**
+   * Vector of propensities corresponding to each MobileElement-Polymer pair
+   */
   std::vector<double> prop_list_;
+  /**
+   * MobileElement-Polymer pairs
+   */
   std::vector<
       std::pair<std::shared_ptr<MobileElement>, std::shared_ptr<Polymer>>>
       polymerases_;
+  /**
+   * Base-pair specific movement weights.
+   */
   std::vector<double> weights_;
 };
 
