@@ -150,7 +150,7 @@ PYBIND11_MODULE(core, m) {
       Manages MobileElements (polymerases, ribosomes, RNases) on a Polymer. For
       internal use only.
   
-      )doc")
+      [])doc")
       .def(py::init<std::vector<double>>())
       .def("insert", &MobileElementManager::Insert)
       .def("delete", &MobileElementManager::Delete)
