@@ -33,10 +33,16 @@ void MobileElementManager::Insert(MobileElement::Ptr pol,
   if (prop_list_.size() != polymerases_.size()) {
     throw std::runtime_error("Prop list not correct size.");
   }
+  if (pol->name() != "__rnase") {
+    pol_count_ += 1;
+  }
 }
 
 void MobileElementManager::Delete(int index) {
   prop_sum_ -= prop_list_[index];
+  if (polymerases_[index].first->name() != "__rnase") {
+    pol_count_ -= 1;
+  }
   polymerases_.erase(polymerases_.begin() + index);
   prop_list_.erase(prop_list_.begin() + index);
   if (prop_list_.size() != polymerases_.size()) {
@@ -155,6 +161,8 @@ void Polymer::Initialize() {
   }
   // Make sure all unmasked sites are uncovered
   results.clear();
+  total_elements_ = 0;
+  degraded_elements_ = 0;
   binding_sites_.findContained(start_, mask_start, results);
   for (auto &interval : results) {
     // TODO: Move to bridge reaction
@@ -162,6 +170,7 @@ void Polymer::Initialize() {
     interval.value->Uncover();
     interval.value->ResetState();
     LogUncover(interval.value->name());
+    total_elements_ += 1;
   }
 
   for (auto elem : uncovered_) {
@@ -370,6 +379,7 @@ void Polymer::CheckAheadRnase(int old_stop, int new_stop) {
       if (interval.value->WasCovered()) {
         // Record changes that species was covered
         LogCover(interval.value->name());
+        degraded_elements_ += 1;
         // std::cout << "Decrementing transcript " + interval.value->gene() +
         //                  interval.value->name() +
         //                  std::to_string(SpeciesTracker::Instance().transcripts(
@@ -409,6 +419,7 @@ void Polymer::CheckBehind(int old_start, int new_start) {
           SpeciesTracker::Instance().IncrementTranscript(interval.value->gene(),
                                                          1);
           interval.value->first_exposure(true);
+          total_elements_ += 1;
         }
       }
       interval.value->ResetState();
@@ -490,14 +501,10 @@ bool Polymer::CheckMaskCollisions(MobileElement::Ptr pol) {
     if (mask_.CheckInteraction(pol->name())) {
       ShiftMask();
     } else {
-      if (pol->name() == "__rnase" && attached_ == false) {
+      if (pol->name() == "__rnase" && attached_ == false &&
+          degraded_elements_ == total_elements_ &&
+          polymerases_.pol_count() == 0) {
         degrade_ = true;
-        if (polymerases_.prop_sum() - 30 != 0) {
-          throw std::runtime_error(
-              "Attempting to mark Polymer for degradation Polymerases still "
-              "attached." +
-              std::to_string(polymerases_.prop_sum()));
-        }
       }
       return true;
     }

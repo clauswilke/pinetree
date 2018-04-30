@@ -74,6 +74,8 @@ class FixedElement : public std::enable_shared_from_this<FixedElement> {
   int stop() const { return stop_; }
   int reading_frame() const { return reading_frame_; }
   void reading_frame(int reading_frame) { reading_frame_ = reading_frame; }
+  bool first_exposure() const { return first_exposure_; }
+  void first_exposure(bool first_exposure) { first_exposure_ = first_exposure; }
 
  protected:
   /**
@@ -110,6 +112,10 @@ class FixedElement : public std::enable_shared_from_this<FixedElement> {
    * Reading frame for FixedElement.
    */
   int reading_frame_;
+  /**
+   * Has the site been exposed before?
+   */
+  bool first_exposure_;
 };
 
 /**
@@ -153,17 +159,8 @@ class BindingSite : public FixedElement {
    * @return bool true if MobileElement interacts with BindingSite
    */
   bool CheckInteraction(const std::string &name);
-  /**
-   * Getters and setters
-   */
-  bool first_exposure() const { return first_exposure_; }
-  void first_exposure(bool first_exposure) { first_exposure_ = first_exposure; }
 
  private:
-  /**
-   * Has the site been exposed before?
-   */
-  bool first_exposure_;
 };
 
 /**

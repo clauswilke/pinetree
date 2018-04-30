@@ -34,9 +34,11 @@ class MobileElementManager {
   std::shared_ptr<Polymer> GetAttached(int index);
   void UpdatePropensity(int index);
   double prop_sum() { return prop_sum_; }
+  int pol_count() { return pol_count_; }
 
  private:
   double prop_sum_ = 0;
+  int pol_count_ = 0;
   std::vector<double> prop_list_;
   std::vector<
       std::pair<std::shared_ptr<MobileElement>, std::shared_ptr<Polymer>>>
@@ -82,6 +84,9 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    * polymerases on here.
    */
   ~Polymer();
+  /**
+   * De-register polymer from promoter-polymer map in SpeciesTracker.
+   */
   void Unlink();
   /**
    * Some convenience typedefs.

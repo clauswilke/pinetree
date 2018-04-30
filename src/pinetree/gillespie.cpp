@@ -68,10 +68,10 @@ void Gillespie::Iterate() {
   // Randomly select next reaction to execute, weighted by propensities
   auto next_reaction = Random::WeightedChoiceIndex(reactions_, alpha_list_);
   reactions_[next_reaction]->Execute();
-  std::cout << std::to_string(alpha_list_[next_reaction]) << std::endl;
+  // std::cout << std::to_string(alpha_list_[next_reaction]) << std::endl;
   UpdatePropensity(reactions_[next_reaction]);
   if (reactions_[next_reaction]->remove() == true) {
-    std::cout << std::to_string(alpha_list_[next_reaction]) << std::endl;
+    // std::cout << std::to_string(alpha_list_[next_reaction]) << std::endl;
     DeleteReaction(next_reaction);
   }
   iteration_++;

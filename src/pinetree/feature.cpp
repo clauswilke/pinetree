@@ -49,6 +49,7 @@ BindingSite::Ptr BindingSite::Clone() const {
 ReleaseSite::ReleaseSite(const std::string &name, int start, int stop,
                          const std::map<std::string, double> &interactions)
     : FixedElement(name, start, stop, interactions) {
+  first_exposure_ = false;
   readthrough_ = false;
   for (auto const &item : interactions) {
     if (item.second < 0 || item.second > 1) {
