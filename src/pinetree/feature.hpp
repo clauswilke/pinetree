@@ -159,8 +159,17 @@ class BindingSite : public FixedElement {
    * @return bool true if MobileElement interacts with BindingSite
    */
   bool CheckInteraction(const std::string &name);
+  /**
+   * Mark this site as degraded.
+   */
+  void Degrade();
+  bool degraded() { return degraded_; }
 
  private:
+  /**
+   * Has this site been degraded? (I.e. covered by RNAse)
+   */
+  bool degraded_ = false;
 };
 
 /**
@@ -264,6 +273,8 @@ class MobileElement : public std::enable_shared_from_this<MobileElement> {
   int footprint() const { return footprint_; }
   int reading_frame() const { return reading_frame_; }
   void reading_frame(int reading_frame) { reading_frame_ = reading_frame; }
+  std::string gene_bound() const { return gene_bound_; }
+  void gene_bound(std::string gene) { gene_bound_ = gene; }
 
  protected:
   /**
@@ -291,6 +302,11 @@ class MobileElement : public std::enable_shared_from_this<MobileElement> {
    * Reading frame of polymerase (0, 1, or 2).
    */
   int reading_frame_;
+  /**
+   * Which gene did this MobileElement originally bind to?
+   * (used for ribosomes)
+   */
+  std::string gene_bound_ = "";
 };
 
 /**

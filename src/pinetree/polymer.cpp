@@ -116,8 +116,7 @@ Polymer::~Polymer() {
   // and no polymerases are bound
   //
   // std::cout << "Begin destroying polymer." << std::endl;
-  polymerases_.Delete(0);
-  if (polymerases_.prop_sum() != 0) {
+  if (polymerases_.pol_count() != 0) {
     throw std::runtime_error(
         "Attempting to destruct Polymer object with Polymerases still "
         "attached." +
@@ -221,6 +220,7 @@ void Polymer::Bind(MobileElement::Ptr pol, const std::string &promoter_name) {
   pol->start(elem->start());
   pol->stop(elem->start() + pol->footprint() - 1);
   pol->reading_frame(elem->reading_frame());
+  pol->gene_bound(elem->gene());
   // More error checking.
   if (pol->stop() >= mask_.start()) {
     std::string err = "MobileElement " + pol->name() +
@@ -245,9 +245,15 @@ void Polymer::Bind(MobileElement::Ptr pol, const std::string &promoter_name) {
       tracker.IncrementRibo(interval.value->gene(), 1);
     }
     if (pol->name() == "__rnase" &&
-        interval.value->CheckInteraction("ribosome")) {
-      auto &tracker = SpeciesTracker::Instance();
-      tracker.IncrementTranscript(interval.value->gene(), -1);
+        interval.value->CheckInteraction("ribosome") &&
+        interval.value->degraded() == false) {
+      // Only decrement transcript count if this binding site has
+      // been exposed and logged by SpeciesTracker before
+      if (interval.value->first_exposure() == true) {
+        auto &tracker = SpeciesTracker::Instance();
+        tracker.IncrementTranscript(interval.value->gene(), -1);
+      }
+      interval.value->Degrade();
     }
   }
   // Add polymerase to this polymer
@@ -382,17 +388,15 @@ void Polymer::CheckAheadRnase(int old_stop, int new_stop) {
       if (interval.value->WasCovered()) {
         // Record changes that species was covered
         LogCover(interval.value->name());
-        degraded_elements_ += 1;
-        // std::cout << "Decrementing transcript " + interval.value->gene() +
-        //                  interval.value->name() +
-        //                  std::to_string(SpeciesTracker::Instance().transcripts(
-        //                      interval.value->gene()))
-        //           << std::endl;
-        if (interval.value->gene() != "") {
-          SpeciesTracker::Instance().IncrementTranscript(interval.value->gene(),
-                                                         -1);
-        }
       }
+      if (interval.value->gene() != "" &&
+          interval.value->first_exposure() == true &&
+          interval.value->degraded() == false) {
+        degraded_elements_ += 1;
+        SpeciesTracker::Instance().IncrementTranscript(interval.value->gene(),
+                                                       -1);
+      }
+      interval.value->Degrade();
       interval.value->ResetState();
     }
   }
@@ -463,7 +467,8 @@ bool Polymer::CheckTermination(int pol_index) {
   release_sites_.findOverlapping(pol->start(), pol->stop(), results);
   for (auto &interval : results) {
     if (interval.value->CheckInteraction(pol->name(), pol->reading_frame()) &&
-        !interval.value->readthrough()) {
+        !interval.value->readthrough() &&
+        pol->gene_bound() == interval.value->gene()) {
       // terminate
       // std::cout << pol->name() + " " + interval.value->name() << std::endl;
       double random_num = Random::random();

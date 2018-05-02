@@ -46,6 +46,15 @@ BindingSite::Ptr BindingSite::Clone() const {
   return std::make_shared<BindingSite>(*this);
 }
 
+void BindingSite::Degrade() {
+  if (covered_ == 0) {
+    std::runtime_error(
+        "Attempting to mark an uncovered binding site for degradation.");
+  } else {
+    degraded_ = true;
+  }
+}
+
 ReleaseSite::ReleaseSite(const std::string &name, int start, int stop,
                          const std::map<std::string, double> &interactions)
     : FixedElement(name, start, stop, interactions) {

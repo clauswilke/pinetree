@@ -41,8 +41,11 @@ void Gillespie::UpdatePropensity(Reaction::Ptr reaction) {
     auto index = std::distance(reactions_.begin(), it);
     alpha_list_[index] += alpha_diff;
   } else {
-    throw std::runtime_error(
-        "Attempting to update propensity of invalid reaction.");
+    // Don't throw an error unless everything has been initialized
+    if (initialized_ == true) {
+      throw std::runtime_error(
+          "Attempting to update propensity of invalid reaction.");
+    }
   }
   alpha_sum_ += alpha_diff;
 }
