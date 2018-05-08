@@ -161,6 +161,15 @@ void Polymer::Initialize() {
     // We don't need to log anything here because covered promoters are
     // invisible to SpeciesTracker.
   }
+
+  std::vector<Interval<ReleaseSite::Ptr>> term_results;
+  release_sites_.findOverlapping(mask_start, mask_stop, term_results);
+
+  for (auto &interval : term_results) {
+    interval.value->Cover();
+    interval.value->ResetState();
+  }
+
   // Make sure all unmasked sites are uncovered
   results.clear();
   total_elements_ = 0;
@@ -220,7 +229,10 @@ void Polymer::Bind(MobileElement::Ptr pol, const std::string &promoter_name) {
   pol->start(elem->start());
   pol->stop(elem->start() + pol->footprint() - 1);
   pol->reading_frame(elem->reading_frame());
-  pol->gene_bound(elem->gene());
+  // Only set gene_bound_ for transcripts and ribosomes
+  if (pol->name() == "ribosome") {
+    pol->gene_bound(elem->gene());
+  }
   // More error checking.
   if (pol->stop() >= mask_.start()) {
     std::string err = "MobileElement " + pol->name() +
@@ -438,10 +450,18 @@ void Polymer::CheckBehind(int old_start, int new_start) {
   for (auto &interval : term_results) {
     if (interval.value->stop() < new_start) {
       interval.value->Uncover();
+      // if (interval.value->name() != "stop_codon") {
+      //   std::cout << "Terminator uncovered!" + interval.value->name()
+      //             << std::endl;
+      //   std::cout << interval.value->IsCovered() << std::endl;
+      // }
       if (interval.value->WasUncovered()) {
         // Record changes that species was covered
         // LogUncover(interval.value->name());
         // Is this a terminator being uncovered?
+        // if (interval.value->name() != "stop_codon") {
+        //   std::cout << "Readthrough set to false!" << std::endl;
+        // }
         interval.value->readthrough(false);
       }
       interval.value->ResetState();
@@ -490,6 +510,9 @@ bool Polymer::CheckTermination(int pol_index) {
         polymerases_.Delete(pol_index);
         return true;
       } else {
+        interval.value->Cover();
+        interval.value->ResetState();
+        // std::cout << "Readthrough set to true!" << std::endl;
         interval.value->readthrough(true);
       }
     }
