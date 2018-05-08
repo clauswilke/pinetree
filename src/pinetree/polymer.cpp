@@ -124,9 +124,14 @@ Polymer::~Polymer() {
   }
   for (auto const &site : uncovered_) {
     if (site.second != 0) {
-      throw std::runtime_error(
-          "Attempting to destruct Polymer object with uncovered binding "
-          "sites.");
+      if (site.first == "__rnase_site") {
+        LogCover(site.first);
+      } else {
+        throw std::runtime_error(
+            "Attempting to destruct Polymer object with uncovered binding "
+            "sites. " +
+            site.first);
+      }
     }
   }
 }
