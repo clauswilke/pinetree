@@ -199,7 +199,7 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
 
   /**
    * Getters and setters. There are two getters for prop_sum_... mostly to
-   * maintain the interface that Simulation expects.
+   * maintain the interface that Model expects.
    */
   void index(int index) { index_ = index; }
   int index() { return index_; }
@@ -263,7 +263,7 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    */
   Mask mask_ = Mask(0, 0, std::map<std::string, double>());
   /**
-   * Cached count of uncovered elements on this polymer, used by Simulation.
+   * Cached count of uncovered elements on this polymer, used by Model.
    */
   std::map<std::string, int> uncovered_;
 

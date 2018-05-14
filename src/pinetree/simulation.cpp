@@ -7,7 +7,7 @@
 #include "simulation.hpp"
 #include "tracker.hpp"
 
-Simulation::Simulation(double cell_volume) : cell_volume_(cell_volume) {
+Model::Model(double cell_volume) : cell_volume_(cell_volume) {
   auto &tracker = SpeciesTracker::Instance();
   tracker.Clear();
   gillespie_ = Gillespie();
@@ -15,10 +15,10 @@ Simulation::Simulation(double cell_volume) : cell_volume_(cell_volume) {
                                            &Gillespie::UpdatePropensity);
 }
 
-void Simulation::seed(int seed) { Random::seed(seed); }
+void Model::seed(int seed) { Random::seed(seed); }
 
-void Simulation::Run(int stop_time, int time_step,
-                     const std::string &output_prefix) {
+void Model::Run(int stop_time, int time_step,
+                const std::string &output_prefix) {
   auto &tracker = SpeciesTracker::Instance();
   Initialize();
   // Set up file output streams
@@ -37,9 +37,9 @@ void Simulation::Run(int stop_time, int time_step,
   countfile.close();
 }
 
-void Simulation::AddReaction(double rate_constant,
-                             const std::vector<std::string> &reactants,
-                             const std::vector<std::string> &products) {
+void Model::AddReaction(double rate_constant,
+                        const std::vector<std::string> &reactants,
+                        const std::vector<std::string> &products) {
   auto rxn = std::make_shared<SpeciesReaction>(rate_constant, cell_volume_,
                                                reactants, products);
   auto &tracker = SpeciesTracker::Instance();
@@ -52,7 +52,7 @@ void Simulation::AddReaction(double rate_constant,
   gillespie_.LinkReaction(rxn);
 }
 
-void Simulation::AddSpecies(const std::string &name, int copy_number) {
+void Model::AddSpecies(const std::string &name, int copy_number) {
   if (name.substr(0, 2) == "__") {
     throw std::invalid_argument(
         "Names prefixed with '__' (double underscore) are reserved for "
@@ -62,48 +62,47 @@ void Simulation::AddSpecies(const std::string &name, int copy_number) {
   tracker.Increment(name, copy_number);
 }
 
-void Simulation::AddPolymerase(const std::string &name, int footprint,
-                               double mean_speed, int copy_number) {
+void Model::AddPolymerase(const std::string &name, int footprint,
+                          double mean_speed, int copy_number) {
   auto pol = Polymerase(name, footprint, mean_speed);
   polymerases_.push_back(pol);
   auto &tracker = SpeciesTracker::Instance();
   tracker.Increment(name, copy_number);
 }
 
-void Simulation::AddRibosome(int footprint, double mean_speed,
-                             int copy_number) {
+void Model::AddRibosome(int footprint, double mean_speed, int copy_number) {
   auto pol = Polymerase("__ribosome", footprint, mean_speed);
   polymerases_.push_back(pol);
   auto &tracker = SpeciesTracker::Instance();
   tracker.Increment("__ribosome", copy_number);
 }
 
-void Simulation::RegisterPolymer(Polymer::Ptr polymer) {
+void Model::RegisterPolymer(Polymer::Ptr polymer) {
   // Encapsulate polymer in PolymerWrapper reaction and add to reaction list
   auto wrapper = std::make_shared<PolymerWrapper>(polymer);
   polymer->wrapper(wrapper);
   gillespie_.LinkReaction(wrapper);
 }
 
-void Simulation::RegisterGenome(Genome::Ptr genome) {
+void Model::RegisterGenome(Genome::Ptr genome) {
   RegisterPolymer(genome);
   genome->termination_signal_.ConnectMember(
       &SpeciesTracker::Instance(), &SpeciesTracker::TerminateTranscription);
   genome->transcript_signal_.ConnectMember(shared_from_this(),
-                                           &Simulation::RegisterTranscript);
+                                           &Model::RegisterTranscript);
   genomes_.push_back(genome);
 }
 
-void Simulation::RegisterTranscript(Transcript::Ptr transcript) {
+void Model::RegisterTranscript(Transcript::Ptr transcript) {
   RegisterPolymer(transcript);
   transcript->termination_signal_.ConnectMember(
       &SpeciesTracker::Instance(), &SpeciesTracker::TerminateTranslation);
 }
 
-void Simulation::Initialize() {
+void Model::Initialize() {
   if (genomes_.size() == 0) {
     std::cerr << "Warning: There are no Genome objects registered with "
-                 "Simulation. Did you forget to register a Genome?"
+                 "Model. Did you forget to register a Genome?"
               << std::endl;
   }
   // Create Bind reactions for each promoter-polymerase pair
@@ -137,7 +136,7 @@ void Simulation::Initialize() {
   }
 }
 
-void Simulation::CountTermination(const std::string &name) {
+void Model::CountTermination(const std::string &name) {
   auto new_name = name + "_total";
   if (terminations_.count(name) == 0) {
     terminations_[new_name] = 1;

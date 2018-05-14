@@ -166,8 +166,8 @@ PYBIND11_MODULE(core, m) {
                              (int (MobileElementManager::*)(void)) &
                                  MobileElementManager::pol_count);
 
-  py::class_<Simulation, std::shared_ptr<Simulation>>(m, "Simulation",
-                                                      R"doc(
+  py::class_<Model, std::shared_ptr<Model>>(m, "Model",
+                                            R"doc(
             
             Define and run a gene expression simulation.
             
@@ -177,11 +177,11 @@ PYBIND11_MODULE(core, m) {
             Examples:
 
                 >>> import pinetree.pinetree as pt
-                >>> sim = pt.Simulation(cell_volume=8e-16) # Approximate volume of E. coli cell
+                >>> sim = pt.Model(cell_volume=8e-16) # Approximate volume of E. coli cell
 
            )doc")
       .def(py::init<double>(), "cell_volume"_a)
-      .def("seed", &Simulation::seed,
+      .def("seed", &Model::seed,
            R"doc(
              
              Set a seed for reproducible simulations.
@@ -190,7 +190,7 @@ PYBIND11_MODULE(core, m) {
                 seed (int): a seed for the random number generator
 
              )doc")
-      .def("add_reaction", &Simulation::AddReaction, "rate_constant"_a,
+      .def("add_reaction", &Model::AddReaction, "rate_constant"_a,
            "reactants"_a, "products"_a, R"doc(
              
             Define a reaction between species, which may include free 
@@ -217,7 +217,7 @@ PYBIND11_MODULE(core, m) {
                 >>> coming soon
              
            )doc")
-      .def("add_species", &Simulation::AddSpecies, "name"_a, "copy_number"_a,
+      .def("add_species", &Model::AddSpecies, "name"_a, "copy_number"_a,
            R"doc(
            
            Defines individual chemical species not specified by either ``add_ribosome()`` or ``add_polymerase()``.
@@ -227,8 +227,8 @@ PYBIND11_MODULE(core, m) {
               copy_number (int): Initial number of copies of the chemical species 
 
            )doc")
-      .def("add_polymerase", &Simulation::AddPolymerase, "name"_a,
-           "footprint"_a, "speed"_a, "copy_number"_a, R"doc(
+      .def("add_polymerase", &Model::AddPolymerase, "name"_a, "footprint"_a,
+           "speed"_a, "copy_number"_a, R"doc(
 
            Add a polymerase to the simulation. Each type of polymerase should define the following fields:
            
@@ -242,7 +242,7 @@ PYBIND11_MODULE(core, m) {
                   the genome
 
            )doc")
-      .def("add_ribosome", &Simulation::AddRibosome, "footprint"_a, "speed"_a,
+      .def("add_ribosome", &Model::AddRibosome, "footprint"_a, "speed"_a,
            "copy_number"_a, R"doc(
 
            Add ribosomes to the simulation.
@@ -256,7 +256,7 @@ PYBIND11_MODULE(core, m) {
               footprint (int): Footprint, in base pairs, of the ribosome on RNA
 
            )doc")
-      .def("register_genome", &Simulation::RegisterGenome, R"doc(
+      .def("register_genome", &Model::RegisterGenome, R"doc(
         
         Register a genome with the simulation.
 
@@ -264,8 +264,8 @@ PYBIND11_MODULE(core, m) {
             genome (Genome): a pinetree ``Genome`` object.
         
         )doc")
-      .def("run", &Simulation::Run, "stop_time"_a, "time_step"_a,
-           "output_prefix"_a, R"doc(
+      .def("run", &Model::Run, "stop_time"_a, "time_step"_a, "output_prefix"_a,
+           R"doc(
             
             Run the simulation.
 

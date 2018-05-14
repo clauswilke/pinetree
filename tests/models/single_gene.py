@@ -3,7 +3,7 @@ import pinetree as pt
 
 def execute(output):
 
-    sim = pt.Simulation(cell_volume=8e-16)
+    sim = pt.Model(cell_volume=8e-16)
     sim.seed(34)
     sim.add_polymerase(name="rnapol", copy_number=1, speed=40, footprint=10)
     sim.add_ribosome(copy_number=1, speed=30, footprint=10)

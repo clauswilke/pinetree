@@ -16,7 +16,7 @@
  * Follows a singleton pattern:
  * http://stackoverflow.com/a/1008289/5360633
  *
- * TODO: Move propensity cache from Simulation into this class?
+ * TODO: Move propensity cache from Model into this class?
  */
 class SpeciesTracker {
  public:

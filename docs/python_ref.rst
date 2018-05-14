@@ -10,9 +10,9 @@ Parameter reference
 
 .. currentmodule:: pinetree
 
-Simulation
+Model
 ----------
-.. autoclass:: Simulation
+.. autoclass:: Model
     :members:
 
 Genome

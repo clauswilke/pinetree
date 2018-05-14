@@ -8,7 +8,7 @@ Installation
 Construct a simulation
 ----------------------
 
-All pinetree simulations begin with the construction of a Model object. At a minimum, Simulation must define the volume in which the simulation will take place.
+All pinetree simulations begin with the construction of a Model object. At a minimum, Model must define the volume in which the simulation will take place.
 
 ```
 import pinetree as pt
@@ -16,7 +16,7 @@ import pinetree as pt
 model = pt.Model()
 ``` 
 
-Next, we'll define a genome and register it with Simulation.
+Next, we'll define a genome and register it with Model.
 
 Defining a genome
 -----------------
@@ -36,7 +36,7 @@ plasmid.add_gene()
 plasmid.add_rnase_site()
 ```
 
-When all genetic elements have been added, register the Genome object with our Simulation object.
+When all genetic elements have been added, register the Genome object with our Model object.
 
 ```
 model.register_genome(plasmid)
@@ -47,7 +47,7 @@ At this point we could run the simulation, but nothing would happen because we h
 Defining polymerases and ribosomes
 ----------------------------------
 
-To simulate both transcription and translation, we'll add polymerases and then add ribosomes. Since these enzymes may interact with more than one type of genome, we add them to the Simulation object.
+To simulate both transcription and translation, we'll add polymerases and then add ribosomes. Since these enzymes may interact with more than one type of genome, we add them to the Model object.
 
 ```
 model.add_polymerase(name="T7rnapol", speed="", footprint="", copies=100)

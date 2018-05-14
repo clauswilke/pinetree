@@ -12,12 +12,12 @@
 /**
  * Coordinate polymers and species-level reactions.
  */
-class Simulation : public std::enable_shared_from_this<Simulation> {
+class Model : public std::enable_shared_from_this<Model> {
  public:
   /**
    * Construct a simulation
    */
-  Simulation(double cell_volume);
+  Model(double cell_volume);
   /**
    * Run the simulation until the given time point and write output to a file.
    *
