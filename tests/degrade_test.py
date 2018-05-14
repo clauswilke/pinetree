@@ -18,13 +18,13 @@ def execute(output):
                          interactions={"rnapol": 2e8})
     plasmid.add_terminator(name="t1", start=304, stop=305,
                            efficiency={"rnapol": 1.0})
-    plasmid.add_gene(name="proteinX", start=20, stop=97,
+    plasmid.add_gene(name="proteinX", start=20, stop=99,
                      rbs_start=(20 - 10), rbs_stop=20, rbs_strength=1e7)
     # plasmid.add_promoter(name="phi2", start=100, stop=109,
     #                      interactions={"rnapol": 2e8})
     # plasmid.add_terminator(name="t1", start=98, stop=99,
     #                        efficiency={"rnapol": 1.0})
-    plasmid.add_gene(name="proteinY", start=120, stop=199,
+    plasmid.add_gene(name="proteinY", start=100, stop=199,
                      rbs_start=(120 - 10), rbs_stop=120, rbs_strength=1e7)
     plasmid.add_rnase_site(210, 220)
     plasmid.add_promoter(name="phi3", start=200, stop=209,
