@@ -242,6 +242,20 @@ PYBIND11_MODULE(core, m) {
                   the genome
 
            )doc")
+      .def("add_ribosome", &Simulation::AddRibosome, "footprint"_a, "speed"_a,
+           "copy_number"_a, R"doc(
+
+           Add ribosomes to the simulation.
+           
+           Args:
+              copy_number (int): Initial number of copies of free ribosomes
+              speed (int): Mean speed, in base pairs per second, at which the 
+                  ribosome translates. This speed will be scaled on a per site
+                  basis if translation weights are defined. (See 
+                  Genome.AddWeights).
+              footprint (int): Footprint, in base pairs, of the ribosome on RNA
+
+           )doc")
       .def("register_genome", &Simulation::RegisterGenome, R"doc(
         
         Register a genome with the simulation.

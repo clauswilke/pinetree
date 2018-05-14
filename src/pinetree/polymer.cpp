@@ -235,7 +235,7 @@ void Polymer::Bind(MobileElement::Ptr pol, const std::string &promoter_name) {
   pol->stop(elem->start() + pol->footprint() - 1);
   pol->reading_frame(elem->reading_frame());
   // Only set gene_bound_ for transcripts and ribosomes
-  if (pol->name() == "ribosome") {
+  if (pol->name() == "__ribosome") {
     pol->gene_bound(elem->gene());
   }
   // More error checking.
@@ -257,12 +257,12 @@ void Polymer::Bind(MobileElement::Ptr pol, const std::string &promoter_name) {
     interval.value->ResetState();
     // Report some data to tracker
     if (pol->name() != "__rnase" &&
-        interval.value->CheckInteraction("ribosome")) {
+        interval.value->CheckInteraction("__ribosome")) {
       auto &tracker = SpeciesTracker::Instance();
       tracker.IncrementRibo(interval.value->gene(), 1);
     }
     if (pol->name() == "__rnase" &&
-        interval.value->CheckInteraction("ribosome") &&
+        interval.value->CheckInteraction("__ribosome") &&
         interval.value->degraded() == false) {
       // Only decrement transcript count if this binding site has
       // been exposed and logged by SpeciesTracker before
@@ -366,7 +366,7 @@ void Polymer::Move(int pol_index) {
   }
 
   // Check for new covered and uncovered elements
-  if (pol->name() == "ribosome") {
+  if (pol->name() == "__ribosome") {
     // std::cout << "CheckBehind pol" << std::endl;
   }
   CheckBehind(old_start, pol->start());
@@ -432,14 +432,14 @@ void Polymer::CheckBehind(int old_start, int new_start) {
       // std::cout << interval.value->name() << std::endl;
       interval.value->Uncover();
       if (interval.value->WasUncovered()) {
-        if (interval.value->CheckInteraction("ribosome")) {
+        if (interval.value->CheckInteraction("__ribosome")) {
           // std::cout << "RBS uncovered!" << std::endl;
         }
         // Record changes that species was covered
         LogUncover(interval.value->name());
         // Is this a new transcript?
         if (!interval.value->first_exposure() &&
-            interval.value->CheckInteraction("ribosome")) {
+            interval.value->CheckInteraction("__ribosome")) {
           SpeciesTracker::Instance().IncrementTranscript(interval.value->gene(),
                                                          1);
           interval.value->first_exposure(true);
@@ -654,14 +654,14 @@ void Genome::AddTerminator(const std::string &name, int start, int stop,
 // TODO: Add error checking to make sure rbs does not overlap with terminator
 void Genome::AddGene(const std::string &name, int start, int stop,
                      int rbs_start, int rbs_stop, double rbs_strength) {
-  auto binding = std::map<std::string, double>{{"ribosome", rbs_strength}};
-  auto term = std::map<std::string, double>{{"ribosome", 1.0}};
-  auto rbs = std::make_shared<BindingSite>(name + "_rbs", rbs_start, rbs_stop,
-                                           binding);
+  auto binding = std::map<std::string, double>{{"__ribosome", rbs_strength}};
+  auto term = std::map<std::string, double>{{"__ribosome", 1.0}};
+  auto rbs = std::make_shared<BindingSite>("__" + name + "_rbs", rbs_start,
+                                           rbs_stop, binding);
   rbs->gene(name);
   rbs->reading_frame(start % 3);
   transcript_rbs_intervals_.emplace_back(rbs->start(), rbs->stop(), rbs);
-  bindings_[name + "_rbs"] = binding;
+  bindings_["__" + name + "_rbs"] = binding;
   auto stop_codon =
       std::make_shared<ReleaseSite>("stop_codon", stop - 1, stop, term);
   stop_codon->reading_frame(start % 3);

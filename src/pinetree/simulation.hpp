@@ -46,6 +46,14 @@ class Simulation : public std::enable_shared_from_this<Simulation> {
   void AddPolymerase(const std::string &name, int footprint, double mean_speed,
                      int copy_number);
   /**
+   * Add a ribosome to simulation.
+   *
+   * @param footprint footprint (in basepairs) of ribosome on RNA
+   * @param mean_speed mean speed of ribosome
+   * @param copy_number copy number of free ribosomes
+   */
+  void AddRibosome(int footprint, double mean_speed, int copy_number);
+  /**
    * Add a species reaction to simulation.
    *
    * @param rate_constant macroscopic rate constant of reaction

@@ -64,6 +64,13 @@ void Simulation::AddPolymerase(const std::string &name, int footprint,
   AddSpecies(name, copy_number);
 }
 
+void Simulation::AddRibosome(int footprint, double mean_speed,
+                             int copy_number) {
+  auto pol = Polymerase("__ribosome", footprint, mean_speed);
+  polymerases_.push_back(pol);
+  AddSpecies("__ribosome", copy_number);
+}
+
 void Simulation::RegisterPolymer(Polymer::Ptr polymer) {
   // Encapsulate polymer in PolymerWrapper reaction and add to reaction list
   auto wrapper = std::make_shared<PolymerWrapper>(polymer);
