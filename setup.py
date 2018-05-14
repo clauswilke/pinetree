@@ -68,29 +68,7 @@ class CMakeBuild(build_ext):
                               cwd=self.build_temp, env=env)
         subprocess.check_call(['cmake', '--build', '.'] + build_args,
                               cwd=self.build_temp)
-        # Copy *_test file to tests directory
-        test_bin = os.path.join(self.build_temp, 'pinetree_test')
-        self.copy_test_file(test_bin)
         print()  # Add an empty line for cleaner output
-
-    def copy_test_file(self, src_file):
-        '''
-        Copy ``src_file`` to ``dest_file`` ensuring parent directory exists.
-        By default, message like `creating directory /path/to/package` and
-        `copying directory /src/path/to/package -> path/to/package` are displayed on standard output. Adapted from scikit-build.
-        '''
-        # Create directory if needed
-        dest_dir = os.path.join(os.path.dirname(
-            os.path.abspath(__file__)), 'tests', 'bin')
-        if dest_dir != "" and not os.path.exists(dest_dir):
-            print("creating directory {}".format(dest_dir))
-            os.makedirs(dest_dir)
-
-        # Copy file
-        dest_file = os.path.join(dest_dir, os.path.basename(src_file))
-        print("copying {} -> {}".format(src_file, dest_file))
-        copyfile(src_file, dest_file)
-        copymode(src_file, dest_file)
 
 
 with open('README.md') as f:

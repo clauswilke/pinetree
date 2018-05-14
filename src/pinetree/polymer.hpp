@@ -394,7 +394,8 @@ class Genome : public Polymer {
    *  the cell)
    */
   Genome(const std::string &name, int length,
-         double transcript_degradation_rate);
+         double transcript_degradation_rate, double rnase_speed,
+         double rnase_footprint);
   void Initialize();
   void AddMask(int start, const std::vector<std::string> &interactions);
   void AddPromoter(const std::string &name, int start, int stop,
@@ -409,6 +410,8 @@ class Genome : public Polymer {
   const double &transcript_degradation_rate() {
     return transcript_degradation_rate_;
   }
+  const double &rnase_speed() { return rnase_speed_; }
+  int rnase_footprint() { return rnase_footprint_; }
   /**
    * Convenience typedefs
    */
@@ -431,6 +434,8 @@ class Genome : public Polymer {
   std::vector<double> transcript_weights_;
   std::map<std::string, std::map<std::string, double>> bindings_;
   double transcript_degradation_rate_ = 0.0;
+  double rnase_speed_ = 0.0;
+  int rnase_footprint_ = 0;
   /**
    * Build a transcript object corresponding to start and stop positions
    * within this genome.

@@ -598,10 +598,22 @@ void Transcript::Bind(MobileElement::Ptr pol,
 }
 
 Genome::Genome(const std::string &name, int length,
-               double transcript_degradation_rate = 0.0)
+               double transcript_degradation_rate = 0.0,
+               double rnase_speed = 0.0, double rnase_footprint = 0)
     : Polymer(name, 1, length),
-      transcript_degradation_rate_(transcript_degradation_rate) {
+      transcript_degradation_rate_(transcript_degradation_rate),
+      rnase_speed_(rnase_speed),
+      rnase_footprint_(rnase_footprint) {
   transcript_weights_ = std::vector<double>(length, 1.0);
+  if (transcript_degradation_rate_ != 0 || rnase_speed_ != 0 ||
+      rnase_footprint_ != 0) {
+    if (transcript_degradation_rate_ != 0 && rnase_speed_ != 0 &&
+        rnase_footprint_ != 0) {
+      throw std::runtime_error(
+          "Please specify 'transcript_degradation_rate', 'rnase_speed', and "
+          "'rnase_footprint' to enable transcript degradation.");
+    }
+  }
 }
 
 void Genome::Initialize() {

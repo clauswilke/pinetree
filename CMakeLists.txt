@@ -14,7 +14,6 @@ include_directories(lib)
 
 # Pull in source and test files
 set(SOURCE_DIR "${CMAKE_SOURCE_DIR}/src/${PROJECT_NAME}")
-set(TEST_DIR "${CMAKE_SOURCE_DIR}/tests")
 set(SOURCES 
     "${SOURCE_DIR}/feature.cpp"
     "${SOURCE_DIR}/polymer.cpp"
@@ -23,18 +22,6 @@ set(SOURCES
     "${SOURCE_DIR}/simulation.cpp"
     "${SOURCE_DIR}/gillespie.cpp"
     "${SOURCE_DIR}/reaction.cpp")
-set(TESTS ${SOURCES}
-    "${TEST_DIR}/test_main.cpp"
-    # "${TEST_DIR}/test_feature.cpp"
-    # "${TEST_DIR}/test_polymer.cpp"
-    "${TEST_DIR}/test_choices.cpp"
-    "${TEST_DIR}/test_signals.cpp"
-    # "${TEST_DIR}/test_simulation.cpp"
-    )
-
-# Generate a test executable
-include_directories(lib/catch/include)
-add_executable("${PROJECT_NAME}_test" ${TESTS})
 
 # Generate python module
 add_subdirectory(lib/pybind11)

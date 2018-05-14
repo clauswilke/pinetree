@@ -110,7 +110,9 @@ void Simulation::Initialize() {
     }
     if (genome->transcript_degradation_rate() != 0.0) {
       // TODO: user defined Rnase speed
-      auto rnase_template = Rnase(10, 30);
+      // auto rnase_template = Rnase(10, 30);
+      auto rnase_template =
+          Rnase(genome->rnase_footprint(), genome->rnase_speed());
       auto reaction = std::make_shared<BindRnase>(
           genome->transcript_degradation_rate(), cell_volume_, rnase_template);
       auto &tracker = SpeciesTracker::Instance();
