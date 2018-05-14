@@ -28,4 +28,4 @@ def execute(output):
 
 
 if __name__ == "__main__":
-    execute("")
+    execute("single_gene")
