@@ -53,6 +53,11 @@ void Simulation::AddReaction(double rate_constant,
 }
 
 void Simulation::AddSpecies(const std::string &name, int copy_number) {
+  if (name.substr(0, 2) == "__") {
+    throw std::invalid_argument(
+        "Names prefixed with '__' (double underscore) are reserved for "
+        "internal use.");
+  }
   auto &tracker = SpeciesTracker::Instance();
   tracker.Increment(name, copy_number);
 }
@@ -61,14 +66,16 @@ void Simulation::AddPolymerase(const std::string &name, int footprint,
                                double mean_speed, int copy_number) {
   auto pol = Polymerase(name, footprint, mean_speed);
   polymerases_.push_back(pol);
-  AddSpecies(name, copy_number);
+  auto &tracker = SpeciesTracker::Instance();
+  tracker.Increment(name, copy_number);
 }
 
 void Simulation::AddRibosome(int footprint, double mean_speed,
                              int copy_number) {
   auto pol = Polymerase("__ribosome", footprint, mean_speed);
   polymerases_.push_back(pol);
-  AddSpecies("__ribosome", copy_number);
+  auto &tracker = SpeciesTracker::Instance();
+  tracker.Increment("__ribosome", copy_number);
 }
 
 void Simulation::RegisterPolymer(Polymer::Ptr polymer) {
