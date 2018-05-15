@@ -2,9 +2,9 @@
 #include <pybind11/stl.h>
 #include "choices.hpp"
 #include "feature.hpp"
+#include "model.hpp"
 #include "polymer.hpp"
 #include "reaction.hpp"
-#include "simulation.hpp"
 #include "tracker.hpp"
 
 namespace py = pybind11;

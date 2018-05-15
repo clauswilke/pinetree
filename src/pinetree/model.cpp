@@ -3,8 +3,8 @@
 #include <iostream>
 
 #include "choices.hpp"
+#include "model.hpp"
 #include "polymer.hpp"
-#include "simulation.hpp"
 #include "tracker.hpp"
 
 Model::Model(double cell_volume) : cell_volume_(cell_volume) {

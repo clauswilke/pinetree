@@ -5,7 +5,7 @@
 
 #include <memory>
 
-#include "simulation.hpp"
+#include "model.hpp"
 
 /**
  * Tracks species' copy numbers and maintains promoter-to-polymer and species-
