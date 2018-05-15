@@ -24,7 +24,7 @@ void Model::Run(int stop_time, int time_step,
   // Set up file output streams
   std::ofstream countfile(output_prefix + "_counts.tsv", std::ios::trunc);
   // Output header
-  countfile << "time\tspecies\tcount\ttranscript\tribo_density\n";
+  countfile << "time\tspecies\tprotein\ttranscript\tribo_density\n";
   int out_time = 0;
   while (gillespie_.time() < stop_time) {
     if ((out_time - gillespie_.time()) < 0.001) {
