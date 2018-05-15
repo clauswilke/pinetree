@@ -15,8 +15,6 @@ To configure a specific simulation, Pinetree accepts parameter files in the YAML
 
    intro
    python_ref
-   output
-   multiple_runs
    design
    faq
 

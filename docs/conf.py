@@ -44,6 +44,8 @@ extensions = [
 autosummary_generate = True
 autoclass_content = "both"
 
+numfig = True
+
 breathe_projects = {"pinetree": "_build/doxygenxml/"}
 breathe_default_project = "pinetree"
 breathe_domain_by_extension = {'hpp': 'cpp'}

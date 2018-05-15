@@ -1,4 +1,4 @@
-Parameter reference
+Python reference
 ===================
 
 .. toctree::
