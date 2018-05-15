@@ -4,6 +4,18 @@ Introduction
 Installation
 ------------
 
+Pinetree has no requirements except Python and CMake. Python 3 is recommend. To install pinetree from pip, run the following:
+
+```
+pip install pinetree
+``` 
+
+The latest development build may be installed from GitHub:
+
+```
+git clone https://github.com/benjaminjack/pinetree.git
+pinetree/setup.py install
+```
 
 Construct a simulation
 ----------------------
@@ -13,7 +25,7 @@ All pinetree simulations begin with the construction of a Model object. At a min
 ```
 import pinetree as pt
 
-model = pt.Model()
+model = pt.Model(cell_volume="")
 ``` 
 
 Next, we'll define a genome and register it with Model.
@@ -27,14 +39,20 @@ Pinetree supports linear genomes of any size, represented by Genome objects. A G
 plasmid = pt.Genome(name="myplasmid", length=300)
 ```
 
-After defining a Genome object, we can add promoters, terminators, and genes. These genetic elements can be defined in any order and may even overlap.
+After defining a Genome object, we can add promoters, terminators, and genes. These genetic elements can be defined in any order.
 
 ```
-plasmid.add_promoter()
-plasmid.add_terminator()
-plasmid.add_gene()
-plasmid.add_rnase_site()
+plasmid.add_promoter(name="phi1", start=1, stop=10, 
+                     interactions={"rnapol": 2e8})
+plasmid.add_terminator(name="t1", start=299, stop=300,
+                       efficiency={"rnapol": 1.0})
+plasmid.add_gene(name="rnapol", start=26, stop=225,
+                 rbs_start=11, rbs_stop=26, rbs_strength=1e7)
+plasmid.add_gene(name="proteinX", start=241, stop=280,
+                 rbs_start=226, rbs_stop=241, rbs_strength=1e7)
 ```
+
+Here we've defined a plasmid with two genes, 'rnapol', an RNA polymerase which binds to promoter 'phi1' and some other 'proteinX'. Each genetic element has a name, a start position, and a stop position. For more information on the other arguments of these methods, please see the full Python documentation. 
 
 When all genetic elements have been added, register the Genome object with our Model object.
 
@@ -50,15 +68,20 @@ Defining polymerases and ribosomes
 To simulate both transcription and translation, we'll add polymerases and then add ribosomes. Since these enzymes may interact with more than one type of genome, we add them to the Model object.
 
 ```
-model.add_polymerase(name="T7rnapol", speed="", footprint="", copies=100)
-model.add_ribosome(speed="", footprint="", copies="")
+model.add_polymerase(name="rnapol", speed=40, footprint=10, copies=10)
+model.add_ribosome(speed=30, footprint=10, copies=100)
 ```
+
+Polymerases and ribosomes may move at any speed. Their respective footprints, however, must be smaller than the sites to which they bind. For example, if 'rnapol' has a footprint of 10 bp, then the promoter it binds to must also be at least 10 bp in length. Likewise, if a ribosome has a footprint of 10 bp, the ribosome binding site must be at least 10 bp. 
 
 Run the simulation
 ------------------
 
-model.compile(cell_volume="", degrade_init="", degrade_speed="")
-model.simulate(time_limit="", time_step="", output="")
+To simulate gene expression, specify a time limit and a time step at which to output data. All protein and transcript counts will be output in tab seperated format.
+
+```
+model.simulate(time_limit=60, time_step=1, output="simulation.tsv")
+```
 
 Interpretting results
 ---------------------
