@@ -25,7 +25,7 @@ All pinetree simulations begin with the construction of a Model object. At a min
 ```
 import pinetree as pt
 
-model = pt.Model(cell_volume="")
+model = pt.Model(cell_volume=8e-16)
 ``` 
 
 Next, we'll define a genome and register it with Model.

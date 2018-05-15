@@ -1,4 +1,4 @@
-time	species	count	transcript	ribo_density
+time	species	protein	transcript	ribo_density
 0.000000	__proteinX_rbs	0.000000	0.000000	0.000000
 0.000000	__proteinY_rbs	0.000000	0.000000	0.000000
 0.000000	__ribosome	1.000000	0.000000	0.000000
