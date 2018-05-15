@@ -8,8 +8,6 @@ and ribosomes at the single-molecule level. It includes nucleotide-resolution tr
 
 Pinetree is a stochastic simulation that is implemented in Python with a C++ back-end and designed to be highly efficient. On a desktop-class CPU, simulating gene expression in a 40 kilobase viral genome for 30 minutes takes about 3 hours of computation time.
 
-To configure a specific simulation, Pinetree accepts parameter files in the YAML format, a human-readable format with lightweight syntax. Please see this Introduction to get started.
-
 .. toctree:: 
    :caption: User Documentation
 
