@@ -76,6 +76,8 @@ with open('README.md') as f:
 with open('LICENSE') as f:
     license = f.read()
 
+_VERSION = "0.1.0"
+
 setup(
     name='pinetree',
     version='0.1.0',
@@ -85,7 +87,7 @@ setup(
     author='Benjamin Jack',
     author_email='benjamin.r.jack@gmail.com',
     url='https://github.com/benjaminjack/pinetree',
-    download_url='https://github.com/benjaminjack/pinetree/archive/v0.1.0.tar.gz',
+    download_url='https://github.com/benjaminjack/pinetree/archive/v' + _VERSION + '.tar.gz',
     license=license,
     keywords=['gene', 'codon', 'transcription',
               'translation', 'biology', 'stochastic'],
