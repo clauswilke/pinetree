@@ -4,4 +4,3 @@ recursive-include src *
 recursive-include tests *
 include lib/IntervalTree.h
 recursive-include lib/pybind11/include *
-recursive-include lib/catch/include *
