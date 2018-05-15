@@ -79,13 +79,16 @@ with open('LICENSE') as f:
 
 setup(
     name='pinetree',
-    version='0.0.1',
-    description='a stochastic simulation of gene expression',
+    version='0.1.0',
+    description='a stochastic simulation of gene expression within site-specific translation rates',
     long_description=readme,
     author='Benjamin Jack',
     author_email='benjamin.r.jack@gmail.com',
     url='https://github.com/benjaminjack/pinetree',
+    download_url='https://github.com/benjaminjack/pinetree/archive/0.1.0.tar.gz'
     license=license,
+    keywords=['gene expression', 'gene', 'codon',
+              'transcription', 'translation', 'biology', 'stochastic'],
     packages=find_packages('src'),
     package_dir={'': 'src'},
     ext_modules=[CMakeExtension('pinetree/core')],
