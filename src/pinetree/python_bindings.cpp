@@ -264,13 +264,15 @@ PYBIND11_MODULE(core, m) {
             genome (Genome): a pinetree ``Genome`` object.
         
         )doc")
-      .def("run", &Model::Run, "stop_time"_a, "time_step"_a, "output_prefix"_a,
+      .def("simulate", &Model::Simulate, "time_limit"_a, "time_step"_a,
+           "output"_a = "counts.tsv",
            R"doc(
             
-            Run the simulation.
+            Run the simulation. Produces a tab separated file of protein and
+            transcript counts at user-specified time intervals.
 
             Args:
-                stop_time (int): Simulated time, in seconds at which this 
+                time_limit (int): Simulated time, in seconds at which this 
                     simulation should stop executing reactions. Note that this 
                     *simulated* time and not real time. The real time that it 
                     takes for the simulation to complete depends on the number 
@@ -278,7 +280,7 @@ PYBIND11_MODULE(core, m) {
                     etc) in the system.
                 time_step (int): Time interval, in seconds, that species counts 
                     are reported.
-                output_prefix (str): Prefix for output files.
+                output (str): Name of output file (default: counts.tsv).
 
           )doc");
 
