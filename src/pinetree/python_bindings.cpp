@@ -169,7 +169,7 @@ PYBIND11_MODULE(core, m) {
   py::class_<Model, std::shared_ptr<Model>>(m, "Model",
                                             R"doc(
             
-            Define and run a gene expression simulation.
+            Define a pinetree model.
             
             Args:
                 cell_volume (float): The volume, in liters, of the system being simulated.
@@ -208,7 +208,7 @@ PYBIND11_MODULE(core, m) {
             Note:
                 Reaction rate constants should be given as macroscopic rate 
                 constants, the same constants used in differential 
-                equation-based models. The simulation will automatically 
+                equation-based models. Pinetree will automatically 
                 convert these rate constants to mesoscopic constants required 
                 for a stochastic simulation.
             
@@ -230,7 +230,13 @@ PYBIND11_MODULE(core, m) {
       .def("add_polymerase", &Model::AddPolymerase, "name"_a, "footprint"_a,
            "speed"_a, "copy_number"_a, R"doc(
 
-           Add a polymerase to the simulation. Each type of polymerase should define the following fields:
+           Add a polymerase to the model. There may be multiple types of
+           polymerases in a model.
+
+           .. note::
+              
+              Defining a polymerase with a footprint larger than that of the 
+              promoter it binds is not currently supported.
            
            Args:
               name (str): Name of the polymerase which can be referred to in 
@@ -245,7 +251,13 @@ PYBIND11_MODULE(core, m) {
       .def("add_ribosome", &Model::AddRibosome, "footprint"_a, "speed"_a,
            "copy_number"_a, R"doc(
 
-           Add ribosomes to the simulation.
+           Add ribosomes to the model. There may only be a single type of 
+           ribosome.
+
+           .. note::
+              
+              Defining ribosomes with a footprint larger than that of the 
+              promoter it binds is not currently supported.
            
            Args:
               copy_number (int): Initial number of copies of free ribosomes
@@ -258,7 +270,7 @@ PYBIND11_MODULE(core, m) {
            )doc")
       .def("register_genome", &Model::RegisterGenome, R"doc(
         
-        Register a genome with the simulation.
+        Register a genome with the model.
 
         Args:
             genome (Genome): a pinetree ``Genome`` object.
@@ -268,8 +280,8 @@ PYBIND11_MODULE(core, m) {
            "output"_a = "counts.tsv",
            R"doc(
             
-            Run the simulation. Produces a tab separated file of protein and
-            transcript counts at user-specified time intervals.
+            Run a gene expression simulation. Produces a tab separated file of 
+            protein and transcript counts at user-specified time intervals.
 
             Args:
                 time_limit (int): Simulated time, in seconds at which this 
@@ -289,14 +301,134 @@ PYBIND11_MODULE(core, m) {
   py::class_<Genome, Polymer, Genome::Ptr>(m, "Genome")
       .def(py::init<const std::string &, int, double, double, int>(), "name"_a,
            "length"_a, "transcript_degradation_rate"_a = 0.0,
-           "rnase_speed"_a = 0.0, "rnase_footprint"_a = 0)
-      .def("add_mask", &Genome::AddMask, "start"_a, "interactions"_a)
-      .def("add_weights", &Genome::AddWeights, "weights"_a)
+           "rnase_speed"_a = 0.0, "rnase_footprint"_a = 0,
+           R"doc(
+            
+            Define a linear genome. 
+            
+            .. warning::
+            
+               Transcript degradation is an experimental feature. Defining 
+               ``transcript_degradation_rate``, ``rnase_speed``, or 
+               ``rnase_footprint`` may crash pinetree.
+
+            Args:
+                name (str): Name of genome.
+                length (int): Length of genome in base pairs.
+                transcript_degradation_rate (float): Unary binding rate 
+                    constant for binding of RNases to RNase sites.
+                rnase_speed (flaot): Mean speed at which RNase degrades 
+                    transcript, in bases per second.
+                rnase_footprint (float): Initial footprint of RNase on RNA.
+
+          )doc")
+      .def("add_mask", &Genome::AddMask, "start"_a, "interactions"_a,
+           R"doc(
+            
+            Mask a portion of this Genome. This mask may correspond to a portion
+            of the genome that has not yet entered the cell or is otherwise 
+            inaccessible. Also define which Polymerases are capabile of moving 
+            the Mask (e.g. an RNA polymerase that actively pulls the genome 
+            into the cell.)
+
+            Args:
+                start (int): Start position of Mask. The Mask is assumed to 
+                    extend to the end of the genome.
+                interactions (list): List of Polymerase names capable of 
+                    shifting the Mask backwards and revealing more of the 
+                    genome.
+            
+            )doc")
+      .def("add_weights", &Genome::AddWeights, "weights"_a,
+           R"doc(
+            
+            Define position-specific translation speed weights. These may correspond, for example, codon-specific translation rates.
+
+            Args:
+                weights (list): List of weights of same length as Genome. These
+                    weights are multiplied by the ribosome speed to calculate a 
+                    final translation rate at every position in the genome.
+
+            )doc")
       .def("add_promoter", &Genome::AddPromoter, "name"_a, "start"_a, "stop"_a,
-           "interactions"_a)
+           "interactions"_a,
+           R"doc(
+            
+            Define a promoter.
+
+            Args:
+                name (str): Name of promoter.
+                start (int): Start position of promoter.
+                stop (int): Stop position of promoter.
+                interactions (dict): Dictionary of binding rate constants for
+                    different Polymerases that this promoter interacts with.
+            
+            Example:
+                
+                >>> genome.add_promoter(name="phi1", start=1, stop=10,
+                >>>                     interactions={'rnapol': 1e7})
+
+            )doc")
       .def("add_terminator", &Genome::AddTerminator, "name"_a, "start"_a,
-           "stop"_a, "efficiency"_a)
+           "stop"_a, "efficiency"_a,
+           R"doc(
+            
+            Define a terminator.
+
+            Args:
+                name (str): Name of terminator.
+                start (int): Start position of terminator.
+                stop (int): Stop position of terminator.
+                efficiency (dict): Dictionary of termination efficiencies 
+                    (between 0 and 1) for different Polymerases that this 
+                    terminator interacts with. A value of 1.0 represents 
+                    complete stop of transcription and removal of the 
+                    Polymerase. A value of 0.0 means that the Polymerase will
+                    always read through the terminator and continue 
+                    transcription.
+            
+            Example:
+                
+                >>> genome.add_terminator(name="t1", start=50, stop=51,
+                >>>                       efficiency={'rnapol': 0.85})
+
+            )doc")
       .def("add_gene", &Genome::AddGene, "name"_a, "start"_a, "stop"_a,
-           "rbs_start"_a, "rbs_stop"_a, "rbs_strength"_a)
-      .def("add_rnase_site", &Genome::AddRnaseSite, "start"_a, "stop"_a);
+           "rbs_start"_a, "rbs_stop"_a, "rbs_strength"_a,
+           R"doc(
+            
+            Define a gene. Genes may be defined in any order.
+
+            .. note::
+               
+               At this time, overlapping genes or genes that overlap with 
+               ribosome binding sites are not supported.
+
+            Args:
+                name (str): Name of gene. Name may be referenced by 
+                    ``Genome.add_reaction``.
+                start (int): Start position of gene.
+                stop (int): Stop position of gene.
+                rbs_start (int): Start position of ribosome binding site.       
+                    Generally positioned upstream of gene start.
+                rbs_stop (int): Stop position of ribosome binding site.
+                rbs_strength (float): Binding rate constant between ribosome
+                    and ribosome binding site.
+
+            )doc")
+      .def("add_rnase_site", &Genome::AddRnaseSite, "start"_a, "stop"_a,
+           R"doc(
+            
+            Define an internal RNase cleavage site.
+
+            .. warning::
+               
+               This feature is experimental and adding RNase cleavage sites
+               may crash pinetree.
+
+            Args:
+                start (int): Start position of RNase cleavage site.
+                stop (int): Stop position of RNase cleavage site.
+
+            )doc");
 }
