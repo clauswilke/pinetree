@@ -34,3 +34,14 @@ You may also build the documentation from the source code. Building the document
 ```
 pinetree/setup.py build_sphinx
 ```
+
+## Reproducing plots from manuscript
+
+This repository contains scripts to reproduce the simulations and plots from the manuscript that describes Pinetree. R and the R packages `cowplot`, `readr`, `dplyr`, and `stringr` are required to generate plots. Run the following to reproduce the plots from the manuscript:
+
+```
+python3 ./examples/three_genes.py
+python3 ./examples/three_genes_recoded.py
+Rscript plots.R
+```
+
