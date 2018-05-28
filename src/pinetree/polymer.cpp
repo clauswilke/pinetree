@@ -212,7 +212,7 @@ BindingSite::Ptr Polymer::FindBindingSite(MobileElement::Ptr pol,
   if (!found) {
     std::string err = "Polymerase " + pol->name() +
                       " could not find free promoter " + promoter_name +
-                      " to bind in the polyemr " + name_;
+                      " to bind in the polymer " + name_;
     throw std::runtime_error(err);
   }
   // Randomly select promoter.
