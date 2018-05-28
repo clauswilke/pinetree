@@ -45,3 +45,12 @@ python3 ./examples/three_genes_recoded.py
 Rscript plots.R
 ```
 
+To simulate a bacteriophage T7 infection, run the following script.
+
+```
+# WARNING: This simulation takes approximately 2-3 hours to complete
+python3 ./examples/phage_model.py
+```
+
+
+
