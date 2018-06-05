@@ -30,7 +30,7 @@ protein_y <- bind_rows(protein_recoded, protein_wt)
 protein_y_plot <- ggplot(protein_y, aes(x = time, y = value, color = condition)) + 
   geom_line() +
   ylab("ribosomes per transcript") +
-  scale_color_manual(values = cbbPalette[c(3,6)])
+  scale_color_manual(values = cbbPalette[c(6,7)])
 
 recoded_plot_all <- plot_grid(recoded, protein_y_plot)
 save_plot("plots.pdf", recoded_plot_all, base_width = 9, base_height = 3.3)
