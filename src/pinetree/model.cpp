@@ -132,6 +132,12 @@ void Model::Initialize() {
       tracker.Add("__rnase_site", reaction);
       tracker.Add("__rnase", reaction);
       gillespie_.LinkReaction(reaction);
+
+      auto rnase_template_ext =
+          Rnase(genome->rnase_footprint(), genome->rnase_speed());
+      auto reaction_ext =
+          std::make_shared<BindRnase>(genome->transcript_degradation_rate_ext(),
+                                      cell_volume_, rnase_template_ext);
     }
   }
 }

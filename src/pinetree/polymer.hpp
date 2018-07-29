@@ -252,11 +252,26 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    * Should this polymer be degraded?
    */
   bool degrade_ = false;
+  /**
+   * Is this polymer still attached to whatever polymerase is generating it?
+   */
   bool attached_ = false;
 
+  /**
+   * Vector of binding site intervals (start/stop positions)
+   */
   std::vector<Interval<BindingSite::Ptr>> binding_intervals_;
+  /**
+   * Vector of release site intervals
+   */
   std::vector<Interval<ReleaseSite::Ptr>> release_intervals_;
+  /**
+   * Interval tree of binding sites
+   */
   IntervalTree<BindingSite::Ptr> binding_sites_;
+  /**
+   * Interval tree of release sites
+   */
   IntervalTree<ReleaseSite::Ptr> release_sites_;
   /**
    * Mask corresponding to this polymer. Controls which elements are hidden.
@@ -266,7 +281,6 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    * Cached count of uncovered elements on this polymer, used by Model.
    */
   std::map<std::string, int> uncovered_;
-
   /**
    * Vector of the same length as this polymer, containing weights for different
    * positions along the polymer. When a polymerase passes over a given position
@@ -274,22 +288,40 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    * propensity for the next movement of that polymerase.
    */
   std::vector<double> weights_;
+  /**
+   * Finding which binding site (promoter) that the polymerase should bind to.
+   *
+   * @param pol Pointer to polymerase object
+   * @param promoter_name Name of promoter as a string
+   */
   BindingSite::Ptr FindBindingSite(MobileElement::Ptr pol,
                                    const std::string &promoter_name);
+  /**
+   * Attach a polymerase to the polymer.
+   *
+   * @param pol Pointer to polymerase
+   */
   virtual void Attach(MobileElement::Ptr pol);
   /**
-   * Temporarily uncover all elements covered by a given polymerase.
+   * Check downstream of polymerase for any interactions and respond
+   * accordingly.
    *
-   * @param pol pointer to polymerase object
+   * @param old_stop Prior stop position of polymerase
+   * @param new_stop Current stop position of polymerase
    */
   void CheckAhead(int old_stop, int new_stop);
+  /**
+   * Check downstream of Rnase for potential interactions.
+   *
+   * @param old_stop Prior stop position of Rnase
+   * @param new_stop Current stop position of Rnase
+   */
   void CheckAheadRnase(int old_stop, int new_stop);
   /**
-   * Recover all elements that a given polymerase should be covering,
-   * and trigger actions if there has been a change in state (for example,
-   * from covered to uncovered).
+   * Check upstream of polymerase for any changes/newly uncovered elements
    *
-   * @param pol pointer to polymerase object
+   * @param old_start Prior start position of polymerase
+   * @param new_start Current start position polymerase
    */
   void CheckBehind(int old_start, int new_start);
   /**
@@ -320,14 +352,12 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
   bool CheckPolCollisions(int pol_index);
   /**
    * Update the cached count of uncovered promoters/elements.
-   * TODO: Make private and refactor covering signals
    *
    * @param species_name name of species to cover
    */
   void LogCover(const std::string &species_name);
   /**
    * Update the cached count of uncovered promoters/elements.
-   * TODO: Make private and refactor covering signals
    *
    * @param species_name name of species to uncover
    */
@@ -347,8 +377,9 @@ class Transcript : public Polymer {
    * @param name name of transcript
    * @param start start position of transcript (in genomic coordinates)
    * @param stop stop position of transcript (in genomeic coordinates)
-   * @param elements vector of pointers to Element objects that make up this
-   *  transcript
+   * @param rbs_intervals vector of RBS intervals (stop/start positions)
+   * @param stop_site_invervals vector of stop codon intervals (start/stop
+   *        positions)
    * @param mask mask object that gets shifted as polymerase "synthesizes" more
    *  of the transcript
    */
@@ -394,7 +425,8 @@ class Genome : public Polymer {
    *  the cell)
    */
   Genome(const std::string &name, int length,
-         double transcript_degradation_rate, double rnase_speed,
+         double transcript_degradation_rate,
+         double transcript_degradation_rate_ext, double rnase_speed,
          double rnase_footprint);
   void Initialize();
   void AddMask(int start, const std::vector<std::string> &interactions);
@@ -409,6 +441,9 @@ class Genome : public Polymer {
   const std::map<std::string, std::map<std::string, double>> &bindings();
   const double &transcript_degradation_rate() {
     return transcript_degradation_rate_;
+  }
+  const double &transcript_degradation_rate_ext() {
+    return transcript_degradation_rate_ext_;
   }
   const double &rnase_speed() { return rnase_speed_; }
   int rnase_footprint() { return rnase_footprint_; }
@@ -434,6 +469,7 @@ class Genome : public Polymer {
   std::vector<double> transcript_weights_;
   std::map<std::string, std::map<std::string, double>> bindings_;
   double transcript_degradation_rate_ = 0.0;
+  double transcript_degradation_rate_ext_ = 0.0;
   double rnase_speed_ = 0.0;
   int rnase_footprint_ = 0;
   /**

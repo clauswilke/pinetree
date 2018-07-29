@@ -299,9 +299,10 @@ PYBIND11_MODULE(core, m) {
   // Polymers, genomes, and transcripts
   py::class_<Polymer, Polymer::Ptr>(m, "Polymer");
   py::class_<Genome, Polymer, Genome::Ptr>(m, "Genome")
-      .def(py::init<const std::string &, int, double, double, int>(), "name"_a,
-           "length"_a, "transcript_degradation_rate"_a = 0.0,
-           "rnase_speed"_a = 0.0, "rnase_footprint"_a = 0,
+      .def(py::init<const std::string &, int, double, double, double, int>(),
+           "name"_a, "length"_a, "transcript_degradation_rate"_a = 0.0,
+           "transcript_degradation_rate_ext"_a = 0.0, "rnase_speed"_a = 0.0,
+           "rnase_footprint"_a = 0,
            R"doc(
             
             Define a linear genome. 

@@ -599,9 +599,11 @@ void Transcript::Bind(MobileElement::Ptr pol,
 
 Genome::Genome(const std::string &name, int length,
                double transcript_degradation_rate = 0.0,
+               double transcript_degradation_rate_ext = 0.0,
                double rnase_speed = 0.0, double rnase_footprint = 0)
     : Polymer(name, 1, length),
       transcript_degradation_rate_(transcript_degradation_rate),
+      transcript_degradation_rate_ext_(transcript_degradation_rate_ext),
       rnase_speed_(rnase_speed),
       rnase_footprint_(rnase_footprint) {
   transcript_weights_ = std::vector<double>(length, 1.0);
@@ -711,9 +713,9 @@ Transcript::Ptr Genome::BuildTranscript(int start, int stop) {
     rbs_intervals.emplace_back(
         start + 1, start + 1 + 10,
         std::make_shared<BindingSite>(
-            "__rnase_site", start + 1, start + 1 + 10,
+            "__rnase_site_ext", start + 1, start + 1 + 10,
             std::map<std::string, double>{
-                {"__rnase", transcript_degradation_rate_}}));
+                {"__rnase", transcript_degradation_rate_ext_}}));
   }
 
   std::vector<Interval<ReleaseSite::Ptr>> term_results;
