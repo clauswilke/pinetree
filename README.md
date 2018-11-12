@@ -1,4 +1,4 @@
-![pinetree](docs/pinetree-logo.png?raw=true)
+![pinetree](https://github.com/benjaminjack/pinetree/blob/master/docs/pinetree-logo.png?raw=true)
 
 # pinetree 
 [![Build Status](https://travis-ci.org/benjaminjack/pinetree.svg?branch=master)](https://travis-ci.org/benjaminjack/pinetree)
