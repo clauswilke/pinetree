@@ -23,4 +23,4 @@ install:
   - python3 setup.py sdist
   - pip3 install --verbose dist/*.tar.gz
 script:
-- python3 setup.py test
+  - python3 setup.py test
