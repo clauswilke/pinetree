@@ -70,13 +70,13 @@ class CMakeBuild(build_ext):
         print()  # Add an empty line for cleaner output
 
 
-with open('README.md') as f:
+with open('README.md', encoding='utf-8') as f:
     readme = f.read()
 
 with open('LICENSE') as f:
     license = f.read()
 
-_VERSION = "0.1.1"
+_VERSION = "0.1.2"
 
 setup(
     name='pinetree',
@@ -88,7 +88,7 @@ setup(
     author_email='benjamin.r.jack@gmail.com',
     url='https://github.com/benjaminjack/pinetree',
     download_url='https://github.com/benjaminjack/pinetree/archive/v' + _VERSION + '.tar.gz',
-    license=license,
+    license='MIT',
     keywords=['gene', 'codon', 'transcription',
               'translation', 'biology', 'stochastic'],
     packages=find_packages('src'),
