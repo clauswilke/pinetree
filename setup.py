@@ -76,7 +76,7 @@ with open('README.md') as f:
 with open('LICENSE') as f:
     license = f.read()
 
-_VERSION = "0.1.0"
+_VERSION = "0.1.1"
 
 setup(
     name='pinetree',
@@ -97,5 +97,5 @@ setup(
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False,
     test_suite='tests',
-    install_requires=['cmake']
+    install_requires=['cmake', 'pybind11']
 )

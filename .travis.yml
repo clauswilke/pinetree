@@ -2,7 +2,7 @@ language: cpp
 matrix:
   include:
   - os: linux
-    env: PYTHON=3.5
+    env: PYTHON=3.7
 #  - os: osx
 #    env: PYTHON=3.6
 addons:
@@ -13,9 +13,8 @@ addons:
     - kubuntu-backports
     packages:
     - g++-4.8
-    - python3.5
-    - python3.5-dev
-    - cmake
+    - python3.7
+    - python3.7-dev
 before_install:
 - |
   if [ "$TRAVIS_OS_NAME" = "linux" ]; then export CXX=g++-4.8 CC=gcc-4.8; fi
