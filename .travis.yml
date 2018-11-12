@@ -12,21 +12,15 @@ matrix:
           - g++-4.8
 
 before_install:
-- |
-  if [ "$TRAVIS_OS_NAME" = "linux" ]; then export CXX=g++-4.8 CC=gcc-4.8; fi
-  if [ -n "$PYTHON" ]; then
-    sudo apt-get -y install python3-pip python-dev
-    sudo pip3 install -U pip setuptools virtualenvwrapper
-    python3 -V
-    pip3 -V
-    virtualenv -p python3 venv
-    source venv/bin/activate
-  fi
+  - export CXX=g++-4.8 CC=gcc-4.8
+  - sudo apt-get -y install python3-pip python-dev
+  - sudo pip3 install -U pip setuptools virtualenvwrapper
+  - python3 -V
+  - pip3 -V
+  - virtualenv -p python3 venv
+  - source venv/bin/activate
 install:
-- |
-  if [ -n "$PYTHON" ]; then
-    python3 setup.py sdist
-    pip3 install --verbose dist/*.tar.gz
-  fi
+  - python3 setup.py sdist
+  - pip3 install --verbose dist/*.tar.gz
 script:
 - python3 setup.py test
