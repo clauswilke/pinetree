@@ -124,7 +124,7 @@ Polymer::~Polymer() {
   }
   for (auto const &site : uncovered_) {
     if (site.second != 0) {
-      if (site.first == "__rnase_site") {
+      if (site.first == "__rnase_site" || site.first == "__rnase_site_ext") {
         LogCover(site.first);
       } else {
         throw std::runtime_error(
@@ -609,8 +609,8 @@ Genome::Genome(const std::string &name, int length,
   transcript_weights_ = std::vector<double>(length, 1.0);
   if (transcript_degradation_rate_ != 0 || rnase_speed_ != 0 ||
       rnase_footprint_ != 0) {
-    if (transcript_degradation_rate_ != 0 && rnase_speed_ != 0 &&
-        rnase_footprint_ != 0) {
+    if (!(transcript_degradation_rate_ != 0 && rnase_speed_ != 0 &&
+          rnase_footprint_ != 0)) {
       throw std::runtime_error(
           "Please specify 'transcript_degradation_rate', 'rnase_speed', and "
           "'rnase_footprint' to enable transcript degradation.");
@@ -708,7 +708,7 @@ Transcript::Ptr Genome::BuildTranscript(int start, int stop) {
   }
 
   // Add __rnase_site
-  if (transcript_degradation_rate_ != 0) {
+  if (transcript_degradation_rate_ext_ != 0) {
     // std::cout << "Adding degradation site" << std::endl;
     rbs_intervals.emplace_back(
         start + 1, start + 1 + 10,

@@ -191,7 +191,8 @@ class BindRnase : public Bind {
    * @param volume volume in which reaction occurs
    * @param rnase_template Rnase to construct upon binding
    */
-  BindRnase(double rate_constant, double volume, const Rnase &rnase_template);
+  BindRnase(double rate_constant, double volume, const Rnase &rnase_template,
+            const std::string &name);
   /**
    * Bind Rnase to open binding site.
    */

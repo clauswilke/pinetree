@@ -103,9 +103,8 @@ void BindPolymerase::Execute() {
 }
 
 BindRnase::BindRnase(double rate_constant, double volume,
-                     const Rnase &rnase_template)
-    : Bind(rate_constant, volume, "__rnase_site"),
-      pol_template_(rnase_template) {}
+                     const Rnase &rnase_template, const std::string &name)
+    : Bind(rate_constant, volume, name), pol_template_(rnase_template) {}
 
 void BindRnase::Execute() {
   auto polymer = ChoosePolymer();

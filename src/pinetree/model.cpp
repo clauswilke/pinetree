@@ -127,17 +127,21 @@ void Model::Initialize() {
       auto rnase_template =
           Rnase(genome->rnase_footprint(), genome->rnase_speed());
       auto reaction = std::make_shared<BindRnase>(
-          genome->transcript_degradation_rate(), cell_volume_, rnase_template);
+          genome->transcript_degradation_rate(), cell_volume_, rnase_template,
+          "__rnase_site");
       auto &tracker = SpeciesTracker::Instance();
       tracker.Add("__rnase_site", reaction);
-      tracker.Add("__rnase", reaction);
+      // tracker.Add("__rnase", reaction);
       gillespie_.LinkReaction(reaction);
 
       auto rnase_template_ext =
           Rnase(genome->rnase_footprint(), genome->rnase_speed());
-      auto reaction_ext =
-          std::make_shared<BindRnase>(genome->transcript_degradation_rate_ext(),
-                                      cell_volume_, rnase_template_ext);
+      auto reaction_ext = std::make_shared<BindRnase>(
+          genome->transcript_degradation_rate_ext(), cell_volume_,
+          rnase_template_ext, "__rnase_site_ext");
+      tracker.Add("__rnase_site_ext", reaction_ext);
+      // tracker.Add("__rnase", reaction_ext);
+      gillespie_.LinkReaction(reaction_ext);
     }
   }
 }
