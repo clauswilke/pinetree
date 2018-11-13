@@ -14,12 +14,13 @@ matrix:
 before_install:
   - export CXX=g++-4.8 CC=gcc-4.8
   - sudo apt-get -y install python3-pip python-dev
-  - sudo pip3 install -U pip setuptools virtualenvwrapper scikit-build
+  - sudo pip3 install -U pip setuptools virtualenvwrapper
   - python3 -V
   - pip3 -V
   - virtualenv -p python3 venv
   - source venv/bin/activate
 install:
+  - pip3 install scikit-build
   - python3 setup.py sdist
   - pip3 install --verbose dist/*.tar.gz
 script:
