@@ -3,13 +3,13 @@
 from setuptools import find_packages
 
 try:
-     from skbuild import setup
- except ImportError:
-     print('scikit-build is required to build from source.', file=sys.stderr)
-     print('Please run:', file=sys.stderr)
-     print('', file=sys.stderr)
-     print('  python -m pip install scikit-build')
-     sys.exit(1)
+    from skbuild import setup
+except ImportError:
+    print('scikit-build is required to build from source.', file=sys.stderr)
+    print('Please run:', file=sys.stderr)
+    print('', file=sys.stderr)
+    print('  python -m pip install scikit-build')
+    sys.exit(1)
 
 with open('README.md', encoding='utf-8') as f:
     readme = f.read()
@@ -37,5 +37,7 @@ setup(
     zip_safe=False,
     test_suite='tests',
     cmake_args=['-DCMAKE_OSX_DEPLOYMENT_TARGET:STRING=10.9',
-                '-DCMAKE_OSX_ARCHITECTURES:STRING=x86_64']
+                '-DCMAKE_OSX_ARCHITECTURES:STRING=x86_64'],
+    setup_requires=['cmake'],
+    install_requires=['cmake']
 )
