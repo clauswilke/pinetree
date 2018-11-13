@@ -1,15 +1,75 @@
 #! /usr/bin/env python3
 
-from setuptools import find_packages
+import os
+import re
+import sys
+import sysconfig
+import platform
+import subprocess
 
-try:
-    from skbuild import setup
-except ImportError:
-    print('scikit-build is required to build from source.', file=sys.stderr)
-    print('Please run:', file=sys.stderr)
-    print('', file=sys.stderr)
-    print('  python -m pip install scikit-build')
-    sys.exit(1)
+from distutils.version import LooseVersion
+from setuptools import setup, Extension, find_packages
+from setuptools.command.build_ext import build_ext
+from setuptools.command.test import test as TestCommand
+
+
+class CMakeExtension(Extension):
+    def __init__(self, name, sourcedir=''):
+        Extension.__init__(self, name, sources=[])
+        self.sourcedir = os.path.abspath(sourcedir)
+
+
+class CMakeBuild(build_ext):
+    def run(self):
+        try:
+            out = subprocess.check_output(['cmake', '--version'])
+        except:
+            print("\nPinetree requires CMake to build and install.\n")
+            print(
+                "To install CMake, run: \n\npython3 -m pip install cmake\n\nInstallation failed. ")
+            sys.exit(1)
+
+        if platform.system() == "Windows":
+            cmake_version = LooseVersion(re.search(r'version\s*([\d.]+)',
+                                                   out.decode()).group(1))
+            if cmake_version < '3.1.0':
+                raise RuntimeError("CMake >= 3.1.0 is required on Windows")
+
+        for ext in self.extensions:
+            self.build_extension(ext)
+
+    def build_extension(self, ext):
+        extdir = os.path.abspath(
+            os.path.dirname(self.get_ext_fullpath(ext.name)))
+        cmake_args = ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + extdir,
+                      '-DPYTHON_EXECUTABLE=' + sys.executable]
+
+        cfg = 'Debug' if self.debug else 'Release'
+        build_args = ['--config', cfg]
+
+        if platform.system() == "Windows":
+            cmake_args += ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}'.format(
+                cfg.upper(),
+                extdir)]
+            if sys.maxsize > 2**32:
+                cmake_args += ['-A', 'x64']
+            build_args += ['--', '/m']
+        else:
+            cmake_args += ['-DCMAKE_BUILD_TYPE=' + cfg]
+            build_args += ['--', '-j2']
+
+        env = os.environ.copy()
+        env['CXXFLAGS'] = '{} -DVERSION_INFO=\\"{}\\"'.format(
+            env.get('CXXFLAGS', ''),
+            self.distribution.get_version())
+        if not os.path.exists(self.build_temp):
+            os.makedirs(self.build_temp)
+        subprocess.check_call(['cmake', ext.sourcedir] + cmake_args,
+                              cwd=self.build_temp, env=env)
+        subprocess.check_call(['cmake', '--build', '.'] + build_args,
+                              cwd=self.build_temp)
+        print()  # Add an empty line for cleaner output
+
 
 with open('README.md', encoding='utf-8') as f:
     readme = f.read()
@@ -34,10 +94,8 @@ setup(
               'translation', 'biology', 'stochastic'],
     packages=find_packages('src'),
     package_dir={'': 'src'},
+    ext_modules=[CMakeExtension('pinetree/core')],
+    cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False,
-    test_suite='tests',
-    cmake_args=['-DCMAKE_OSX_DEPLOYMENT_TARGET:STRING=10.9',
-                '-DCMAKE_OSX_ARCHITECTURES:STRING=x86_64'],
-    setup_requires=['cmake'],
-    install_requires=['cmake']
+    test_suite='tests'
 )

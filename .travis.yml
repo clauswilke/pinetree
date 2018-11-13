@@ -20,7 +20,7 @@ before_install:
   - virtualenv -p python3 venv
   - source venv/bin/activate
 install:
-  - pip3 install scikit-build
+  - pip3 install cmake
   - python3 setup.py sdist
   - pip3 install --verbose dist/*.tar.gz
 script:
