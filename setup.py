@@ -96,6 +96,5 @@ setup(
     ext_modules=[CMakeExtension('pinetree/core')],
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False,
-    test_suite='tests',
-    install_requires=['cmake']
+    test_suite='tests'
 )

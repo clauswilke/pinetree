@@ -15,12 +15,14 @@ Pinetree requires Python, CMake, and a modern C++ compiler. Python 3 is recommen
 To install the latest stable version of pinetree from PyPI, run the following:
 
 ```
-pip install pinetree 
+pip3 install cmake
+pip3 install pinetree 
 ```
 
 The latest development build may be installed from GitHub as follows:
 
-```   
+```
+pip3 install cmake   
 git clone https://github.com/benjaminjack/pinetree.git
 pinetree/setup.py install
 ```

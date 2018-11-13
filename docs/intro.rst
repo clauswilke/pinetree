@@ -8,12 +8,14 @@ Pinetree has no requirements except Python and CMake. Python 3 is recommend. To 
 
 .. code-block:: bash
    
-   pip install pinetree 
+   pip3 install cmake  # Required to compile pinetree
+   pip3 install pinetree 
 
 The latest development build may be installed from GitHub:
 
 .. code-block:: bash
    
+   pip3 install cmake  # Required to compile pinetree
    git clone https://github.com/benjaminjack/pinetree.git
    pinetree/setup.py install
 
