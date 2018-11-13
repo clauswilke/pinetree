@@ -1,7 +1,15 @@
 #! /usr/bin/env python3
 
-from skbuild import setup
 from setuptools import find_packages
+
+try:
+     from skbuild import setup
+ except ImportError:
+     print('scikit-build is required to build from source.', file=sys.stderr)
+     print('Please run:', file=sys.stderr)
+     print('', file=sys.stderr)
+     print('  python -m pip install scikit-build')
+     sys.exit(1)
 
 with open('README.md', encoding='utf-8') as f:
     readme = f.read()
