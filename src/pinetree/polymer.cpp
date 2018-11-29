@@ -591,10 +591,45 @@ Transcript::Transcript(
   attached_ = true;
 }
 
+Transcript::Transcript(const std::string &name, int length)
+    : Polymer(name, 1, length) {
+  weights_ = std::vector<double>(length, 1.0);
+  attached_ = false;
+  mask_ = Mask(start_, stop_, std::map<std::string, double>());
+}
+
+void Transcript::Initialize() {
+  Polymer::Initialize();
+  polymerases_ = MobileElementManager(weights_);
+}
+
+void Transcript::AddGene(const std::string &name, int start, int stop,
+                         int rbs_start, int rbs_stop, double rbs_strength) {
+  auto binding = std::map<std::string, double>{{"__ribosome", rbs_strength}};
+  auto term = std::map<std::string, double>{{"__ribosome", 1.0}};
+  auto rbs = std::make_shared<BindingSite>("__" + name + "_rbs", rbs_start,
+                                           rbs_stop, binding);
+  rbs->gene(name);
+  rbs->reading_frame(start % 3);
+  binding_intervals_.emplace_back(rbs->start(), rbs->stop(), rbs);
+  bindings_["__" + name + "_rbs"] = binding;
+  auto stop_codon =
+      std::make_shared<ReleaseSite>("stop_codon", stop - 1, stop, term);
+  stop_codon->reading_frame(start % 3);
+  stop_codon->gene(name);
+  release_intervals_.emplace_back(stop_codon->start(), stop_codon->stop(),
+                                  stop_codon);
+}
+
 void Transcript::Bind(MobileElement::Ptr pol,
                       const std::string &promoter_name) {
   // Bind polymerase just like in parent Polymer
   Polymer::Bind(pol, promoter_name);
+}
+
+const std::map<std::string, std::map<std::string, double>>
+    &Transcript::bindings() {
+  return bindings_;
 }
 
 Genome::Genome(const std::string &name, int length,

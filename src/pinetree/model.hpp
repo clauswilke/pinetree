@@ -94,6 +94,10 @@ class Model : public std::enable_shared_from_this<Model> {
    */
   Genome::VecPtr genomes_;
   /**
+   * Vector of predefined transcripts in simulation
+   */
+  Transcript::VecPtr transcripts_;
+  /**
    * Vector of all polymerases in simulation
    */
   std::vector<Polymerase> polymerases_;
@@ -101,6 +105,10 @@ class Model : public std::enable_shared_from_this<Model> {
    * Cell volume
    */
   double cell_volume_;
+  /**
+   * Has this model been initialized?
+   */
+  bool initialized_ = false;
   /**
    * Map of terminations.
    */

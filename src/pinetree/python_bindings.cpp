@@ -432,4 +432,17 @@ PYBIND11_MODULE(core, m) {
                 stop (int): Stop position of RNase cleavage site.
 
             )doc");
+
+  py::class_<Transcript, Polymer, Transcript::Ptr>(m, "Transcript")
+      .def(py::init<const std::string &, int>(), "name"_a, "length"_a,
+           R"doc(
+            
+            Define a linear transcript with one or more genes. These 
+            transcripts cannot be degraded. 
+
+            Args:
+                name (str): Name of transcript.
+                length (int): Length of transcript in base pairs.
+
+          )doc");
 }

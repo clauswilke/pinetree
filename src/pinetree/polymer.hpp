@@ -372,7 +372,7 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
 class Transcript : public Polymer {
  public:
   /**
-   * The only constructor of Transcript.
+   * Constructor of transcript used internally by Genome
    *
    * @param name name of transcript
    * @param start start position of transcript (in genomic coordinates)
@@ -388,9 +388,18 @@ class Transcript : public Polymer {
              const std::vector<Interval<ReleaseSite::Ptr>> &stop_site_intervals,
              const Mask &mask, const std::vector<double> &weights);
   /**
+   * Constructor of transcript used for specifying transcripts without Genome
+   *
+   * @param name name of transcript
+   * @param length length of transcript in nucleotides
+   */
+  Transcript(const std::string &name, int length);
+  /**
    * Convenience typdefs.
    */
   typedef std::shared_ptr<Transcript> Ptr;
+  typedef std::vector<std::shared_ptr<Transcript>> VecPtr;
+  const std::map<std::string, std::map<std::string, double>> &bindings();
   /**
    * Bind ribosome to this transcript.
    *
@@ -403,6 +412,19 @@ class Transcript : public Polymer {
    * mismatched types.
    */
   void ShiftMask() { Polymer::ShiftMask(); }
+  /**
+   * Called by RegisterTranscript when constructing transcripts that will not
+   * be associated with a genome.
+   */
+  void Initialize();
+  /**
+   * Add a gene to this transcript
+   */
+  void AddGene(const std::string &name, int start, int stop, int rbs_start,
+               int rbs_stop, double rbs_strength);
+
+ private:
+  std::map<std::string, std::map<std::string, double>> bindings_;
 };
 
 /**

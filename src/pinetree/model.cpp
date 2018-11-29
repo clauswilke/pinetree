@@ -97,10 +97,13 @@ void Model::RegisterTranscript(Transcript::Ptr transcript) {
   RegisterPolymer(transcript);
   transcript->termination_signal_.ConnectMember(
       &SpeciesTracker::Instance(), &SpeciesTracker::TerminateTranslation);
+  if (initialized_ == false) {
+    transcripts_.push_back(transcript);
+  }
 }
 
 void Model::Initialize() {
-  if (genomes_.size() == 0) {
+  if (genomes_.size() == 0 && transcripts_.size() == 0) {
     std::cerr << "Warning: There are no Genome objects registered with "
                  "Model. Did you forget to register a Genome?"
               << std::endl;
@@ -144,6 +147,26 @@ void Model::Initialize() {
       gillespie_.LinkReaction(reaction_ext);
     }
   }
+
+  // Initialize transcripts that have been defined independently of genome
+  for (Transcript::Ptr transcript : transcripts_) {
+    for (auto rbs_name : transcript->bindings()) {
+      for (auto pol : polymerases_) {
+        if (rbs_name.second.count(pol.name()) != 0) {
+          double rate_constant = rbs_name.second[pol.name()];
+          Polymerase pol_template = Polymerase(pol);
+          auto reaction = std::make_shared<BindPolymerase>(
+              rate_constant, cell_volume_, rbs_name.first, pol_template);
+          auto &tracker = SpeciesTracker::Instance();
+          tracker.Add(rbs_name.first, reaction);
+          tracker.Add(pol.name(), reaction);
+          gillespie_.LinkReaction(reaction);
+        }
+      }
+    }
+  }
+
+  initialized_ = true;
 }
 
 void Model::CountTermination(const std::string &name) {
