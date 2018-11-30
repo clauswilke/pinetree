@@ -117,20 +117,22 @@ Polymer::~Polymer() {
   //
   // std::cout << "Begin destroying polymer." << std::endl;
   if (polymerases_.pol_count() != 0) {
-    throw std::runtime_error(
-        "Attempting to destruct Polymer object with Polymerases still "
-        "attached." +
-        std::to_string(polymerases_.prop_sum()));
+    std::cout << "WARNING: Attempting to destruct Polymer object with "
+                 "Polymerases still "
+                 "attached. Total propensity of polymer: " +
+                     std::to_string(polymerases_.prop_sum())
+              << std::endl;
   }
   for (auto const &site : uncovered_) {
     if (site.second != 0) {
       if (site.first == "__rnase_site" || site.first == "__rnase_site_ext") {
         LogCover(site.first);
       } else {
-        throw std::runtime_error(
-            "Attempting to destruct Polymer object with uncovered binding "
-            "sites. " +
-            site.first);
+        std::cout << "WARNING: Attempting to destruct Polymer object with "
+                     "uncovered binding "
+                     "sites. Binding site name: " +
+                         site.first
+                  << std::endl;
       }
     }
   }
@@ -595,7 +597,7 @@ Transcript::Transcript(const std::string &name, int length)
     : Polymer(name, 1, length) {
   weights_ = std::vector<double>(length, 1.0);
   attached_ = false;
-  mask_ = Mask(start_, stop_, std::map<std::string, double>());
+  mask_ = Mask(stop_ + 1, stop_, std::map<std::string, double>());
 }
 
 void Transcript::Initialize() {

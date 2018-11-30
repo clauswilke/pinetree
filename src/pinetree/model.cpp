@@ -35,6 +35,7 @@ void Model::Simulate(int time_limit, int time_step,
     gillespie_.Iterate();
   }
   countfile.close();
+  std::cout << "Simulation successful. Ignore any warnings that follow." << std::endl;
 }
 
 void Model::AddReaction(double rate_constant,

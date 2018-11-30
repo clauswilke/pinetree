@@ -276,6 +276,14 @@ PYBIND11_MODULE(core, m) {
             genome (Genome): a pinetree ``Genome`` object.
         
         )doc")
+      .def("register_transcript", &Model::RegisterTranscript, R"doc(
+        
+        Register a genome-independent transcript with the model.
+
+        Args:
+            transcript (Transcript): a pinetree ``Transcript`` object.
+        
+        )doc")
       .def("simulate", &Model::Simulate, "time_limit"_a, "time_step"_a,
            "output"_a = "counts.tsv",
            R"doc(
@@ -444,5 +452,28 @@ PYBIND11_MODULE(core, m) {
                 name (str): Name of transcript.
                 length (int): Length of transcript in base pairs.
 
-          )doc");
+          )doc")
+      .def("add_gene", &Transcript::AddGene, "name"_a, "start"_a, "stop"_a,
+           "rbs_start"_a, "rbs_stop"_a, "rbs_strength"_a,
+           R"doc(
+            
+            Define a gene. Genes may be defined in any order.
+
+            .. note::
+               
+               At this time, overlapping genes or genes that overlap with 
+               ribosome binding sites are not supported.
+
+            Args:
+                name (str): Name of gene. Name may be referenced by 
+                    ``Genome.add_reaction``.
+                start (int): Start position of gene.
+                stop (int): Stop position of gene.
+                rbs_start (int): Start position of ribosome binding site.       
+                    Generally positioned upstream of gene start.
+                rbs_stop (int): Stop position of ribosome binding site.
+                rbs_strength (float): Binding rate constant between ribosome
+                    and ribosome binding site.
+
+            )doc");
 }
