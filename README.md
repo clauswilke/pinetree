@@ -24,7 +24,8 @@ The latest development build may be installed from GitHub as follows:
 ```
 pip3 install cmake   
 git clone https://github.com/benjaminjack/pinetree.git
-pinetree/setup.py install
+cd pinetree
+pip3 install .
 ```
 
 ## Documentation
