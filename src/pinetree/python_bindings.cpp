@@ -475,5 +475,14 @@ PYBIND11_MODULE(core, m) {
                 rbs_strength (float): Binding rate constant between ribosome
                     and ribosome binding site.
 
+            )doc")
+      .def("add_weights", &Transcript::AddWeights, "weights"_a,
+           R"doc(
+            
+            Define position-specific translation speed weights. These may correspond, for example, codon-specific translation rates.
+
+            Args:
+                weights (list): List of weights of same length as Transcript. These weights are multiplied by the ribosome speed to calculate a final translation rate at every position in the genome.
+
             )doc");
 }

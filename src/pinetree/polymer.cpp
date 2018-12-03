@@ -623,6 +623,15 @@ void Transcript::AddGene(const std::string &name, int start, int stop,
                                   stop_codon);
 }
 
+void Transcript::AddWeights(const std::vector<double> &transcript_weights) {
+  if (transcript_weights.size() != (stop_ - start_ + 1)) {
+    throw std::length_error("Weights vector is not the correct size. " +
+                            std::to_string(transcript_weights.size()) + " " +
+                            std::to_string(stop_ - start_ + 1));
+  }
+  weights_ = transcript_weights;
+}
+
 void Transcript::Bind(MobileElement::Ptr pol,
                       const std::string &promoter_name) {
   // Bind polymerase just like in parent Polymer

@@ -77,7 +77,7 @@ with open('README.md', encoding='utf-8') as f:
 with open('LICENSE') as f:
     license = f.read()
 
-_VERSION = "0.1.4"
+_VERSION = "0.2.0"
 
 setup(
     name='pinetree',

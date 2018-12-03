@@ -422,6 +422,10 @@ class Transcript : public Polymer {
    */
   void AddGene(const std::string &name, int start, int stop, int rbs_start,
                int rbs_stop, double rbs_strength);
+  /**
+   * Add transcript weights directly
+   */
+  void AddWeights(const std::vector<double> &transcript_weights);
 
  private:
   std::map<std::string, std::map<std::string, double>> bindings_;

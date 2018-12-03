@@ -35,4 +35,14 @@ protein_y_plot <- ggplot(protein_y, aes(x = time, y = value, color = condition))
 recoded_plot_all <- plot_grid(recoded, protein_y_plot)
 save_plot("plots.pdf", recoded_plot_all, base_width = 9, base_height = 3.3)
 
+degrade_data <- read_tsv("three_genes_rnase.tsv") %>% 
+  filter(!str_detect(species, "^__"), species != "p1", species != "p2") %>%
+  gather(type, value, -time, -species) %>% 
+  filter(type == "transcript", species != "rnapol")
+
+degrade_plot <- ggplot(degrade_data, aes(x=time, y=value, group=species, color=species)) +
+  geom_line() + xlab("time (s)") + ylab("transcript count")
+
+save_plot("degrade_plot.png", degrade_plot, base_aspect_ratio = 1.3)
+
 
