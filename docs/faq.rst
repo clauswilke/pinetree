@@ -9,7 +9,7 @@ Genomic coordinates *start from 1* and start and stop coordinates are *inclusive
 How do I specify transcript degradation rates?
 ----------------------------------------------
 
-Pinetree does not currently support transcript degradation. Any transcript produced during a simulation never degrades.
+Transcript degradation rates are specified when constructing a new Genome object. Please see the documentation for Genome for further information.
 
 Where did the name come from?
 -----------------------------
