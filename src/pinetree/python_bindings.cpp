@@ -314,18 +314,15 @@ PYBIND11_MODULE(core, m) {
            R"doc(
             
             Define a linear genome. 
-            
-            .. warning::
-            
-               Transcript degradation is an experimental feature. Defining 
-               ``transcript_degradation_rate``, ``rnase_speed``, or 
-               ``rnase_footprint`` may crash pinetree.
 
             Args:
                 name (str): Name of genome.
                 length (int): Length of genome in base pairs.
                 transcript_degradation_rate (float): Unary binding rate 
-                    constant for binding of RNases to RNase sites.
+                    constant for binding of RNases to internal RNase sites. 
+                    (See the add_rnase_site() method below.)
+                transcript_degradation_rate_ext (float): Unary binding rate 
+                    constant for binding of RNases to the 5'-end of transcripts.
                 rnase_speed (flaot): Mean speed at which RNase degrades 
                     transcript, in bases per second.
                 rnase_footprint (float): Initial footprint of RNase on RNA.
@@ -429,11 +426,6 @@ PYBIND11_MODULE(core, m) {
            R"doc(
             
             Define an internal RNase cleavage site.
-
-            .. warning::
-               
-               This feature is experimental and adding RNase cleavage sites
-               may crash pinetree.
 
             Args:
                 start (int): Start position of RNase cleavage site.

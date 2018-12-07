@@ -70,6 +70,13 @@ The Mask in a Transcript is inaccessible to ribosomes. Ribosomes, represented by
 
 A Genome may also define a Mask. This Mask makes portions of the Genome inaccessible to polymerase binding. However, some polymerases are capable of shifting the mask upon colliding with it. This shifting simulates some viral genomes in which a polymerase itself pulls the genome into a cell as it transcribes.
 
+RNases, RNase sites, and transcript degradation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Pinetree supports degradation by RNases moving in the 5'-3' direction. RNases bind to RNase sites, which are either automatically added to the 5' end of the transcript, or specified manually by user anywhere in the transcript. The end user defines two different degradation rates, one for 5'-sites (transcript_degrade_ext) and one for internal sites (transcript_degrade). These rates correspond to an unary reaction in which an RNase spontaneously forms on the RNase site and depends only on the abundance of RNase sites.
+
+Once degradation has initiated, the RNase behaves much like a Mask, but with the 5'-end fixed and an 3'-end that expands in the 3'-direction at a user-defined speed (rnase_speed). As the RNase expands, it occludes ribosome binding sites and coding sequences. Once an entire CDS has been occluded, the RNase reports to the Polymer, which then reports to SpeciesTracker, that the transcript for coding sequence has been degraded. Once an RNase (or RNases) occlude all ribosome binding sites and coding sequences on a transcript, that transcript is removed from memory. The 3'-end of the RNase may interact with ribosomes and stall. 
+
 FixedElements
 -------------
 
