@@ -17,7 +17,8 @@ The latest development build may be installed from GitHub:
    
    pip3 install cmake  # CMake is required to compile pinetree
    git clone https://github.com/benjaminjack/pinetree.git
-   pinetree/setup.py install
+   cd pinetree
+   pip3 install .
 
 
 Construct a simulation
