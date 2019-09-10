@@ -1,7 +1,7 @@
 ![pinetree](https://github.com/clauswilke/pinetree/blob/master/docs/pinetree-logo.png?raw=true)
 
 # pinetree 
-[![Build Status](https://travis-ci.org/clauswilke/pinetree.svg?branch=master)](https://travis-ci.org/benjaminjack/pinetree)
+[![Build Status](https://travis-ci.org/clauswilke/pinetree.svg?branch=master)](https://travis-ci.org/clauswilke/pinetree)
 [![Documentation Status](https://readthedocs.org/projects/pinetree/badge/?version=latest)](http://pinetree.readthedocs.io/en/latest/?badge=latest)
 
 A flexible gene expression simulator with codon-specific translation rates.
