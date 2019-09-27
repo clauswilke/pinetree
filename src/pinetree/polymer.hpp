@@ -451,9 +451,9 @@ class Genome : public Polymer {
    *  the cell)
    */
   Genome(const std::string &name, int length,
-         double transcript_degradation_rate,
-         double transcript_degradation_rate_ext, double rnase_speed,
-         double rnase_footprint);
+         double transcript_degradation_rate = 0.0,
+         double transcript_degradation_rate_ext = 0.0, double rnase_speed = 0.0,
+         double rnase_footprint = 0.0);
   void Initialize();
   void AddMask(int start, const std::vector<std::string> &interactions);
   void AddPromoter(const std::string &name, int start, int stop,
