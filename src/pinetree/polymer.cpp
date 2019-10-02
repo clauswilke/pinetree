@@ -236,7 +236,7 @@ void Polymer::Bind(MobileElement::Ptr pol, const std::string &promoter_name) {
   pol->start(elem->start());
   pol->stop(elem->start() + pol->footprint() - 1);
   pol->reading_frame(elem->reading_frame());
-  // Only set gene_bound_ for transcripts and ribosomes
+  // Only set gene_bound_ for transcripts and ribosomesinit
   if (pol->name() == "__ribosome") {
     pol->gene_bound(elem->gene());
   }
