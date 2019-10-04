@@ -31,7 +31,7 @@ install(TARGETS core DESTINATION src/pinetree)
 SET(TEST_DIR "tests")
 SET(TESTS ${SOURCES}
     "${TEST_DIR}/test_main.cpp"
-    "${TEST_DIR}/test_all.cpp")
+    "${TEST_DIR}/unit_tests.cpp")
 
 # Generate a test executable
 #include_directories(lib/catch/include)
