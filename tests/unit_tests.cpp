@@ -1,4 +1,4 @@
-#include <catch.hpp>
+#include "./lib/catch.hpp"
 #include "choices.hpp"
 #include "feature.hpp"
 #include "model.hpp"
