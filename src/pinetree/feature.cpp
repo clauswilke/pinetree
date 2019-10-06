@@ -133,7 +133,7 @@ Mask::Mask(int start, int stop,
 /**
  * TODO: refactor to make vector rather than map
  */
-bool Mask::CheckInteraction(const std::string &name) const{
+bool Mask::CheckInteraction(const std::string &name) const {
   return interactions_.count(name);
 }
 
