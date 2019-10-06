@@ -26,8 +26,8 @@ TEST_CASE("Genome construction")
 TEST_CASE("Add mask to genome")
 {
     auto plasmid = std::shared_ptr<Genome>(new Genome("T7", 305));
-    std::vector<std::string> interactions = {"rnapol","ecolipol"};
-    plasmid->AddMask(15,interactions);
+    std::vector<std::string> interactions = {"rnapol", "ecolipol"};
+    plasmid->AddMask(15, interactions);
 
     REQUIRE(plasmid->GetMask().start() == 15);
     REQUIRE(plasmid->GetMask().stop() == 305);
@@ -39,34 +39,34 @@ TEST_CASE("Add fixed elements to a genome")
 {
     //Create a genome and add a promoter
     auto plasmid = std::shared_ptr<Genome>(new Genome("T7", 305));
-    std::map<std::string, double> interactions = {{"rnapol",2e8}};
-    plasmid->AddPromoter("phi1",1,10,interactions);
+    std::map<std::string, double> interactions = {{"rnapol", 2e8}};
+    plasmid->AddPromoter("phi1", 1, 10, interactions);
     CHECK(plasmid->bindings().size() == 1);
-    CHECK(plasmid->GetBindingIntervals().size() == 1 );
+    CHECK(plasmid->GetBindingIntervals().size() == 1);
     
     //Test the AddTerminator method
-    std::map<std::string, double> efficiency = {{"rnapol",1.0}};
-    plasmid->AddTerminator("t1",304,305,efficiency);
+    std::map<std::string, double> efficiency = {{"rnapol", 1.0}};
+    plasmid->AddTerminator("t1", 304, 305, efficiency);
     CHECK(plasmid->GetReleaseIntervals().size() == 1);
 
     //Add two genes to the genome
     //There should now be three binding sites ('bindings') -
     //one polymerase binding site and two ribosome binding sites
-    plasmid->AddGene("rnapol",26,225,11,26,1e7);
-    plasmid->AddGene("proteinX",241,280,226,241,1e7);
+    plasmid->AddGene("rnapol", 26, 225, 11, 26, 1e7);
+    plasmid->AddGene("proteinX", 241, 280, 226, 241, 1e7);
     REQUIRE(plasmid->bindings().size() == 3);
 }
 
 TEST_CASE("MobileElementManager Insert") 
 {
-    //The MobileElementManager constructor expects of vector of weights
+    //The MobileElementManager constructor expects a vector of weights
     //but the values have no bearing on this particular test
     std::vector<double> weights = {30, 1.0};
     MobileElementManager manager = MobileElementManager(weights);
 
     //Make two polymerases and give them unique start positions
-    auto polymerase1 = std::make_shared<Polymerase>(Polymerase("rnapol",10,40));
-    auto polymerase2 = std::make_shared<Polymerase>(Polymerase("rnapol",10,40));
+    auto polymerase1 = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 40));
+    auto polymerase2 = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 40));
     polymerase1->start(1); polymerase2->start(51);
     
     manager.Insert(polymerase1, std::shared_ptr<Polymer>());
@@ -81,14 +81,14 @@ TEST_CASE("MobileElementManager Insert")
 
 TEST_CASE("MobileElementManager Delete")
 {
-    //The MobileElementManager constructor expects of vector of weights
+    //The MobileElementManager constructor expects a vector of weights
     //but the values have no bearing on this particular test
     std::vector<double> weights = {30, 1.0};
     MobileElementManager manager = MobileElementManager(weights);
     
-    auto polymerase1 = std::make_shared<Polymerase>(Polymerase("rnapol",10,40));
-    auto polymerase2 = std::make_shared<Polymerase>(Polymerase("rnapol",10,40));
-    auto polymerase3 = std::make_shared<Polymerase>(Polymerase("rnapol",10,40));
+    auto polymerase1 = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 40));
+    auto polymerase2 = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 40));
+    auto polymerase3 = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 40));
     polymerase1->start(1); polymerase2->start(51); polymerase3->start(75);
     
     manager.Insert(polymerase1, std::shared_ptr<Polymer>());
@@ -113,18 +113,18 @@ TEST_CASE("Attach a polymerase to a registered genome")
 {
     //Setup - create a genome with a single promoter that interacts with rnapol
     //The genome must be registered with a model object before Bind can be called -
-    //failing to so results in undefined behavior
+    //failing to do so results in undefined behavior
     int promoter_start = 2;
     auto sim = std::shared_ptr<Model>(new Model(1.1e-15));
-    auto plasmid = std::shared_ptr<Genome>(new Genome("T7",305));
-    std::map<std::string, double> interactions = {{"rnapol",2e8}};
-    std::map<std::string, double> efficiency = {{"rnapol",1.0}};
-    plasmid->AddPromoter("phi1",promoter_start,10,interactions);
+    auto plasmid = std::shared_ptr<Genome>(new Genome("T7", 305));
+    std::map<std::string, double> interactions = {{"rnapol", 2e8}};
+    std::map<std::string, double> efficiency = {{"rnapol", 1.0}};
+    plasmid->AddPromoter("phi1", promoter_start, 10, interactions);
     sim->RegisterGenome(plasmid);
 
     //Create a polymerase called 'rnapol' and bind it to the genome
-    auto polymerase = std::make_shared<Polymerase>(Polymerase("rnapol",10,40));
-    plasmid->Bind(polymerase,"phi1");
+    auto polymerase = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 40));
+    plasmid->Bind(polymerase, "phi1");
     
     //The genome should now have a single mobile element attached to it that
     //has the same start position as the promoter
