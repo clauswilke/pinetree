@@ -26,7 +26,7 @@ set(SOURCES
 # Generate python module
 add_subdirectory(lib/pybind11)
 pybind11_add_module(core ${SOURCES} "${SOURCE_DIR}/python_bindings.cpp")
-install(TARGETS core DESTINATION src/pinetree)
+install(TARGETS core DESTINATION src/${PROJECT_NAME})
 
 SET(TEST_DIR "tests")
 SET(TESTS ${SOURCES}

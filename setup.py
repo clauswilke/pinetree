@@ -13,6 +13,9 @@ from setuptools.command.build_ext import build_ext
 from setuptools.command.test import test as TestCommand
 from shutil import copyfile, copymode
 
+PROJECT_NAME = "pinetree"
+VERSION = "0.2.0"
+
 class CMakeExtension(Extension):
     def __init__(self, name, sourcedir=''):
         Extension.__init__(self, name, sources=[])
@@ -68,7 +71,7 @@ class CMakeBuild(build_ext):
                               cwd=self.build_temp, env=env)
         subprocess.check_call(['cmake', '--build', '.'] + build_args,
                               cwd=self.build_temp)
-        test_bin = os.path.join(self.build_temp, 'pinetree_test')
+        test_bin = os.path.join(self.build_temp, PROJECT_NAME + '_test')
         self.copy_test_file(test_bin)
         print()  # Add an empty line for cleaner output
 
@@ -100,24 +103,23 @@ with open('README.md', encoding='utf-8') as f:
 with open('LICENSE') as f:
     license = f.read()
 
-_VERSION = "0.2.0"
 
 setup(
-    name='pinetree',
-    version=_VERSION,
+    name=PROJECT_NAME,
+    version=VERSION,
     description='stochastic simulation of gene expression with site-specific translation rates',
     long_description=readme,
     long_description_content_type='text/markdown',
     author='Benjamin Jack',
     author_email='benjamin.r.jack@gmail.com',
-    url='https://github.com/benjaminjack/pinetree',
-    download_url='https://github.com/benjaminjack/pinetree/archive/v' + _VERSION + '.tar.gz',
+    url='https://github.com/clauswilke/' + PROJECT_NAME,
+    download_url='https://github.com/clauswilke/' + PROJECT_NAME + '/archive/v' + VERSION + '.tar.gz',
     license='MIT',
     keywords=['gene', 'codon', 'transcription',
               'translation', 'biology', 'stochastic'],
     packages=find_packages('src'),
     package_dir={'': 'src'},
-    ext_modules=[CMakeExtension('pinetree/core')],
+    ext_modules=[CMakeExtension(PROJECT_NAME + '/core')],
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False,
     test_suite='tests'
