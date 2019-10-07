@@ -11,13 +11,15 @@ from distutils.version import LooseVersion
 from setuptools import setup, Extension, find_packages
 from setuptools.command.build_ext import build_ext
 from setuptools.command.test import test as TestCommand
+from shutil import copyfile, copymode
 
+PROJECT_NAME = "pinetree"
+VERSION = "0.2.0"
 
 class CMakeExtension(Extension):
     def __init__(self, name, sourcedir=''):
         Extension.__init__(self, name, sources=[])
         self.sourcedir = os.path.abspath(sourcedir)
-
 
 class CMakeBuild(build_ext):
     def run(self):
@@ -64,11 +66,35 @@ class CMakeBuild(build_ext):
             self.distribution.get_version())
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)
+        
         subprocess.check_call(['cmake', ext.sourcedir] + cmake_args,
                               cwd=self.build_temp, env=env)
         subprocess.check_call(['cmake', '--build', '.'] + build_args,
                               cwd=self.build_temp)
+        test_bin = os.path.join(self.build_temp, PROJECT_NAME + '_test')
+        self.copy_test_file(test_bin)
         print()  # Add an empty line for cleaner output
+
+    def copy_test_file(self, src_file):
+        '''
+        Copy ``src_file`` to `tests/bin` directory, ensuring parent directory 
+        exists. Messages like `creating directory /path/to/package` and
+        `copying directory /src/path/to/package -> path/to/package` are 
+        displayed on standard output. Adapted from scikit-build.
+        '''
+        # Create directory if needed
+        dest_dir = os.path.join(os.path.dirname(
+            os.path.abspath(__file__)), 'tests', 'bin')
+        if dest_dir != "" and not os.path.exists(dest_dir):
+            print("creating directory {}".format(dest_dir))
+            os.makedirs(dest_dir)
+
+        # Copy file
+        dest_file = os.path.join(dest_dir, os.path.basename(src_file))
+        print("copying {} -> {}".format(src_file, dest_file))
+        copyfile(src_file, dest_file)
+        copymode(src_file, dest_file)
+
 
 
 with open('README.md', encoding='utf-8') as f:
@@ -77,24 +103,23 @@ with open('README.md', encoding='utf-8') as f:
 with open('LICENSE') as f:
     license = f.read()
 
-_VERSION = "0.2.0"
 
 setup(
-    name='pinetree',
-    version=_VERSION,
+    name=PROJECT_NAME,
+    version=VERSION,
     description='stochastic simulation of gene expression with site-specific translation rates',
     long_description=readme,
     long_description_content_type='text/markdown',
     author='Benjamin Jack',
     author_email='benjamin.r.jack@gmail.com',
-    url='https://github.com/benjaminjack/pinetree',
-    download_url='https://github.com/benjaminjack/pinetree/archive/v' + _VERSION + '.tar.gz',
+    url='https://github.com/clauswilke/' + PROJECT_NAME,
+    download_url='https://github.com/clauswilke/' + PROJECT_NAME + '/archive/v' + VERSION + '.tar.gz',
     license='MIT',
     keywords=['gene', 'codon', 'transcription',
               'translation', 'biology', 'stochastic'],
     packages=find_packages('src'),
     package_dir={'': 'src'},
-    ext_modules=[CMakeExtension('pinetree/core')],
+    ext_modules=[CMakeExtension(PROJECT_NAME + '/core')],
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False,
     test_suite='tests'

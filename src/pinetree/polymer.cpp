@@ -236,7 +236,7 @@ void Polymer::Bind(MobileElement::Ptr pol, const std::string &promoter_name) {
   pol->start(elem->start());
   pol->stop(elem->start() + pol->footprint() - 1);
   pol->reading_frame(elem->reading_frame());
-  // Only set gene_bound_ for transcripts and ribosomes
+  // Only set gene_bound_ for transcripts and ribosomesinit
   if (pol->name() == "__ribosome") {
     pol->gene_bound(elem->gene());
   }
@@ -644,9 +644,9 @@ const std::map<std::string, std::map<std::string, double>>
 }
 
 Genome::Genome(const std::string &name, int length,
-               double transcript_degradation_rate = 0.0,
-               double transcript_degradation_rate_ext = 0.0,
-               double rnase_speed = 0.0, double rnase_footprint = 0)
+               double transcript_degradation_rate,
+               double transcript_degradation_rate_ext,
+               double rnase_speed, double rnase_footprint)
     : Polymer(name, 1, length),
       transcript_degradation_rate_(transcript_degradation_rate),
       transcript_degradation_rate_ext_(transcript_degradation_rate_ext),
