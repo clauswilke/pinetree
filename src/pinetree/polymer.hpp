@@ -84,6 +84,8 @@ class MobileElementManager {
    */
   double prop_sum() { return prop_sum_; }
   int pol_count() { return pol_count_; }
+  int pair_count() const { return polymerases_.size(); }
+  int pol_start(int index) const { return polymerases_[index].first->start(); }
 
  private:
   /**
@@ -212,6 +214,11 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
   void attached(bool attached) { attached_ = attached; }
   void wrapper(std::shared_ptr<PolymerWrapper> wrapper) { wrapper_ = wrapper; }
   std::shared_ptr<PolymerWrapper> wrapper() { return wrapper_.lock(); }
+  const std::vector<Interval<BindingSite::Ptr>>& GetBindingIntervals() { return binding_intervals_; }
+  const std::vector<Interval<ReleaseSite::Ptr>>& GetReleaseIntervals() { return release_intervals_; }
+  const Mask& GetMask() { return mask_; }
+  int num_attached() const { return polymerases_.pair_count(); }
+  int attached_pol_start(int index) const { return polymerases_.pol_start(index); }
 
   /**
    * Signal to fire when a polymerase terminates.
@@ -451,9 +458,9 @@ class Genome : public Polymer {
    *  the cell)
    */
   Genome(const std::string &name, int length,
-         double transcript_degradation_rate,
-         double transcript_degradation_rate_ext, double rnase_speed,
-         double rnase_footprint);
+         double transcript_degradation_rate = 0.0,
+         double transcript_degradation_rate_ext = 0.0, double rnase_speed = 0.0,
+         double rnase_footprint = 0.0);
   void Initialize();
   void AddMask(int start, const std::vector<std::string> &interactions);
   void AddPromoter(const std::string &name, int start, int stop,

@@ -377,7 +377,7 @@ class Mask : public MobileElement {
    *
    * @return bool true if elements interact
    */
-  bool CheckInteraction(const std::string &name);
+  bool CheckInteraction (const std::string &name) const;
 
  private:
   /**
