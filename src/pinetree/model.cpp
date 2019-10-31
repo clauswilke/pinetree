@@ -137,7 +137,7 @@ void Model::Initialize() {
       tracker.Add("__rnase_site", reaction);
       // tracker.Add("__rnase", reaction);
       gillespie_.LinkReaction(reaction);
-
+    
       auto rnase_template_ext =
           Rnase(genome->rnase_footprint(), genome->rnase_speed());
       auto reaction_ext = std::make_shared<BindRnase>(
@@ -146,9 +146,23 @@ void Model::Initialize() {
       tracker.Add("__rnase_site_ext", reaction_ext);
       // tracker.Add("__rnase", reaction_ext);
       gillespie_.LinkReaction(reaction_ext);
+    } 
+    
+    if (genome->rnase_bindings().size() != 0) {
+      for (auto rnase_site : genome->rnase_bindings()) {
+        auto rnase_template =
+          Rnase(genome->rnase_footprint(), genome->rnase_speed());
+        auto reaction = std::make_shared<BindRnase>(
+          rnase_site.second, cell_volume_, rnase_template,
+          rnase_site.first);
+        auto &tracker = SpeciesTracker::Instance();
+        tracker.Add(rnase_site.first, reaction);
+        // tracker.Add("__rnase", reaction);
+        gillespie_.LinkReaction(reaction);
+      }
     }
   }
-
+  
   // Initialize transcripts that have been defined independently of genome
   for (Transcript::Ptr transcript : transcripts_) {
     for (auto rbs_name : transcript->bindings()) {

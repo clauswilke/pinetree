@@ -25,11 +25,21 @@ void MobileElementManager::Insert(MobileElement::Ptr pol,
   auto prop_it = (it - polymerases_.begin()) + prop_list_.begin();
   // Add polymerase to this polymer
   polymerases_.insert(it, std::make_pair(pol, polymer));
-  // Cache polymerase speed
-  double weight = weights_[pol->stop() - 1];
-  // Update total move propensity of this polymer
-  prop_sum_ += weight * pol->speed();
-  prop_list_.insert(prop_it, weight * pol->speed());
+  
+  //Set propensity
+  //Currently, this should only be weighted if pol is a ribosome
+  if (pol->name() == "__ribosome") {
+    // Cache polymerase speed, weighted
+    double weight = weights_[pol->stop() - 1];
+    // Update total move propensity of this polymer
+    prop_sum_ += weight * pol->speed();
+    prop_list_.insert(prop_it, weight * pol->speed());
+  } else {
+    // Update total move propensity of this polymer, unweighted
+    prop_sum_ += pol->speed();
+    prop_list_.insert(prop_it, pol->speed());
+  }
+
   if (prop_list_.size() != polymerases_.size()) {
     throw std::runtime_error("Prop list not correct size.");
   }
@@ -379,7 +389,9 @@ void Polymer::Move(int pol_index) {
   }
 
   // Update propensity for new codon (TODO: make its own function)
-  polymerases_.UpdatePropensity(pol_index);
+  if (pol->name() == "__ribosome") {
+    polymerases_.UpdatePropensity(pol_index);
+  }
 }
 
 void Polymer::CheckAhead(int old_stop, int new_stop) {
@@ -725,6 +737,20 @@ void Genome::AddRnaseSite(int start, int stop) {
       std::make_shared<BindingSite>("__rnase_site", start, stop, binding);
   transcript_rbs_intervals_.emplace_back(rnase_site->start(),
                                          rnase_site->stop(), rnase_site);
+  std::cout << "created rnase site with afinity: " << transcript_degradation_rate_ << std::endl;
+}
+
+//Overloading allows for user to specify a rnase rate constant unique to this site
+//while maintaining backwards compatability
+void Genome::AddRnaseSite(const std::string &name, int start, int stop, double transcript_degradation_rate) {
+  auto binding =
+      std::map<std::string, double>{{"__rnase", transcript_degradation_rate}};
+  auto rnase_site =
+      std::make_shared<BindingSite>(name, start, stop, binding);
+  transcript_rbs_intervals_.emplace_back(rnase_site->start(),
+                                         rnase_site->stop(), rnase_site);
+  rnase_bindings_[name] = transcript_degradation_rate;
+  std::cout << "created rnase site with afinity: " << transcript_degradation_rate << std::endl;
 }
 
 void Genome::AddWeights(const std::vector<double> &transcript_weights) {

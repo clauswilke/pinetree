@@ -422,7 +422,7 @@ PYBIND11_MODULE(core, m) {
                     and ribosome binding site.
 
             )doc")
-      .def("add_rnase_site", &Genome::AddRnaseSite, "start"_a, "stop"_a,
+      /*.def("add_rnase_site", &Genome::AddRnaseSite, "start"_a, "stop"_a,
            R"doc(
             
             Define an internal RNase cleavage site.
@@ -431,7 +431,19 @@ PYBIND11_MODULE(core, m) {
                 start (int): Start position of RNase cleavage site.
                 stop (int): Stop position of RNase cleavage site.
 
-            )doc");
+            )doc")
+      .def("add_rnase_site", &Genome::AddRnaseSite, "start"_a, "stop"_a, "rate"_a);*/
+      .def("add_rnase_site", (void (Genome::*)(int, int)) &Genome::AddRnaseSite,
+           R"doc(
+            
+            Define an internal RNase cleavage site.
+
+            Args:
+                start (int): Start position of RNase cleavage site.
+                stop (int): Stop position of RNase cleavage site.
+
+            )doc")
+      .def("add_rnase_site", (void (Genome::*)(const std::string&, int, int, double)) &Genome::AddRnaseSite);
 
   py::class_<Transcript, Polymer, Transcript::Ptr>(m, "Transcript")
       .def(py::init<const std::string &, int>(), "name"_a, "length"_a,
