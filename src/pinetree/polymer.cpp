@@ -112,10 +112,12 @@ Polymer::Polymer(const std::string &name, int start, int stop)
 }
 
 Polymer::~Polymer() {
-  // Error check to make sure nothing is uncovered
-  // and no polymerases are bound
+  // The following code can be uncommented to check that
+  // polymers are being properly destroyed during the simulation,
+  // i.e. nothing is left uncovered/ no polymerases are bound. 
+  // For debugging purposes only. 
   //
-  // std::cout << "Begin destroying polymer." << std::endl;
+  /*std::cout << "Begin destroying polymer." << std::endl;
   if (polymerases_.pol_count() != 0) {
     std::cout << "WARNING: Attempting to destruct Polymer object with "
                  "Polymerases still "
@@ -135,7 +137,7 @@ Polymer::~Polymer() {
                   << std::endl;
       }
     }
-  }
+  }*/
 }
 
 void Polymer::Unlink() {
