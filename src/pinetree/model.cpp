@@ -89,8 +89,7 @@ void Model::RegisterGenome(Genome::Ptr genome) {
   RegisterPolymer(genome);
   genome->termination_signal_.ConnectMember(
       &SpeciesTracker::Instance(), &SpeciesTracker::TerminateTranscription);
-  genome->transcript_signal_.ConnectMember(shared_from_this(),
-                                           &Model::RegisterTranscript);
+  genome->transcript_signal_.ConnectMember(this, &Model::RegisterTranscript);
   genomes_.push_back(genome);
 }
 

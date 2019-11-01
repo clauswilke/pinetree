@@ -108,6 +108,8 @@ celerybeat-schedule
 # virtualenv
 venv/
 ENV/
+env-pinetree-release/
+valgrind-tests/
 
 # Spyder project settings
 .spyderproject
