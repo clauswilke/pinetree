@@ -116,6 +116,21 @@ class TestMaskMethods(unittest.TestCase):
         mask = pt.Mask(1, 10, {"rnapol": 1.0})
         self.assertTrue(mask.check_interaction("rnapol"))
 
+# Tests that python bindings work for the overloaded "AddRnaseSite" method
+class TestRnaseSiteAdd(unittest.TestCase):
+    def test_add_rnase_site_method(self):
+        plasmid = pt.Genome(name="T7", length=305,
+                            transcript_degradation_rate=1e-2,
+                            transcript_degradation_rate_ext=1e-2,
+                            rnase_footprint=9,
+                            rnase_speed=20)
+        
+        # Original method
+        plasmid.add_rnase_site(start=100, stop=110)
+
+        # alternate method that takes a rnase binding affinity specific to
+        # this site
+        plasmid.add_rnase_site(name="R6.5", start=220, stop=230, rate=5e-3)
 
 if __name__ == '__main__':
     unittest.main()

@@ -125,6 +125,7 @@ void Model::Initialize() {
         }
       }
     }
+    
     if (genome->transcript_degradation_rate() != 0.0) {
       // TODO: user defined Rnase speed
       // auto rnase_template = Rnase(10, 30);
@@ -137,12 +138,15 @@ void Model::Initialize() {
       tracker.Add("__rnase_site", reaction);
       // tracker.Add("__rnase", reaction);
       gillespie_.LinkReaction(reaction);
-    
+    }
+
+    if (genome->transcript_degradation_rate_ext() != 0.0) {
       auto rnase_template_ext =
           Rnase(genome->rnase_footprint(), genome->rnase_speed());
       auto reaction_ext = std::make_shared<BindRnase>(
           genome->transcript_degradation_rate_ext(), cell_volume_,
           rnase_template_ext, "__rnase_site_ext");
+      auto &tracker = SpeciesTracker::Instance();
       tracker.Add("__rnase_site_ext", reaction_ext);
       // tracker.Add("__rnase", reaction_ext);
       gillespie_.LinkReaction(reaction_ext);

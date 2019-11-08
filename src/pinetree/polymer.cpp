@@ -665,13 +665,10 @@ Genome::Genome(const std::string &name, int length,
       rnase_speed_(rnase_speed),
       rnase_footprint_(rnase_footprint) {
   transcript_weights_ = std::vector<double>(length, 1.0);
-  if (transcript_degradation_rate_ != 0 || rnase_speed_ != 0 ||
-      rnase_footprint_ != 0) {
-    if (!(transcript_degradation_rate_ != 0 && rnase_speed_ != 0 &&
-          rnase_footprint_ != 0)) {
+  if (transcript_degradation_rate_ext != 0 || transcript_degradation_rate != 0) {
+    if (!(rnase_speed_ != 0 && rnase_footprint_ != 0)) {
       throw std::runtime_error(
-          "Please specify 'transcript_degradation_rate', 'rnase_speed', and "
-          "'rnase_footprint' to enable transcript degradation.");
+        "Please specify 'rnase_speed' and/or 'rnase_footprint'");
     }
   }
 }
@@ -742,7 +739,8 @@ void Genome::AddRnaseSite(int start, int stop) {
 
 //Overloading allows for user to specify a rnase rate constant unique to this site
 //while maintaining backwards compatability
-void Genome::AddRnaseSite(const std::string &name, int start, int stop, double transcript_degradation_rate) {
+void Genome::AddRnaseSite(const std::string &name, int start, 
+                          int stop, double transcript_degradation_rate) {
   auto binding =
       std::map<std::string, double>{{"__rnase", transcript_degradation_rate}};
   auto rnase_site =
