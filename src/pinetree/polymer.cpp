@@ -734,21 +734,35 @@ void Genome::AddRnaseSite(int start, int stop) {
       std::make_shared<BindingSite>("__rnase_site", start, stop, binding);
   transcript_rbs_intervals_.emplace_back(rnase_site->start(),
                                          rnase_site->stop(), rnase_site);
-  std::cout << "created rnase site with afinity: " << transcript_degradation_rate_ << std::endl;
 }
 
 //Overloading allows for user to specify a rnase rate constant unique to this site
 //while maintaining backwards compatability
 void Genome::AddRnaseSite(const std::string &name, int start, 
                           int stop, double transcript_degradation_rate) {
+
+  // First check that transcript_degredation_rate_ is still set to zero
+  if (transcript_degradation_rate_ != 0.0) {
+    throw std::runtime_error(
+        "Cannot add unique rnase site if global transcript_degredation_rate 
+        is set. Please see pinetree documentation for details");
+  }
+  
   auto binding =
       std::map<std::string, double>{{"__rnase", transcript_degradation_rate}};
   auto rnase_site =
       std::make_shared<BindingSite>(name, start, stop, binding);
   transcript_rbs_intervals_.emplace_back(rnase_site->start(),
                                          rnase_site->stop(), rnase_site);
-  rnase_bindings_[name] = transcript_degradation_rate;
-  std::cout << "created rnase site with afinity: " << transcript_degradation_rate << std::endl;
+
+  //rnase sites need to have unique names
+  //Otherwise propensity calculations will be incorrect                                      
+  if (rnase_bindings_.count(name) != 0) {
+    throw std::runtime_error(
+        "Rnase site name '" + name + "' already in use.");
+  } else {
+    rnase_bindings_[name] = transcript_degradation_rate;
+  }
 }
 
 void Genome::AddWeights(const std::vector<double> &transcript_weights) {

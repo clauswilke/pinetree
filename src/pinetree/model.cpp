@@ -125,7 +125,20 @@ void Model::Initialize() {
         }
       }
     }
+    // Create reaction for external rnase binding
+    if (genome->transcript_degradation_rate_ext() != 0.0) {
+      auto rnase_template_ext =
+          Rnase(genome->rnase_footprint(), genome->rnase_speed());
+      auto reaction_ext = std::make_shared<BindRnase>(
+          genome->transcript_degradation_rate_ext(), cell_volume_,
+          rnase_template_ext, "__rnase_site_ext");
+      auto &tracker = SpeciesTracker::Instance();
+      tracker.Add("__rnase_site_ext", reaction_ext);
+      // tracker.Add("__rnase", reaction_ext);
+      gillespie_.LinkReaction(reaction_ext);
+    }
     
+    // Create reaction for internal rnase binding
     if (genome->transcript_degradation_rate() != 0.0) {
       // TODO: user defined Rnase speed
       // auto rnase_template = Rnase(10, 30);
@@ -138,27 +151,15 @@ void Model::Initialize() {
       tracker.Add("__rnase_site", reaction);
       // tracker.Add("__rnase", reaction);
       gillespie_.LinkReaction(reaction);
-    }
-
-    if (genome->transcript_degradation_rate_ext() != 0.0) {
-      auto rnase_template_ext =
-          Rnase(genome->rnase_footprint(), genome->rnase_speed());
-      auto reaction_ext = std::make_shared<BindRnase>(
-          genome->transcript_degradation_rate_ext(), cell_volume_,
-          rnase_template_ext, "__rnase_site_ext");
-      auto &tracker = SpeciesTracker::Instance();
-      tracker.Add("__rnase_site_ext", reaction_ext);
-      // tracker.Add("__rnase", reaction_ext);
-      gillespie_.LinkReaction(reaction_ext);
     } 
     
-    if (genome->rnase_bindings().size() != 0) {
+    // Alternatively, create bind reactions for individual rnase sites
+    else if (genome->rnase_bindings().size() != 0) {
       for (auto rnase_site : genome->rnase_bindings()) {
         auto rnase_template =
           Rnase(genome->rnase_footprint(), genome->rnase_speed());
         auto reaction = std::make_shared<BindRnase>(
-          rnase_site.second, cell_volume_, rnase_template,
-          rnase_site.first);
+          rnase_site.second, cell_volume_, rnase_template, rnase_site.first);
         auto &tracker = SpeciesTracker::Instance();
         tracker.Add(rnase_site.first, reaction);
         // tracker.Add("__rnase", reaction);
