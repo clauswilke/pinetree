@@ -656,9 +656,9 @@ const std::map<std::string, std::map<std::string, double>>
 }
 
 Genome::Genome(const std::string &name, int length,
-               double transcript_degradation_rate,
                double transcript_degradation_rate_ext,
-               double rnase_speed, double rnase_footprint)
+               double rnase_speed, double rnase_footprint,
+               double transcript_degradation_rate)
     : Polymer(name, 1, length),
       transcript_degradation_rate_(transcript_degradation_rate),
       transcript_degradation_rate_ext_(transcript_degradation_rate_ext),
@@ -743,11 +743,13 @@ void Genome::AddRnaseSite(const std::string &name, int start,
 
   // First check that transcript_degredation_rate_ is still set to zero
   if (transcript_degradation_rate_ != 0.0) {
-    throw std::runtime_error(
-        "Cannot add unique rnase site if global transcript_degredation_rate 
-        is set. Please see pinetree documentation for details");
+    std::string err = 
+      "Cannot add unique rnase site if global transcript_degredation_rate " 
+      "is set. Please see pinetree documentation for details";
+    throw std::runtime_error(err);
+        
   }
-  
+
   auto binding =
       std::map<std::string, double>{{"__rnase", transcript_degradation_rate}};
   auto rnase_site =
