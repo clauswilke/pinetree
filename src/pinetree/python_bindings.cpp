@@ -323,6 +323,9 @@ PYBIND11_MODULE(core, m) {
                 rnase_speed (flaot): Mean speed at which RNase degrades 
                     transcript, in bases per second.
                 rnase_footprint (float): Initial footprint of RNase on RNA.
+                transcript_degradation_rate (float): Deprecated. Unary binding rate constant for 
+                    binding of RNases to internal RNase sites. (See the add_rnase_site() 
+                    method below for details.)
 
           )doc")
       .def("add_mask", &Genome::AddMask, "start"_a, "interactions"_a,
@@ -427,10 +430,18 @@ PYBIND11_MODULE(core, m) {
             Define an internal RNase cleavage site.
 
             Args:
-                name (string): A unique identifier for this rnase cleavage site.
-                start (int): Start position of rnase cleavage site.
-                stop (int): Stop position of rnase cleavage site.
-                rate (float): Binding rate constant between rnase and cleavage site.
+                name (string): A unique identifier for this RNase cleavage site.
+                start (int): Start position of RNase cleavage site.
+                stop (int): Stop position of RNase cleavage site.
+                rate (float): Binding rate constant between RNase and cleavage site.
+
+            .. note::
+               
+               The internal RNase binding rate constant can alternatively be supplied as an 
+               argument during Genome initialization (see ``Genome`` class description above).
+               In this case, ``add_rnase_site()`` will only accept values for start and stop,
+               and all rnase binding sites will be initialized with the same rate constant. 
+               Warning: This method is deprecated and may be removed in the future.
 
             )doc");
 
