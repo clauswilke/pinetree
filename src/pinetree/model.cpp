@@ -134,7 +134,6 @@ void Model::Initialize() {
           rnase_template_ext, "__rnase_site_ext");
       auto &tracker = SpeciesTracker::Instance();
       tracker.Add("__rnase_site_ext", reaction_ext);
-      // tracker.Add("__rnase", reaction_ext);
       gillespie_.LinkReaction(reaction_ext);
     }
     
@@ -149,7 +148,6 @@ void Model::Initialize() {
           "__rnase_site");
       auto &tracker = SpeciesTracker::Instance();
       tracker.Add("__rnase_site", reaction);
-      // tracker.Add("__rnase", reaction);
       gillespie_.LinkReaction(reaction);
     } 
     
@@ -162,7 +160,6 @@ void Model::Initialize() {
           rnase_site.second, cell_volume_, rnase_template, rnase_site.first);
         auto &tracker = SpeciesTracker::Instance();
         tracker.Add(rnase_site.first, reaction);
-        // tracker.Add("__rnase", reaction);
         gillespie_.LinkReaction(reaction);
       }
     }
