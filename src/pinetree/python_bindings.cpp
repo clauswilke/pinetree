@@ -422,29 +422,9 @@ PYBIND11_MODULE(core, m) {
                     and ribosome binding site.
 
             )doc")
-      .def("add_rnase_site", (void (Genome::*)(int, int)) &Genome::AddRnaseSite, "start"_a, "stop"_a)
       .def("add_rnase_site", (void (Genome::*)(const std::string&, int, int, double)) &Genome::AddRnaseSite, 
-      "name"_a, "start"_a, "stop"_a, "rate"_a,
-            R"doc(
-            
-            Define an internal RNase cleavage site.
-
-            Args:
-                name (string): A unique identifier for this RNase cleavage site.
-                start (int): Start position of RNase cleavage site.
-                stop (int): Stop position of RNase cleavage site.
-                rate (float): Binding rate constant between RNase and cleavage site.
-
-            .. note::
-               
-               The internal RNase binding rate constant can alternatively be supplied as an 
-               argument during Genome initialization (see ``Genome`` class description above).
-               In this case, ``add_rnase_site()`` will only accept values for start and stop,
-               and all rnase binding sites will be initialized with the same rate constant. 
-               Warning: This method is deprecated and may be removed in the future.
-
-            )doc");
-
+           "name"_a, "start"_a, "stop"_a, "rate"_a)
+      .def("add_rnase_site", (void (Genome::*)(int, int)) &Genome::AddRnaseSite, "start"_a, "stop"_a);
   py::class_<Transcript, Polymer, Transcript::Ptr>(m, "Transcript")
       .def(py::init<const std::string &, int>(), "name"_a, "length"_a,
            R"doc(
