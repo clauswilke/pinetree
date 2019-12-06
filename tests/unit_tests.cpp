@@ -8,7 +8,7 @@
 
 TEST_CASE("Genome construction")
 {
-    auto plasmid = std::shared_ptr<Genome>(new Genome("T7", 305, 0.01, 0.001, 9.0, 20.0));
+    auto plasmid = std::shared_ptr<Genome>(new Genome("T7", 305, 0.001, 9.0, 20, 0.01));
     auto plasmid2 = std::shared_ptr<Genome>(new Genome("T7", 305));
     
     REQUIRE(plasmid->transcript_degradation_rate() == 0.01);

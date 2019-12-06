@@ -307,10 +307,10 @@ PYBIND11_MODULE(core, m) {
   // Polymers, genomes, and transcripts
   py::class_<Polymer, Polymer::Ptr>(m, "Polymer");
   py::class_<Genome, Polymer, Genome::Ptr>(m, "Genome")
-      .def(py::init<const std::string &, int, double, double, double, int>(),
-           "name"_a, "length"_a, "transcript_degradation_rate"_a = 0.0,
-           "transcript_degradation_rate_ext"_a = 0.0, "rnase_speed"_a = 0.0,
-           "rnase_footprint"_a = 0,
+      .def(py::init<const std::string &, int, double, double, int, double>(),
+           "name"_a, "length"_a, "transcript_degradation_rate_ext"_a = 0.0, 
+           "rnase_speed"_a = 0.0, "rnase_footprint"_a = 0,
+           "transcript_degradation_rate"_a = 0.0,
            R"doc(
             
             Define a linear genome. 
@@ -318,14 +318,14 @@ PYBIND11_MODULE(core, m) {
             Args:
                 name (str): Name of genome.
                 length (int): Length of genome in base pairs.
-                transcript_degradation_rate (float): Unary binding rate 
-                    constant for binding of RNases to internal RNase sites. 
-                    (See the add_rnase_site() method below.)
                 transcript_degradation_rate_ext (float): Unary binding rate 
                     constant for binding of RNases to the 5'-end of transcripts.
                 rnase_speed (flaot): Mean speed at which RNase degrades 
                     transcript, in bases per second.
                 rnase_footprint (float): Initial footprint of RNase on RNA.
+                transcript_degradation_rate (float): Deprecated. Unary binding rate constant for 
+                    binding of RNases to internal RNase sites. (See the add_rnase_site() 
+                    method below for details.)
 
           )doc")
       .def("add_mask", &Genome::AddMask, "start"_a, "interactions"_a,
@@ -422,17 +422,9 @@ PYBIND11_MODULE(core, m) {
                     and ribosome binding site.
 
             )doc")
-      .def("add_rnase_site", &Genome::AddRnaseSite, "start"_a, "stop"_a,
-           R"doc(
-            
-            Define an internal RNase cleavage site.
-
-            Args:
-                start (int): Start position of RNase cleavage site.
-                stop (int): Stop position of RNase cleavage site.
-
-            )doc");
-
+      .def("add_rnase_site", (void (Genome::*)(const std::string&, int, int, double)) &Genome::AddRnaseSite, 
+           "name"_a, "start"_a, "stop"_a, "rate"_a)
+      .def("add_rnase_site", (void (Genome::*)(int, int)) &Genome::AddRnaseSite, "start"_a, "stop"_a);
   py::class_<Transcript, Polymer, Transcript::Ptr>(m, "Transcript")
       .def(py::init<const std::string &, int>(), "name"_a, "length"_a,
            R"doc(

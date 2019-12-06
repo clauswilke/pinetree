@@ -458,9 +458,8 @@ class Genome : public Polymer {
    *  the cell)
    */
   Genome(const std::string &name, int length,
-         double transcript_degradation_rate = 0.0,
          double transcript_degradation_rate_ext = 0.0, double rnase_speed = 0.0,
-         double rnase_footprint = 0.0);
+         double rnase_footprint = 0.0, double transcript_degradation_rate = 0.0);
   void Initialize();
   void AddMask(int start, const std::vector<std::string> &interactions);
   void AddPromoter(const std::string &name, int start, int stop,
@@ -470,8 +469,10 @@ class Genome : public Polymer {
   void AddGene(const std::string &name, int start, int stop, int rbs_start,
                int rbs_stop, double rbs_strength);
   void AddRnaseSite(int start, int stop);
+  void AddRnaseSite(const std::string &name, int start, int stop, double rnase_degradation_rate);
   void AddWeights(const std::vector<double> &transcript_weights);
   const std::map<std::string, std::map<std::string, double>> &bindings();
+  const std::map<std::string, double> &rnase_bindings() { return rnase_bindings_; }
   const double &transcript_degradation_rate() {
     return transcript_degradation_rate_;
   }
@@ -501,6 +502,7 @@ class Genome : public Polymer {
   IntervalTree<ReleaseSite::Ptr> transcript_stop_sites_;
   std::vector<double> transcript_weights_;
   std::map<std::string, std::map<std::string, double>> bindings_;
+  std::map<std::string, double> rnase_bindings_;
   double transcript_degradation_rate_ = 0.0;
   double transcript_degradation_rate_ext_ = 0.0;
   double rnase_speed_ = 0.0;

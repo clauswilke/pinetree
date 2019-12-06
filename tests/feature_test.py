@@ -116,6 +116,52 @@ class TestMaskMethods(unittest.TestCase):
         mask = pt.Mask(1, 10, {"rnapol": 1.0})
         self.assertTrue(mask.check_interaction("rnapol"))
 
+# Tests that python bindings work for the overloaded "AddRnaseSite" method
+class TestRnaseSiteAdd(unittest.TestCase):
+    def test_overload(self):
+        plasmid = pt.Genome(name="T7", length=305,
+                            transcript_degradation_rate=1e-2,
+                            transcript_degradation_rate_ext=1e-2,
+                            rnase_footprint=9,
+                            rnase_speed=20)
+        
+        # Original method
+        plasmid.add_rnase_site(start=100, stop=110)
+
+        plasmid = pt.Genome(name="T7", length=305,
+                            transcript_degradation_rate_ext=1e-2,
+                            rnase_footprint=9,
+                            rnase_speed=20)
+        
+        # alternate method that takes a rnase binding affinity specific to
+        # this site
+        plasmid.add_rnase_site(name="R6.5", start=220, stop=230, rate=5e-3)
+
+    def test_rate_error_handling(self):
+        plasmid = pt.Genome(name="T7", length=305,
+                            transcript_degradation_rate=1e-2,
+                            transcript_degradation_rate_ext=1e-2,
+                            rnase_footprint=9,
+                            rnase_speed=20)
+         
+        # Shouldn't be able to specify a unique binding rate constant if 
+        # transcript_degredation_rate is set
+        with self.assertRaises(RuntimeError):
+            plasmid.add_rnase_site(name="R6.5", start=220, stop=230, rate=5e-3)
+    
+    def test_site_names_error_handling(self):
+        # this time don't set transcript_degredation_rate
+        plasmid = pt.Genome(name="T7", length=305,
+                            transcript_degradation_rate_ext=1e-2,
+                            rnase_footprint=9,
+                            rnase_speed=20)
+
+        plasmid.add_rnase_site(name="R1", start=280, stop=290, rate=4e-3)
+        # rnase binding site names must be unique
+        with self.assertRaises(RuntimeError):
+            plasmid.add_rnase_site(name="R1", start=220, stop=230, rate=5e-3)
+
+
 
 if __name__ == '__main__':
     unittest.main()

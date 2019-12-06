@@ -25,11 +25,21 @@ void MobileElementManager::Insert(MobileElement::Ptr pol,
   auto prop_it = (it - polymerases_.begin()) + prop_list_.begin();
   // Add polymerase to this polymer
   polymerases_.insert(it, std::make_pair(pol, polymer));
-  // Cache polymerase speed
-  double weight = weights_[pol->stop() - 1];
-  // Update total move propensity of this polymer
-  prop_sum_ += weight * pol->speed();
-  prop_list_.insert(prop_it, weight * pol->speed());
+  
+  //Set propensity
+  //Currently, this should only be weighted if pol is a ribosome
+  if (pol->name() == "__ribosome") {
+    // Cache polymerase speed, weighted
+    double weight = weights_[pol->stop() - 1];
+    // Update total move propensity of this polymer
+    prop_sum_ += weight * pol->speed();
+    prop_list_.insert(prop_it, weight * pol->speed());
+  } else {
+    // Update total move propensity of this polymer, unweighted
+    prop_sum_ += pol->speed();
+    prop_list_.insert(prop_it, pol->speed());
+  }
+
   if (prop_list_.size() != polymerases_.size()) {
     throw std::runtime_error("Prop list not correct size.");
   }
@@ -381,7 +391,9 @@ void Polymer::Move(int pol_index) {
   }
 
   // Update propensity for new codon (TODO: make its own function)
-  polymerases_.UpdatePropensity(pol_index);
+  if (pol->name() == "__ribosome") {
+    polymerases_.UpdatePropensity(pol_index);
+  }
 }
 
 void Polymer::CheckAhead(int old_stop, int new_stop) {
@@ -646,22 +658,19 @@ const std::map<std::string, std::map<std::string, double>>
 }
 
 Genome::Genome(const std::string &name, int length,
-               double transcript_degradation_rate,
                double transcript_degradation_rate_ext,
-               double rnase_speed, double rnase_footprint)
+               double rnase_speed, double rnase_footprint,
+               double transcript_degradation_rate)
     : Polymer(name, 1, length),
       transcript_degradation_rate_(transcript_degradation_rate),
       transcript_degradation_rate_ext_(transcript_degradation_rate_ext),
       rnase_speed_(rnase_speed),
       rnase_footprint_(rnase_footprint) {
   transcript_weights_ = std::vector<double>(length, 1.0);
-  if (transcript_degradation_rate_ != 0 || rnase_speed_ != 0 ||
-      rnase_footprint_ != 0) {
-    if (!(transcript_degradation_rate_ != 0 && rnase_speed_ != 0 &&
-          rnase_footprint_ != 0)) {
+  if (transcript_degradation_rate_ext != 0 || transcript_degradation_rate != 0) {
+    if (!(rnase_speed_ != 0 && rnase_footprint_ != 0)) {
       throw std::runtime_error(
-          "Please specify 'transcript_degradation_rate', 'rnase_speed', and "
-          "'rnase_footprint' to enable transcript degradation.");
+        "Please specify 'rnase_speed' and/or 'rnase_footprint'");
     }
   }
 }
@@ -727,6 +736,37 @@ void Genome::AddRnaseSite(int start, int stop) {
       std::make_shared<BindingSite>("__rnase_site", start, stop, binding);
   transcript_rbs_intervals_.emplace_back(rnase_site->start(),
                                          rnase_site->stop(), rnase_site);
+}
+
+//Overloading allows for user to specify a rnase rate constant unique to this site
+//while maintaining backwards compatability
+void Genome::AddRnaseSite(const std::string &name, int start, 
+                          int stop, double transcript_degradation_rate) {
+
+  // First check that transcript_degredation_rate_ is still set to zero
+  if (transcript_degradation_rate_ != 0.0) {
+    std::string err = 
+      "Cannot add unique rnase site if global transcript_degredation_rate " 
+      "is set. Please see pinetree documentation for details";
+    throw std::runtime_error(err);
+        
+  }
+
+  auto binding =
+      std::map<std::string, double>{{"__rnase", transcript_degradation_rate}};
+  auto rnase_site =
+      std::make_shared<BindingSite>(name, start, stop, binding);
+  transcript_rbs_intervals_.emplace_back(rnase_site->start(),
+                                         rnase_site->stop(), rnase_site);
+
+  //rnase sites need to have unique names
+  //Otherwise propensity calculations will be incorrect                                      
+  if (rnase_bindings_.count(name) != 0) {
+    throw std::runtime_error(
+        "Rnase site name '" + name + "' already in use.");
+  } else {
+    rnase_bindings_[name] = transcript_degradation_rate;
+  }
 }
 
 void Genome::AddWeights(const std::vector<double> &transcript_weights) {

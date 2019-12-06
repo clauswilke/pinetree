@@ -124,6 +124,19 @@ void Model::Initialize() {
         }
       }
     }
+    // Create reaction for external rnase binding
+    if (genome->transcript_degradation_rate_ext() != 0.0) {
+      auto rnase_template_ext =
+          Rnase(genome->rnase_footprint(), genome->rnase_speed());
+      auto reaction_ext = std::make_shared<BindRnase>(
+          genome->transcript_degradation_rate_ext(), cell_volume_,
+          rnase_template_ext, "__rnase_site_ext");
+      auto &tracker = SpeciesTracker::Instance();
+      tracker.Add("__rnase_site_ext", reaction_ext);
+      gillespie_.LinkReaction(reaction_ext);
+    }
+    
+    // Create reaction for internal rnase binding
     if (genome->transcript_degradation_rate() != 0.0) {
       // TODO: user defined Rnase speed
       // auto rnase_template = Rnase(10, 30);
@@ -134,20 +147,23 @@ void Model::Initialize() {
           "__rnase_site");
       auto &tracker = SpeciesTracker::Instance();
       tracker.Add("__rnase_site", reaction);
-      // tracker.Add("__rnase", reaction);
       gillespie_.LinkReaction(reaction);
-
-      auto rnase_template_ext =
+    } 
+    
+    // Alternatively, create bind reactions for individual rnase sites
+    else if (genome->rnase_bindings().size() != 0) {
+      for (auto rnase_site : genome->rnase_bindings()) {
+        auto rnase_template =
           Rnase(genome->rnase_footprint(), genome->rnase_speed());
-      auto reaction_ext = std::make_shared<BindRnase>(
-          genome->transcript_degradation_rate_ext(), cell_volume_,
-          rnase_template_ext, "__rnase_site_ext");
-      tracker.Add("__rnase_site_ext", reaction_ext);
-      // tracker.Add("__rnase", reaction_ext);
-      gillespie_.LinkReaction(reaction_ext);
+        auto reaction = std::make_shared<BindRnase>(
+          rnase_site.second, cell_volume_, rnase_template, rnase_site.first);
+        auto &tracker = SpeciesTracker::Instance();
+        tracker.Add(rnase_site.first, reaction);
+        gillespie_.LinkReaction(reaction);
+      }
     }
   }
-
+  
   // Initialize transcripts that have been defined independently of genome
   for (Transcript::Ptr transcript : transcripts_) {
     for (auto rbs_name : transcript->bindings()) {
