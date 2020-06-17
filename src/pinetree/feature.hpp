@@ -41,7 +41,7 @@ class FixedElement : public std::enable_shared_from_this<FixedElement> {
    * Was this element just uncovered?
    * @return True if element was just uncovered.
    */
-  bool WasUncovered() { return old_covered_ >= 1 and covered_ == 0; }
+  bool WasUncovered() { return old_covered_ >= 1 && covered_ == 0; }
   /**
    * Was this element just covered?
    * @return True if element was just covered.
