@@ -358,6 +358,18 @@ void Polymer::Move(int pol_index) {
     pol->MoveBack();
     return;
   }
+
+    // Check for new covered and uncovered elements
+  if (pol->name() == "__ribosome") {
+    // std::cout << "CheckBehind pol" << std::endl;
+  }
+  CheckBehind(old_start, pol->start());
+  if (pol->name() == "__rnase") {
+    CheckAheadRnase(old_stop, pol->stop());
+  } else {
+    CheckAhead(old_stop, pol->stop());
+  }
+  
   // Check if polymerase has run into a terminator
   bool terminating = CheckTermination(pol_index);
   if (terminating && pol->name() != "__rnase") {
@@ -377,17 +389,6 @@ void Polymer::Move(int pol_index) {
   auto transcript = polymerases_.GetAttached(pol_index);
   if (transcript != nullptr) {
     transcript->ShiftMask();
-  }
-
-  // Check for new covered and uncovered elements
-  if (pol->name() == "__ribosome") {
-    // std::cout << "CheckBehind pol" << std::endl;
-  }
-  CheckBehind(old_start, pol->start());
-  if (pol->name() == "__rnase") {
-    CheckAheadRnase(old_stop, pol->stop());
-  } else {
-    CheckAhead(old_stop, pol->stop());
   }
 
   // Update propensity for new codon (TODO: make its own function)
