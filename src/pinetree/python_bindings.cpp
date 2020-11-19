@@ -407,8 +407,9 @@ PYBIND11_MODULE(core, m) {
 
             .. note::
                
-               At this time, overlapping genes or genes that overlap with 
-               ribosome binding sites are not supported.
+               Overlapping genes, or genes that overlap with 
+               ribosome binding sites, are supported as of version 
+               0.3.0. 
 
             Args:
                 name (str): Name of gene. Name may be referenced by 
