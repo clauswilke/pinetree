@@ -5,7 +5,7 @@ import pinetree as pt
 class TestMobileElementManagerMethods(unittest.TestCase):
 
     def test_init(self):
-        manager = pt.MobileElementManager([])
+        manager = pt.MobileElementManager()
 
     def test_insert(self):
         pass
