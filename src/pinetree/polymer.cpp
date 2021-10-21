@@ -5,9 +5,7 @@
 
 #include <iostream>
 
-MobileElementManager::MobileElementManager(const std::vector<double> &weights)
-    : weights_(weights) {}
-
+MobileElementManager::MobileElementManager() {}
 void MobileElementManager::Insert(MobileElement::Ptr pol,
                                   Polymer::Ptr polymer) {
   // Find where in vector polymerase should insert; use a lambda function
@@ -27,18 +25,16 @@ void MobileElementManager::Insert(MobileElement::Ptr pol,
   polymerases_.insert(it, std::make_pair(pol, polymer));
   
   //Set propensity
-  //Currently, this should only be weighted if pol is a ribosome
-  if (pol->name() == "__ribosome") {
-    // Cache polymerase speed, weighted
-    double weight = weights_[pol->stop() - 1];
-    // Update total move propensity of this polymer
-    prop_sum_ += weight * pol->speed();
-    prop_list_.insert(prop_it, weight * pol->speed());
-  } else {
-    // Update total move propensity of this polymer, unweighted
-    prop_sum_ += pol->speed();
-    prop_list_.insert(prop_it, pol->speed());
+  double weight = 1;
+  if (pol->name() == "__ribosome" && !seq_.empty()) { 
+    // TODO: calculate the actual weight -> # charged tRNAs corresponding to this codon
+    // Also, rather than checking if seq_ is empty, check if tRNAs were added to the sim
+    // and throw and error if seq is empty
+    weight = 1;
   }
+  // Update total move propensity of this polymer
+  prop_sum_ += weight * pol->speed();
+  prop_list_.insert(prop_it, weight * pol->speed());
 
   if (prop_list_.size() != polymerases_.size()) {
     throw std::runtime_error("Prop list not correct size.");
@@ -62,13 +58,16 @@ void MobileElementManager::Delete(int index) {
   }
 }
 
+//TODO: Update this next
 void MobileElementManager::UpdatePropensity(int index) {
   auto pol = GetPol(index);
-  int weight_index = pol->stop() - 1;
-  if (weight_index >= weights_.size() || weight_index < 0) {
-    throw std::runtime_error("Weight is missing for this position.");
+  int position_index = pol->stop() - 1;
+  if (!seq_.empty()) {
+    if (position_index >= seq_.size() || position_index < 0) {
+      throw std::runtime_error("Genome sequence not correct size.");
+    }
   }
-  double weight = weights_[weight_index];
+  double weight = 1; //TODO: remove this placeholder once tRNA feature is fully implemented
   double new_speed = weight * pol->speed();
   double diff = new_speed - prop_list_[index];
   prop_sum_ += diff;
@@ -113,10 +112,7 @@ int MobileElementManager::Choose() {
 Polymer::Polymer(const std::string &name, int start, int stop)
     : name_(name),
       start_(start),
-      stop_(stop),
-      polymerases_(MobileElementManager(std::vector<double>())) {
-  weights_ = std::vector<double>(stop - start + 1, 1.0);
-  polymerases_ = MobileElementManager(weights_);
+      stop_(stop) {
   std::map<std::string, double> interaction_map;
   mask_ = Mask(stop_ + 1, stop_, interaction_map);
 }
@@ -598,26 +594,26 @@ Transcript::Transcript(
     const std::string &name, int start, int stop,
     const std::vector<Interval<BindingSite::Ptr>> &rbs_intervals,
     const std::vector<Interval<ReleaseSite::Ptr>> &stop_site_intervals,
-    const Mask &mask, const std::vector<double> &weights)
+    const Mask &mask, const std::string &seq)
     : Polymer(name, start, stop) {
   mask_ = mask;
-  weights_ = weights;
-  polymerases_ = MobileElementManager(weights_);
+  seq_ = seq;
   binding_intervals_ = rbs_intervals;
   release_intervals_ = stop_site_intervals;
   attached_ = true;
+  if (!seq_.empty()) {
+    polymerases_.set_sequence(seq_);
+  }
 }
 
 Transcript::Transcript(const std::string &name, int length)
     : Polymer(name, 1, length) {
-  weights_ = std::vector<double>(length, 1.0);
   attached_ = false;
   mask_ = Mask(stop_ + 1, stop_, std::map<std::string, double>());
 }
 
 void Transcript::Initialize() {
   Polymer::Initialize();
-  polymerases_ = MobileElementManager(weights_);
 }
 
 void Transcript::AddGene(const std::string &name, int start, int stop,
@@ -638,13 +634,14 @@ void Transcript::AddGene(const std::string &name, int start, int stop,
                                   stop_codon);
 }
 
-void Transcript::AddWeights(const std::vector<double> &transcript_weights) {
-  if (transcript_weights.size() != (stop_ - start_ + 1)) {
-    throw std::length_error("Weights vector is not the correct size. " +
-                            std::to_string(transcript_weights.size()) + " " +
+void Transcript::AddSequence(const std::string &seq) {
+  if (seq.size() != (stop_ - start_ + 1)) { //start_ should always be 1
+    throw std::length_error("Provided sequence is not the correct size. " +
+                            std::to_string(seq.size()) + " " +
                             std::to_string(stop_ - start_ + 1));
   }
-  weights_ = transcript_weights;
+  polymerases_.set_sequence(seq);
+  seq_ = seq;
 }
 
 void Transcript::Bind(MobileElement::Ptr pol,
@@ -667,7 +664,7 @@ Genome::Genome(const std::string &name, int length,
       transcript_degradation_rate_ext_(transcript_degradation_rate_ext),
       rnase_speed_(rnase_speed),
       rnase_footprint_(rnase_footprint) {
-  transcript_weights_ = std::vector<double>(length, 1.0);
+  /*transcript_weights_ = std::vector<double>(length, 1.0);*/
   if (transcript_degradation_rate_ext != 0 || transcript_degradation_rate != 0) {
     if (!(rnase_speed_ != 0 && rnase_footprint_ != 0)) {
       throw std::runtime_error(
@@ -770,6 +767,7 @@ void Genome::AddRnaseSite(const std::string &name, int start,
   }
 }
 
+/*
 void Genome::AddWeights(const std::vector<double> &transcript_weights) {
   if (transcript_weights.size() != (stop_ - start_ + 1)) {
     throw std::length_error("Weights vector is not the correct size. " +
@@ -777,6 +775,16 @@ void Genome::AddWeights(const std::vector<double> &transcript_weights) {
                             std::to_string(stop_ - start_ + 1));
   }
   transcript_weights_ = transcript_weights;
+}
+*/
+void Genome::AddSequence(const std::string &seq) {
+  if (seq.size() != (stop_ - start_ + 1)) { //start_ should always be 1
+    throw std::length_error("Provided sequence is not the correct size. " +
+                            std::to_string(seq.size()) + " " +
+                            std::to_string(stop_ - start_ + 1));
+  }
+  polymerases_.set_sequence(seq);
+  seq_ = seq;
 }
 
 void Genome::Attach(MobileElement::Ptr pol) {
@@ -824,6 +832,6 @@ Transcript::Ptr Genome::BuildTranscript(int start, int stop) {
   // signals appropriately.
   transcript = std::make_shared<Transcript>("__rna", start, stop_,
                                             rbs_intervals, stop_site_intervals,
-                                            mask, transcript_weights_);
+                                            mask, seq_);
   return transcript;
 }

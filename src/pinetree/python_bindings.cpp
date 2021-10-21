@@ -151,7 +151,7 @@ PYBIND11_MODULE(core, m) {
       internal use only.
   
       [])doc")
-      .def(py::init<std::vector<double>>())
+      .def(py::init())
       .def("insert", &MobileElementManager::Insert)
       .def("delete", &MobileElementManager::Delete)
       .def("choose", &MobileElementManager::Choose)
@@ -345,15 +345,14 @@ PYBIND11_MODULE(core, m) {
                     genome.
             
             )doc")
-      .def("add_weights", &Genome::AddWeights, "weights"_a,
+      .def("add_sequence", &Genome::AddSequence, "seq"_a,
            R"doc(
             
-            Define position-specific translation speed weights. These may correspond, for example, codon-specific translation rates.
+            Define the nucleotide sequence for the genome being simulated.
 
             Args:
-                weights (list): List of weights of same length as Genome. These
-                    weights are multiplied by the ribosome speed to calculate a 
-                    final translation rate at every position in the genome.
+                seq (string): The nucleotide sequence. This should be the same
+                    length as Genome.
 
             )doc")
       .def("add_promoter", &Genome::AddPromoter, "name"_a, "start"_a, "stop"_a,
@@ -463,13 +462,14 @@ PYBIND11_MODULE(core, m) {
                     and ribosome binding site.
 
             )doc")
-      .def("add_weights", &Transcript::AddWeights, "weights"_a,
+      .def("add_seq", &Transcript::AddSequence, "seq"_a,
            R"doc(
             
-            Define position-specific translation speed weights. These may correspond, for example, codon-specific translation rates.
+            Define the nucleotide sequence corresponding to this transcripts parent gene(s).
 
             Args:
-                weights (list): List of weights of same length as Transcript. These weights are multiplied by the ribosome speed to calculate a final translation rate at every position in the genome.
+                seq (string): The nucleotide sequence corresponding to this transcripts parent gene(s).
+                    This should be the same length as Transcript.
 
             )doc");
 }

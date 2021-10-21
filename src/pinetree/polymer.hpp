@@ -26,11 +26,10 @@ class Reaction;
 class MobileElementManager {
  public:
   /**
-   * Only constructor of MobileElementManager
-   *
-   * @param weights Base-pair specific movement weights.
+   * Default constructor needs to be defined here since we have a Python
+   * binding for this class
    */
-  MobileElementManager(const std::vector<double> &weights);
+  MobileElementManager();
   /**
    * Insert an MobileElement-Polymer pair while maintaining order of
    * MobileElements
@@ -86,6 +85,7 @@ class MobileElementManager {
   int pol_count() { return pol_count_; }
   int pair_count() const { return polymerases_.size(); }
   int pol_start(int index) const { return polymerases_[index].first->start(); }
+  void set_sequence(const std::string &seq) { seq_ = seq; }
 
  private:
   /**
@@ -109,9 +109,9 @@ class MobileElementManager {
       std::pair<std::shared_ptr<MobileElement>, std::shared_ptr<Polymer>>>
       polymerases_;
   /**
-   * Base-pair specific movement weights.
+   * Nucleotide sequence of the parent genome.
    */
-  std::vector<double> weights_;
+  std::string seq_;
 };
 
 /**
@@ -289,13 +289,6 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    */
   std::map<std::string, int> uncovered_;
   /**
-   * Vector of the same length as this polymer, containing weights for different
-   * positions along the polymer. When a polymerase passes over a given position
-   * in the genome, the weight * speed of polymerase will determine the
-   * propensity for the next movement of that polymerase.
-   */
-  std::vector<double> weights_;
-  /**
    * Finding which binding site (promoter) that the polymerase should bind to.
    *
    * @param pol Pointer to polymerase object
@@ -393,7 +386,7 @@ class Transcript : public Polymer {
   Transcript(const std::string &name, int start, int stop,
              const std::vector<Interval<BindingSite::Ptr>> &rbs_intervals,
              const std::vector<Interval<ReleaseSite::Ptr>> &stop_site_intervals,
-             const Mask &mask, const std::vector<double> &weights);
+             const Mask &mask, const std::string &seq);
   /**
    * Constructor of transcript used for specifying transcripts without Genome
    *
@@ -430,12 +423,17 @@ class Transcript : public Polymer {
   void AddGene(const std::string &name, int start, int stop, int rbs_start,
                int rbs_stop, double rbs_strength);
   /**
-   * Add transcript weights directly
+   * Add the transcript nucleotide sequence. Normally this is copied from the parent genome,
+   * so this should only be used when adding transcripts to the simulation directly.
    */
-  void AddWeights(const std::vector<double> &transcript_weights);
+  void AddSequence(const std::string &seq);
 
  private:
   std::map<std::string, std::map<std::string, double>> bindings_;
+   /**
+   * Nucleotide sequence of the parent genome.
+   */  
+  std::string seq_;
 };
 
 /**
@@ -470,7 +468,8 @@ class Genome : public Polymer {
                int rbs_stop, double rbs_strength);
   void AddRnaseSite(int start, int stop);
   void AddRnaseSite(const std::string &name, int start, int stop, double rnase_degradation_rate);
-  void AddWeights(const std::vector<double> &transcript_weights);
+  /*void AddWeights(const std::vector<double> &transcript_weights);*/
+  void AddSequence(const std::string &seq);
   const std::map<std::string, std::map<std::string, double>> &bindings();
   const std::map<std::string, double> &rnase_bindings() { return rnase_bindings_; }
   const double &transcript_degradation_rate() {
@@ -500,7 +499,8 @@ class Genome : public Polymer {
   std::vector<Interval<ReleaseSite::Ptr>> transcript_stop_site_intervals_;
   IntervalTree<BindingSite::Ptr> transcript_rbs_;
   IntervalTree<ReleaseSite::Ptr> transcript_stop_sites_;
-  std::vector<double> transcript_weights_;
+  /*std::vector<double> transcript_weights_;*/
+  std::string seq_;
   std::map<std::string, std::map<std::string, double>> bindings_;
   std::map<std::string, double> rnase_bindings_;
   double transcript_degradation_rate_ = 0.0;
