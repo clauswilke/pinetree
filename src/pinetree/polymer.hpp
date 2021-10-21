@@ -468,7 +468,6 @@ class Genome : public Polymer {
                int rbs_stop, double rbs_strength);
   void AddRnaseSite(int start, int stop);
   void AddRnaseSite(const std::string &name, int start, int stop, double rnase_degradation_rate);
-  /*void AddWeights(const std::vector<double> &transcript_weights);*/
   void AddSequence(const std::string &seq);
   const std::map<std::string, std::map<std::string, double>> &bindings();
   const std::map<std::string, double> &rnase_bindings() { return rnase_bindings_; }
@@ -499,7 +498,6 @@ class Genome : public Polymer {
   std::vector<Interval<ReleaseSite::Ptr>> transcript_stop_site_intervals_;
   IntervalTree<BindingSite::Ptr> transcript_rbs_;
   IntervalTree<ReleaseSite::Ptr> transcript_stop_sites_;
-  /*std::vector<double> transcript_weights_;*/
   std::string seq_;
   std::map<std::string, std::map<std::string, double>> bindings_;
   std::map<std::string, double> rnase_bindings_;

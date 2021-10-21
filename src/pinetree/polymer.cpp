@@ -767,16 +767,6 @@ void Genome::AddRnaseSite(const std::string &name, int start,
   }
 }
 
-/*
-void Genome::AddWeights(const std::vector<double> &transcript_weights) {
-  if (transcript_weights.size() != (stop_ - start_ + 1)) {
-    throw std::length_error("Weights vector is not the correct size. " +
-                            std::to_string(transcript_weights.size()) + " " +
-                            std::to_string(stop_ - start_ + 1));
-  }
-  transcript_weights_ = transcript_weights;
-}
-*/
 void Genome::AddSequence(const std::string &seq) {
   if (seq.size() != (stop_ - start_ + 1)) { //start_ should always be 1
     throw std::length_error("Provided sequence is not the correct size. " +
