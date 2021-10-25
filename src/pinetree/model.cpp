@@ -78,6 +78,10 @@ void Model::AddRibosome(int footprint, double mean_speed, int copy_number) {
   tracker.Increment("__ribosome", copy_number);
 }
 
+/*void Model::AddtRNA(const std::map<std::string, int> &copy_number) {
+  
+}*/
+
 void Model::RegisterPolymer(Polymer::Ptr polymer) {
   // Encapsulate polymer in PolymerWrapper reaction and add to reaction list
   auto wrapper = std::make_shared<PolymerWrapper>(polymer);
