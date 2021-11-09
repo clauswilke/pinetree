@@ -26,10 +26,15 @@ void MobileElementManager::Insert(MobileElement::Ptr pol,
   
   //Set propensity
   double weight = 1;
-  if (pol->name() == "__ribosome" && !seq_.empty()) { 
-    // TODO: calculate the actual weight -> # charged tRNAs corresponding to this codon
-    // Also, rather than checking if seq_ is empty, check if tRNAs were added to the sim
-    // and throw and error if seq is empty
+  auto &tracker = SpeciesTracker::Instance();
+  if (pol->name() == "__ribosome" && !tracker.codon_map().empty()) { 
+    // TODO: steps:
+    /**
+     * 1. get pol position, codon from indexing sequence
+     * 2. get anticodon(s) from codon-anticodon map
+     * 3. get the total number of available tRNAs
+     * 4. update propensity, species counts
+     */
     weight = 1;
   }
   // Update total move propensity of this polymer

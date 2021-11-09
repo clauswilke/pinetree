@@ -29,6 +29,14 @@ class Model : public std::enable_shared_from_this<Model> {
    */
   void seed(int seed);
   /**
+   * Run the simulation with dynamic tRNAs. 
+   * 
+   * @param codons the codon-anticodon pairs and initial tRNA copy numbers
+   * @param rate_constant rate for tRNA charging
+   */ 
+  // void AddtRNA(const CodonMap &codons, double rate_constant);
+  void AddtRNA(std::map<std::string, std::map<std::string, std::map<std::string, int>>> &codons, double rate_constant);
+  /**
    * Add species to simulation.
    *
    * @param name species name

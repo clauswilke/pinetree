@@ -38,6 +38,27 @@ void Model::Simulate(int time_limit, int time_step,
   std::cout << "Simulation successful. Ignore any warnings that follow." << std::endl;
 }
 
+//void Model::AddtRNA(const CodonMap &codons, double rate_constant) {
+void Model::AddtRNA(std::map<std::string, std::map<std::string, std::map<std::string, int>>> &codons, double rate_constant) {
+  /** Steps
+   * 1. Add charged and uncharged tRNA species to the species tracker
+   * 2. Define reactions for tRNA charging (eventually this could be an aggregate reaction)
+   * 3. Actual codon map also should be added to the species tracker
+   */
+  auto &tracker = SpeciesTracker::Instance();
+  std::map<std::string, std::vector<std::string>> codon_map;
+  for (auto const& codon : codons) {
+    codon_map[codon.first] = std::vector<std::string>();
+    for (auto const& anticodon : codon.second) {
+      tracker.Increment(anticodon.first + "_charged", anticodon.second.find("charged")->second);
+      tracker.Increment(anticodon.first + "_uncharged", anticodon.second.find("uncharged")->second);
+      AddReaction(rate_constant, {anticodon.first + "_uncharged"}, {anticodon.first + "_charged"});
+      codon_map[codon.first].push_back(anticodon.first);
+    }
+  }
+  tracker.codon_map(codon_map);
+}
+
 void Model::AddReaction(double rate_constant,
                         const std::vector<std::string> &reactants,
                         const std::vector<std::string> &products) {
@@ -77,10 +98,6 @@ void Model::AddRibosome(int footprint, double mean_speed, int copy_number) {
   auto &tracker = SpeciesTracker::Instance();
   tracker.Increment("__ribosome", copy_number);
 }
-
-/*void Model::AddtRNA(const std::map<std::string, int> &copy_number) {
-  
-}*/
 
 void Model::RegisterPolymer(Polymer::Ptr polymer) {
   // Encapsulate polymer in PolymerWrapper reaction and add to reaction list

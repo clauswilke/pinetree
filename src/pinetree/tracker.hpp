@@ -129,6 +129,13 @@ class SpeciesTracker {
   const std::map<std::string, int> &ribo_per_transcript() {
     return ribo_per_transcript_;
   }
+  void codon_map(const std::map<std::string, std::vector<std::string>> &codon_map) {
+    codon_map_ = codon_map;
+  }
+  const std::map<std::string, std::vector<std::string>> &codon_map() {
+    return codon_map_;
+  }
+  
   /**
    * Signal to fire when propensity needs to be updated.
    */
@@ -159,6 +166,10 @@ class SpeciesTracker {
    * Species-to-reaction map.
    */
   std::map<std::string, Reaction::VecPtr> species_map_;
+  /**
+   * codon-to-anticodon map.
+   */ 
+  std::map<std::string, std::vector<std::string>> codon_map_;
 };
 
 #endif  // header guard

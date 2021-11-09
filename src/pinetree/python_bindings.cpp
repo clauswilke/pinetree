@@ -248,6 +248,12 @@ PYBIND11_MODULE(core, m) {
                   the genome
 
            )doc")
+      .def("add_trna", &Model::AddtRNA, "codons"_a, "rate_constant"_a, 
+           R"doc(
+
+           Simulate translation with dynamic tRNAs.
+
+           )doc")
       .def("add_ribosome", &Model::AddRibosome, "footprint"_a, "speed"_a,
            "copy_number"_a, R"doc(
 
