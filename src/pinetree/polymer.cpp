@@ -28,14 +28,17 @@ void MobileElementManager::Insert(MobileElement::Ptr pol,
   double weight = 1;
   auto &tracker = SpeciesTracker::Instance();
   if (pol->name() == "__ribosome" && !tracker.codon_map().empty()) { 
-    // TODO: steps:
     /**
+     * Steps:
      * 1. get pol position, codon from indexing sequence
      * 2. get anticodon(s) from codon-anticodon map
      * 3. get the total number of available tRNAs
-     * 4. update propensity, species counts
      */
-    weight = 1;
+    std::string codon = seq_.substr(pol->stop() - 1, 3);
+    auto anticodons = tracker.codon_map().find(codon);
+    for (auto const& anticodon : anticodons->second) {
+      weight += tracker.species().find(anticodon + "_charged")->second;
+    }
   }
   // Update total move propensity of this polymer
   prop_sum_ += weight * pol->speed();
@@ -63,20 +66,57 @@ void MobileElementManager::Delete(int index) {
   }
 }
 
-//TODO: Update this next
 void MobileElementManager::UpdatePropensity(int index) {
   auto pol = GetPol(index);
   int position_index = pol->stop() - 1;
-  if (!seq_.empty()) {
+  auto &tracker = SpeciesTracker::Instance();
+  double weight = 1; 
+  if (pol->name() == "__ribosome" && !tracker.codon_map().empty()) {
     if (position_index >= seq_.size() || position_index < 0) {
       throw std::runtime_error("Genome sequence not correct size.");
     }
+    std::string codon = seq_.substr(pol->stop() - 1, 3);
+    std::vector<std::string> stop_codons = {"TAG", "TAA", "TGA"};
+    // check if occupied codon is a stop codon
+    if (std::find(stop_codons.begin(), stop_codons.end(), codon) == stop_codons.end()) {
+      auto anticodons = tracker.codon_map().find(codon);
+      for (auto const& anticodon : anticodons->second) {
+        weight += tracker.species().find(anticodon + "_charged")->second;
+      }
+    }
   }
-  double weight = 1; //TODO: remove this placeholder once tRNA feature is fully implemented
   double new_speed = weight * pol->speed();
   double diff = new_speed - prop_list_[index];
   prop_sum_ += diff;
   prop_list_[index] = new_speed;
+}
+
+void MobileElementManager::UpdateAllPropensities() {
+  for (int i = 0; i < polymerases_.size(); i++) {
+    UpdatePropensity(i);
+  }
+}
+
+void MobileElementManager::DecrementtRNA(int stop) {
+  int position_index = stop - 1;
+  auto &tracker = SpeciesTracker::Instance();
+  if (position_index >= seq_.size() || position_index < 0) {
+    throw std::runtime_error("Genome sequence not correct size.");
+  }
+  std::string codon = seq_.substr(position_index, 3);
+  std::vector<std::string> stop_codons = {"TAG", "TAA", "TGA"};
+  // check if occupied codon is a stop codon
+  if (std::find(stop_codons.begin(), stop_codons.end(), codon) == stop_codons.end()) {
+    auto anticodons = tracker.codon_map().find(codon)->second;
+    std::vector<double> weights(anticodons.size());
+    for (auto const& anticodon : anticodons) {
+      int weight = tracker.species().find(anticodon + "_charged")->second;
+      weights.push_back(weight * 1.0);
+    }
+    int choice_index = Random::WeightedChoiceIndex(anticodons, weights);
+    tracker.Increment(anticodons[choice_index] + "_charged", -1);
+    tracker.Increment(anticodons[choice_index] + "_uncharged", 1);
+  }
 }
 
 MobileElement::Ptr MobileElementManager::GetPol(int index) {
@@ -360,10 +400,13 @@ void Polymer::Move(int pol_index) {
     return;
   }
 
-    // Check for new covered and uncovered elements
-  if (pol->name() == "__ribosome") {
-    // std::cout << "CheckBehind pol" << std::endl;
+  // Choose a tRNA to consume, if pol is a ribosome AND 
+  // the simulation is using tRNAs
+  if (pol->name() == "__ribosome" && !SpeciesTracker::Instance().codon_map().empty()) {
+    polymerases_.DecrementtRNA(old_stop);
   }
+
+  // Check for new covered and uncovered elements
   CheckBehind(old_start, pol->start());
   if (pol->name() == "__rnase") {
     CheckAheadRnase(old_stop, pol->stop());

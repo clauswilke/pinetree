@@ -38,7 +38,7 @@ void SpeciesTracker::Increment(const std::string &species_name,
   } else {
     species_[species_name] += copy_number;
   }
-  if (species_map_.count(species_name) > 0) {
+  if (species_map_.count(species_name) > 0) { // is this correct?
     for (const auto &reaction : species_map_[species_name]) {
       propensity_signal_.Emit(reaction);
     }

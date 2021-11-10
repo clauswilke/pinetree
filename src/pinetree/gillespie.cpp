@@ -1,5 +1,6 @@
 #include "gillespie.hpp"
 #include "choices.hpp"
+#include "tracker.hpp"
 
 void Gillespie::LinkReaction(Reaction::Ptr reaction) {
   auto it = std::find(reactions_.begin(), reactions_.end(), reaction);
@@ -72,7 +73,13 @@ void Gillespie::Iterate() {
   auto next_reaction = Random::WeightedChoiceIndex(reactions_, alpha_list_);
   reactions_[next_reaction]->Execute();
   // std::cout << std::to_string(alpha_list_[next_reaction]) << std::endl;
-  UpdatePropensity(reactions_[next_reaction]);
+  if (!SpeciesTracker::Instance().codon_map().empty()) {
+    for (int i = 0; i < reactions_.size(); i++) {
+      UpdatePropensity(reactions_[i]);
+    }
+  } else {
+    UpdatePropensity(reactions_[next_reaction]);
+  }
   if (reactions_[next_reaction]->remove() == true) {
     // std::cout << std::to_string(alpha_list_[next_reaction]) << std::endl;
     DeleteReaction(next_reaction);

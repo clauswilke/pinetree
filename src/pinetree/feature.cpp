@@ -107,14 +107,25 @@ Polymerase::Polymerase(const std::string &name, int footprint, int speed)
 }
 
 void Polymerase::Move() {
-  start_++;
-  stop_++;
+
+  if (name_ == "__ribosome" && !SpeciesTracker::Instance().codon_map().empty()) {
+    start_ += 3;
+    stop_ += 3;
+  } else {
+    start_++;
+    stop_++;
+  }
 }
 
 void Polymerase::MoveBack() {
   if (start_ > 0) {
-    start_--;
-    stop_--;
+    if (name_ == "__ribosome" && !SpeciesTracker::Instance().codon_map().empty()) {
+    start_ -= 3;
+    stop_ -= 3;
+    } else {
+      start_--;
+      stop_--;
+    }
   } else {
     throw std::runtime_error(
         "Attempting to assign negative start position to Polymerase object '" +

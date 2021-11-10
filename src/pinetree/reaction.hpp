@@ -232,14 +232,7 @@ class PolymerWrapper : public Reaction {
    *
    * @return total propensity of reactions within polymer
    */
-  double CalculatePropensity() {
-    if (remove_ == true) {
-      old_prop_ = 0;
-    }
-    double new_prop = polymer_->prop_sum() - old_prop_;
-    old_prop_ = polymer_->prop_sum();
-    return new_prop;
-  }
+  double CalculatePropensity();
   /**
    * Execute reaction within polymer (e.g. typically moving a polymerase)
    */

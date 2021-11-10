@@ -78,6 +78,8 @@ class MobileElementManager {
    * @param index Index of MobileElement-Polymer pair
    */
   void UpdatePropensity(int index);
+  void UpdateAllPropensities();
+  void DecrementtRNA(int pol_index);
   /**
    * Getters and setters.
    */
@@ -194,6 +196,7 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    * @param pol polymerase to move
    */
   void Move(int pol_index);
+  void UpdateAllPropensities() { polymerases_.UpdateAllPropensities(); }
   /**
    * Shift mask by 1 base-pair and check for uncovered elements.
    */
@@ -362,6 +365,7 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    * @param species_name name of species to uncover
    */
   void LogUncover(const std::string &species_name);
+  void ChoosetRNA(int index);
 };
 
 /**
