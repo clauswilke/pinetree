@@ -53,6 +53,7 @@ void Gillespie::UpdatePropensity(Reaction::Ptr reaction) {
 
 void Gillespie::Iterate() {
   // Make sure propensities have been initialized
+  // std::cout << "begin iteration" << std::endl;
   if (initialized_ == false) {
     Initialize();
   }

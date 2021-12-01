@@ -28,15 +28,19 @@ void MobileElementManager::Insert(MobileElement::Ptr pol,
   double weight = 1;
   auto &tracker = SpeciesTracker::Instance();
   if (pol->name() == "__ribosome" && !tracker.codon_map().empty()) { 
+    weight--;
     /**
      * Steps:
      * 1. get pol position, codon from indexing sequence
      * 2. get anticodon(s) from codon-anticodon map
      * 3. get the total number of available tRNAs
      */
-    std::string codon = seq_.substr(pol->stop() - 1, 3);
+    std::string codon = seq_.substr(pol->stop(), 3);
+    //std::cout << codon << std::endl;
+    //std::cout << pol->stop() << std::endl;
     auto anticodons = tracker.codon_map().find(codon);
     for (auto const& anticodon : anticodons->second) {
+      //std::cout << anticodon << std::endl;
       weight += tracker.species().find(anticodon + "_charged")->second;
     }
   }
@@ -68,19 +72,22 @@ void MobileElementManager::Delete(int index) {
 
 void MobileElementManager::UpdatePropensity(int index) {
   auto pol = GetPol(index);
-  int position_index = pol->stop() - 1;
+  int position_index = pol->stop();
   auto &tracker = SpeciesTracker::Instance();
   double weight = 1; 
   if (pol->name() == "__ribosome" && !tracker.codon_map().empty()) {
     if (position_index >= seq_.size() || position_index < 0) {
       throw std::runtime_error("Genome sequence not correct size.");
     }
-    std::string codon = seq_.substr(pol->stop() - 1, 3);
+    weight--;
+    std::string codon = seq_.substr(pol->stop(), 3);
+    //std::cout << codon << std::endl;
     std::vector<std::string> stop_codons = {"TAG", "TAA", "TGA"};
     // check if occupied codon is a stop codon
     if (std::find(stop_codons.begin(), stop_codons.end(), codon) == stop_codons.end()) {
       auto anticodons = tracker.codon_map().find(codon);
       for (auto const& anticodon : anticodons->second) {
+        //std::cout << anticodon << std::endl;
         weight += tracker.species().find(anticodon + "_charged")->second;
       }
     }
@@ -98,22 +105,27 @@ void MobileElementManager::UpdateAllPropensities() {
 }
 
 void MobileElementManager::DecrementtRNA(int stop) {
-  int position_index = stop - 1;
+  int position_index = stop;
   auto &tracker = SpeciesTracker::Instance();
   if (position_index >= seq_.size() || position_index < 0) {
     throw std::runtime_error("Genome sequence not correct size.");
   }
   std::string codon = seq_.substr(position_index, 3);
+  // std::cout << codon << std::endl;
   std::vector<std::string> stop_codons = {"TAG", "TAA", "TGA"};
   // check if occupied codon is a stop codon
   if (std::find(stop_codons.begin(), stop_codons.end(), codon) == stop_codons.end()) {
     auto anticodons = tracker.codon_map().find(codon)->second;
-    std::vector<double> weights(anticodons.size());
+    std::vector<double> weights;
     for (auto const& anticodon : anticodons) {
+      // std::cout << anticodon << std::endl;
       int weight = tracker.species().find(anticodon + "_charged")->second;
+      // std::cout << weight << std::endl;
       weights.push_back(weight * 1.0);
     }
     int choice_index = Random::WeightedChoiceIndex(anticodons, weights);
+    // std::cout << "tRNA index " << choice_index << std::endl; 
+    // std::cout << "chosen anticodon" + anticodons[choice_index] << std::endl;
     tracker.Increment(anticodons[choice_index] + "_charged", -1);
     tracker.Increment(anticodons[choice_index] + "_uncharged", 1);
   }
@@ -134,6 +146,9 @@ Polymer::Ptr MobileElementManager::GetAttached(int index) {
 }
 
 int MobileElementManager::Choose() {
+  /*for (int i = 0; i < prop_list_.size(); i++) {
+    std::cout << i << " :" << prop_list_[i] << std::endl;
+  }*/
   if (prop_list_.size() == 0) {
     std::string err =
         "There are no active polymerases on polymer (propensity sum: " +
@@ -141,6 +156,7 @@ int MobileElementManager::Choose() {
     throw std::runtime_error(err);
   }
   int pol_index = Random::WeightedChoiceIndex(polymerases_, prop_list_);
+  // std::cout << "chosen index :" << pol_index << std::endl;
   // Error checking to make sure that pol is in vector
   if (pol_index >= polymerases_.size()) {
     std::string err = "Attempting to move unbound polymerase with index " +
@@ -403,6 +419,7 @@ void Polymer::Move(int pol_index) {
   // Choose a tRNA to consume, if pol is a ribosome AND 
   // the simulation is using tRNAs
   if (pol->name() == "__ribosome" && !SpeciesTracker::Instance().codon_map().empty()) {
+    //std::cout << "decrementing tRNA" << std::endl;
     polymerases_.DecrementtRNA(old_stop);
   }
 
@@ -589,10 +606,10 @@ bool Polymer::CheckTermination(int pol_index) {
 bool Polymer::CheckMaskCollisions(MobileElement::Ptr pol) {
   // Is there still a mask, and does it overlap polymerase?
   if (mask_.start() <= stop_ && pol->stop() >= mask_.start()) {
-    if (pol->stop() - mask_.start() > 0) {
+    if (pol->stop() - mask_.start() > 3) {
       std::string err =
           "Polymerase " + pol->name() +
-          " is overlapping mask by more than one position on polymer";
+          " is overlapping mask by more than one codon on polymer";
       throw std::runtime_error(err);
     }
     if (mask_.CheckInteraction(pol->name())) {
@@ -621,7 +638,7 @@ bool Polymer::CheckPolCollisions(int pol_index) {
   if ((this_pol->stop() >= next_pol->start()) &&
       (next_pol->stop() >= this_pol->start())) {
     // Error checking. TODO: Can this be removed?
-    if (this_pol->stop() - next_pol->start() > 1) {
+    if (this_pol->stop() - next_pol->start() > 3) {
       std::string err = "Polymerase " + this_pol->name() +
                         " (start: " + std::to_string(this_pol->start()) +
                         ", stop: " + std::to_string(this_pol->stop()) +
