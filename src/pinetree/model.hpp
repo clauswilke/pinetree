@@ -37,6 +37,17 @@ class Model : public std::enable_shared_from_this<Model> {
   // void AddtRNA(const CodonMap &codons, double rate_constant);
   void AddtRNA(std::map<std::string, std::map<std::string, std::map<std::string, int>>> &codons, double rate_constant);
   /**
+   * Alternative method for adding dynamic tRNAs to the simulation. Should be used when tRNA species- specific charging
+   * rates are needed and/or if considering wobble base pairings. 
+   * 
+   * @param codon_map the codon-anticodon pairs
+   * @param counts Intial species counts for charged and uncharged tRNAs
+   * @param rate_constants charging rate for each tRNA species
+   */ 
+  void AddtRNA(std::map<std::string, std::vector<std::string>> &codon_map, 
+               std::map<std::string, std::pair<int, int>> &counts, 
+               std::map<std::string, double> &rate_constants);
+  /**
    * Add species to simulation.
    *
    * @param name species name

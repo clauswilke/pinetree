@@ -59,6 +59,21 @@ void Model::AddtRNA(std::map<std::string, std::map<std::string, std::map<std::st
   tracker.codon_map(codon_map);
 }
 
+void Model::AddtRNA(std::map<std::string, std::vector<std::string>> &codon_map, 
+                    std::map<std::string, std::pair<int, int>> &counts, 
+                    std::map<std::string, double> &rate_constants) {
+  auto &tracker = SpeciesTracker::Instance();
+  for (auto const& trna : counts) {
+    // Add initial charged tRNA species
+    tracker.Increment(trna.first + "_charged", trna.second.first);
+    // Add initial uncharged tRNA species
+    tracker.Increment(trna.first + "_uncharged", trna.second.second);
+    double rate_constant = rate_constants.find(trna.first)->second;
+    AddReaction(rate_constant, {trna.first + "_uncharged"}, {trna.first + "_charged"});
+  }
+  tracker.codon_map(codon_map);
+}
+
 void Model::AddReaction(double rate_constant,
                         const std::vector<std::string> &reactants,
                         const std::vector<std::string> &products) {
