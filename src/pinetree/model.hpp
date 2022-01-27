@@ -23,7 +23,7 @@ class Model : public std::enable_shared_from_this<Model> {
    *
    * @param prefix for output files
    */
-  void Simulate(int time_limit, int time_step, const std::string &output);
+  void Simulate(int time_limit, double time_step, const std::string &output);
   /**
    * Set a seed for random number generator.
    */

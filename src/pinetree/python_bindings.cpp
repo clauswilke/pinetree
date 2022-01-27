@@ -310,7 +310,7 @@ PYBIND11_MODULE(core, m) {
                     takes for the simulation to complete depends on the number 
                     of reactions and species (genomes, transcripts, proteins, 
                     etc) in the system.
-                time_step (int): Time interval, in seconds, that species counts 
+                time_step (double): Time interval, in seconds, that species counts 
                     are reported.
                 output (str): Name of output file (default: counts.tsv).
 

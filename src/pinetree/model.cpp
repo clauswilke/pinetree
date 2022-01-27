@@ -17,7 +17,7 @@ Model::Model(double cell_volume) : cell_volume_(cell_volume) {
 
 void Model::seed(int seed) { Random::seed(seed); }
 
-void Model::Simulate(int time_limit, int time_step,
+void Model::Simulate(int time_limit, double time_step,
                      const std::string &output = "counts.tsv") {
   auto &tracker = SpeciesTracker::Instance();
   Initialize();
@@ -25,7 +25,7 @@ void Model::Simulate(int time_limit, int time_step,
   std::ofstream countfile(output, std::ios::trunc);
   // Output header
   countfile << "time\tspecies\tprotein\ttranscript\tribo_density\n";
-  int out_time = 0;
+  double out_time = 0.0;
   while (gillespie_.time() < time_limit) {
     if ((out_time - gillespie_.time()) < 0.001) {
       countfile << tracker.GatherCounts(gillespie_.time());
