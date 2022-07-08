@@ -75,6 +75,7 @@ void MobileElementManager::UpdatePropensity(int index) {
   prop_list_[index] = new_speed;
 }
 
+
 MobileElement::Ptr MobileElementManager::GetPol(int index) {
   if (index >= polymerases_.size()) {
     throw std::range_error("Polymerase index out of range.");
@@ -119,6 +120,11 @@ Polymer::Polymer(const std::string &name, int start, int stop)
   polymerases_ = MobileElementManager(weights_);
   std::map<std::string, double> interaction_map;
   mask_ = Mask(stop_ + 1, stop_, interaction_map);
+  // TANVI'S EDITED SECTION
+  // @TODO add variables length and is_circ. Initialize them as 0 and false
+  //length = 0;
+  //is_circ = false;
+  // end of Tanvi's edits
 }
 
 Polymer::~Polymer() {
@@ -335,8 +341,9 @@ void Polymer::LogUncover(const std::string &species_name) {
   SpeciesTracker::Instance().Increment(species_name, 1);
 }
 
+// HERE!!!!
 void Polymer::Move(int pol_index) {
-  auto pol = polymerases_.GetPol(pol_index);
+  auto pol = polymerases_.GetPol(pol_index); 
 
   // Record old positions
   int old_start = pol->start();
@@ -657,11 +664,15 @@ const std::map<std::string, std::map<std::string, double>>
     &Transcript::bindings() {
   return bindings_;
 }
+// TANVI'S EDITED SECTION
+// @TODO add vars to end of this variable list
+// Update removed bool is_circ parameter from Genome
 
 Genome::Genome(const std::string &name, int length,
                double transcript_degradation_rate_ext,
                double rnase_speed, double rnase_footprint,
                double transcript_degradation_rate)
+               // end of Tanvi's edits
     : Polymer(name, 1, length),
       transcript_degradation_rate_(transcript_degradation_rate),
       transcript_degradation_rate_ext_(transcript_degradation_rate_ext),

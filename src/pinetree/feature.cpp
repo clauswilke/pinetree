@@ -101,16 +101,106 @@ MobileElement::MobileElement(const std::string &name, int footprint, int speed)
 
 MobileElement::~MobileElement(){};
 
+// TANVI'S EDITED SECTION
+// @TODO: Use new constructor for Polymerase with args length and is_circ
+// Old code commented out
+Polymerase::Polymerase(const std::string &name, int footprint, int speed, int length, bool is_circ)
+    : MobileElement(name, footprint, speed) {
+  reading_frame_ = -1;
+  this-> length_ = length;
+  this-> is_circ_ = is_circ;
+}
+/*
 Polymerase::Polymerase(const std::string &name, int footprint, int speed)
     : MobileElement(name, footprint, speed) {
   reading_frame_ = -1;
 }
+*/
+
+// TANVI'S EDITED SECTION
+// Old Polymerase::Move() {} is commented out
+// @TODO Add vars as arguments to Move(); add logic to account for circular motion
+
 
 void Polymerase::Move() {
+  printf("%s%d\n%s%d\n", "start ", start_, "stop", stop_);
+  
+  if(is_circ_ == false) {
+    start_++;
+    stop_++;
+
+  } else if (is_circ_ == true) {
+    int recircle = length_ + 1;
+    int new_start = start_ + 1;
+    int new_stop = stop_ + 1;
+
+    if(new_start == recircle){
+      //printf("%d\n%d\n", start_, new_start);
+      start_ = 1;
+      //printf("%d\n", start_);
+      //fflush(stdout);
+    } else {
+      start_++;
+    }
+
+    if(new_stop == recircle) {
+      stop_ = 1;
+    } else {
+      stop_++;
+    }
+
+  } else {
+    throw std::runtime_error(
+            "Specify whether genome is circular (true, false)");
+  }
+} // end of Tanvi's edits
+
+/*
+void Polymerase::Move() {
+  
   start_++;
   stop_++;
 }
+*/
 
+
+void Polymerase::MoveBack() {
+  if(is_circ_ == false){
+    if (start_ > 0) {
+    start_--;
+    stop_--;
+    } else {
+    throw std::runtime_error(
+        "Attempting to assign negative start position to Polymerase object '" +
+        name_ + "'.");
+        }
+  } else if(is_circ_ == true){
+    int recircle = 0;
+    int new_start = start_ - 1;
+    int new_stop = stop_ - 1;
+
+    if(new_start == recircle){
+      //printf("%d\n%d\n", start_, new_start);
+      start_ = length_;
+      //printf("%d\n", start_);
+
+    } else {
+      start_--;
+    }
+
+    if(new_stop == recircle) {
+      stop_ = length_;
+    } else {
+      stop_--;
+    }
+  } else{
+    throw std::runtime_error(
+            "Specify whether genome is circular (true, false)");
+  }
+} 
+
+
+/*
 void Polymerase::MoveBack() {
   if (start_ > 0) {
     start_--;
@@ -120,7 +210,8 @@ void Polymerase::MoveBack() {
         "Attempting to assign negative start position to Polymerase object '" +
         name_ + "'.");
   }
-}
+} // end of Tanvi's edits
+*/
 
 Mask::Mask(int start, int stop,
            const std::map<std::string, double> &interactions)

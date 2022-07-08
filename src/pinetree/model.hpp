@@ -43,8 +43,16 @@ class Model : public std::enable_shared_from_this<Model> {
    * @param mean_speed mean speed of polymerase
    * @param copy_number copy number of free polymerase
    */
+
+  // TANVI'S EDITED SECTION
+  // @TODO: Add args length and is_circ to function call
+   //void AddPolymerase(const std::string &name, int footprint, double mean_speed,
+  //                   int copy_number);
+
   void AddPolymerase(const std::string &name, int footprint, double mean_speed,
-                     int copy_number);
+                     int copy_number, int length, bool is_circ);
+
+ 
   /**
    * Add a ribosome to simulation.
    *
