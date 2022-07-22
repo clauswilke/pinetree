@@ -62,9 +62,14 @@ PYBIND11_MODULE(core, m) {
             Polymerase class that corresponds to both biological polymerases and ribosomes. For internal use only.
 
             )doc")
-      .def(py::init<std::string, int, int, int, bool>())
-      .def("move", &Polymerase::Move)
-      .def("move_back", &Polymerase::MoveBack)
+      .def(py::init<std::string, int, int, bool>())
+      // .def("move", py::overload_cast<>(&Polymerase::Move))
+      .def("move", static_cast<void (Polymerase::*)()>(&Polymerase::Move))
+      .def("move_back", static_cast<void (Polymerase::*)()>(&Polymerase::MoveBack))
+      // .def("move", py::overload_cast<int>(&Polymerase::Move))
+      .def("move", static_cast<void (Polymerase::*)(int)>(&Polymerase::Move))
+      .def("move", static_cast<void (Polymerase::*)(int)>(&Polymerase::MoveBack))
+      //.def("move_back_pol", &Polymerase::MoveBackPol)
       .def_property("start",
                     (int (Polymerase::*)(void) const) & Polymerase::start,
                     (void (Polymerase::*)(int)) & Polymerase::start)
@@ -79,10 +84,10 @@ PYBIND11_MODULE(core, m) {
           "reading_frame",
           (int (Polymerase::*)(void) const) & Polymerase::reading_frame,
           (void (Polymerase::*)(int)) & Polymerase::reading_frame)
-      .def_property(
-          "length",
-          (int (Polymerase::*)(void) const) & Polymerase::length,
-          (void (Polymerase::*)(int)) & Polymerase::length)
+      //.def_property(
+      //    "length",
+      //    (int (Polymerase::*)(void) const) & Polymerase::length,
+      //    (void (Polymerase::*)(int)) & Polymerase::length)
       .def_property(
           "is_circ",
           (bool (Polymerase::*)(void) const) & Polymerase::is_circ,
@@ -237,8 +242,9 @@ PYBIND11_MODULE(core, m) {
 
            )doc")
            // TANVI'S EDITS: @TODO Changes to add_polymerase
+           // @TODO: Remove length argument
       .def("add_polymerase", &Model::AddPolymerase, "name"_a, "footprint"_a,
-           "speed"_a, "copy_number"_a, "length"_a, "is_circ"_a, R"doc(
+           "speed"_a, "copy_number"_a, "is_circ"_a, R"doc(
 
            Add a polymerase to the model. There may be multiple types of
            polymerases in a model.

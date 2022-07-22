@@ -101,13 +101,16 @@ MobileElement::MobileElement(const std::string &name, int footprint, int speed)
 
 MobileElement::~MobileElement(){};
 
-// TANVI'S EDITED SECTION
-// @TODO: Use new constructor for Polymerase with args length and is_circ
-// Old code commented out
-Polymerase::Polymerase(const std::string &name, int footprint, int speed, int length, bool is_circ)
+/** TANVI'S EDITED SECTION
+ @TODO: Use new constructor for Polymerase with args length and is_circ
+ Old code commented out
+ Version 2: Remove int length from constructor of Polymerase
+ */
+
+Polymerase::Polymerase(const std::string &name, int footprint, int speed, bool is_circ)
     : MobileElement(name, footprint, speed) {
   reading_frame_ = -1;
-  this-> length_ = length;
+  // this-> length_ = length;
   this-> is_circ_ = is_circ;
 }
 /*
@@ -121,24 +124,38 @@ Polymerase::Polymerase(const std::string &name, int footprint, int speed)
 // Old Polymerase::Move() {} is commented out
 // @TODO Add vars as arguments to Move(); add logic to account for circular motion
 
-
 void Polymerase::Move() {
-  printf("%s%d\n%s%d\n", "start ", start_, "stop", stop_);
-  
+  start_++;
+  stop_++;
+}
+
+void Polymerase::MoveBack() {
+  if (start_ > 0) {
+    start_--;
+    stop_--;
+  } else {
+    throw std::runtime_error(
+        "Attempting to assign negative start position to Polymerase object '" +
+        name_ + "'.");
+  }
+} // end of Tanvi's edits
+
+void Polymerase::Move(int length) {
+  // length_ = length;
   if(is_circ_ == false) {
     start_++;
     stop_++;
 
   } else if (is_circ_ == true) {
-    int recircle = length_ + 1;
+    int recircle = length + 1;
+    //int recircle = length + 1;
     int new_start = start_ + 1;
     int new_stop = stop_ + 1;
 
     if(new_start == recircle){
-      //printf("%d\n%d\n", start_, new_start);
-      start_ = 1;
-      //printf("%d\n", start_);
-      //fflush(stdout);
+
+      start_ = 1; 
+
     } else {
       start_++;
     }
@@ -155,16 +172,8 @@ void Polymerase::Move() {
   }
 } // end of Tanvi's edits
 
-/*
-void Polymerase::Move() {
-  
-  start_++;
-  stop_++;
-}
-*/
-
-
-void Polymerase::MoveBack() {
+void Polymerase::MoveBack(int length) {
+  // length_ = length;
   if(is_circ_ == false){
     if (start_ > 0) {
     start_--;
@@ -181,7 +190,8 @@ void Polymerase::MoveBack() {
 
     if(new_start == recircle){
       //printf("%d\n%d\n", start_, new_start);
-      start_ = length_;
+      //start_ = length_;
+      start_ = length;
       //printf("%d\n", start_);
 
     } else {
@@ -189,7 +199,8 @@ void Polymerase::MoveBack() {
     }
 
     if(new_stop == recircle) {
-      stop_ = length_;
+      // stop_ = length_;
+      stop_ = length;
     } else {
       stop_--;
     }
@@ -200,25 +211,12 @@ void Polymerase::MoveBack() {
 } 
 
 
-/*
-void Polymerase::MoveBack() {
-  if (start_ > 0) {
-    start_--;
-    stop_--;
-  } else {
-    throw std::runtime_error(
-        "Attempting to assign negative start position to Polymerase object '" +
-        name_ + "'.");
-  }
-} // end of Tanvi's edits
-*/
-
 Mask::Mask(int start, int stop,
            const std::map<std::string, double> &interactions)
     : MobileElement("__mask", stop - start + 1, 0),
       interactions_(interactions) {
   start_ = start;
-  stop_ = stop;
+  stop_ = stop; 
 }
 
 /**
@@ -238,6 +236,7 @@ void Mask::MoveBack() {
         name_ + "'.");
   }
 }
+
 
 Rnase::Rnase(int footprint, int speed)
     : MobileElement("__rnase", footprint, speed) {}

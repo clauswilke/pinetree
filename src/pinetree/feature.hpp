@@ -1,5 +1,6 @@
 /* Copyright (c) 2017 Benjamin Jack All Rights Reserved. */
 
+
 #ifndef SRC_FEATURE_HPP_  // header guard
 #define SRC_FEATURE_HPP_
 
@@ -256,11 +257,16 @@ class MobileElement : public std::enable_shared_from_this<MobileElement> {
   /**
    * Move one position forward.
    */
+  
   virtual void Move() = 0;
+  virtual void Move(int length) {}; 
+
   /**
-   * Move one positioin back.
+   * Move one position back.
    */
   virtual void MoveBack() = 0;
+  virtual void MoveBack(int length) {}; 
+
   /**
    * Getters and setters.
    */
@@ -322,18 +328,20 @@ class Polymerase : public MobileElement {
    * @param footprint polymerase footprint
    * @param speed speed of polymerase
    */
-  
-  int length_;
-  bool is_circ_;
 
-  void length(int length) { length_ = length; }
+   // Version 2: Remove length as argument
+   // int length_;
+   // void length(int length) { length_ = length; }
+  
+  bool is_circ_;
   void is_circ(int is_circ) { is_circ_ = is_circ; }
 
   // TANVI'S EDITED SECTION
   // @TODO: write new constructor for Polymerase with args length & is_circ
   // Old code: Polymerase(const std::string &name, int footprint, int speed);
+  // Version 2: Remove length from constructor
 
-  Polymerase(const std::string &name, int footprint, int speed, int length, bool is_circ); 
+  Polymerase(const std::string &name, int footprint, int speed, bool is_circ); 
 
   /**
    * Polymerase does not create or accept any new resources (i.e. pointers)
@@ -348,18 +356,21 @@ class Polymerase : public MobileElement {
    * Move one position forward.
    */
 
-  // TANVI'S EDITED SECTION
-  // @TODO Rewrite Move() and MoveBack() to take in arguments length & is_circ
-  // Old Move() and MoveBack() are commented out
-  // void MoveNew(int length, bool is_circ);
-  // void MoveBackNew(int length, bool is_circ);
+  /** TANVI'S EDITED SECTION
+  Old: void MoveNew(int length, bool is_circ);
+  Old: void MoveBackNew(int length, bool is_circ);
+  Version 1: No arguments in Move() and MoveBack()
+  Version 2: Add int length argument to Move and MoveBack()
+  */
 
   void Move();
+  void Move(int length);
   /**
-   * Move one positioin back.
+   * Move one position back.
    */
   void MoveBack();
-  // end of Tanvi's edits
+  void MoveBack(int length);
+ 
 };
 
 /**
@@ -385,11 +396,14 @@ class Mask : public MobileElement {
     start_++;
     footprint_--;
   }
+  
+
   /**
    * Shift start position of mask backward one position, covering more of the
    * polymer
    */
   void MoveBack();
+
   /**
    * Does this polymerase interact with this mask?
    *
@@ -422,6 +436,7 @@ class Rnase : public MobileElement {
   /**
    * Rnase does not create or accept any new resources (i.e. pointers)
    */
+
   ~Rnase(){};
   /**
    * Move the Rnase one step forward (i.e. degrade more polymer)
@@ -430,6 +445,7 @@ class Rnase : public MobileElement {
     stop_++;
     footprint_++;
   }
+
   /**
    * Move Rnase back.
    */
@@ -437,6 +453,7 @@ class Rnase : public MobileElement {
     stop_--;
     footprint_--;
   }
+  
 };
 
 #endif  // SRC_FEATURE_HPP_

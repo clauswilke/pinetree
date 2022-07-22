@@ -350,19 +350,21 @@ void Polymer::Move(int pol_index) {
   int old_stop = pol->stop();
 
   // Move polymerase
-  pol->Move();
+  pol->Move(stop_);
 
   // Check for upstream polymerase collision
   bool pol_collision = CheckPolCollisions(pol_index);
   if (pol_collision) {
-    pol->MoveBack();
+    //pol->MoveBack();
+    pol->MoveBack(stop_);
     return;
   }
 
   // Check for collisions with mask
   bool mask_collision = CheckMaskCollisions(pol);
   if (mask_collision) {
-    pol->MoveBack();
+    //pol->MoveBack();
+    pol->MoveBack(stop_);
     return;
   }
 

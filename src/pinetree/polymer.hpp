@@ -456,7 +456,7 @@ class Genome : public Polymer {
    * Genome's only constructor.
    *
    * @param name name of this genome
-   * @param length length of genome (do we still need this ?)
+   * @param length length of genome 
    * @param elements DNA elements
    * @param transcript_template vector of all possible elements that could
    *  be producted by this genome (i. e. the largest possible polycistronic)
@@ -474,7 +474,7 @@ class Genome : public Polymer {
          // end of Tanvi's edits
   void Initialize();
   void AddMask(int start, const std::vector<std::string> &interactions);
-  void AddPromoter(const std::string &name, int start, int stop,
+  void AddPromoter(const std::string &name, int start, int stop, 
                    const std::map<std::string, double> &interactions);
   void AddTerminator(const std::string &name, int start, int stop,
                      const std::map<std::string, double> &efficiency);
