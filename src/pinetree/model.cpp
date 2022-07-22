@@ -85,15 +85,24 @@ void Model::AddRibosome(int footprint, double mean_speed, int copy_number) {
 */
 
 void Model::AddPolymerase(const std::string &name, int footprint,
-                          double mean_speed, int copy_number, bool is_circ) {
-  auto pol = Polymerase(name, footprint, mean_speed, is_circ);
+                          double mean_speed, int copy_number) {
+  auto pol = Polymerase(name, footprint, mean_speed);
+  polymerases_.push_back(pol);
+  auto &tracker = SpeciesTracker::Instance();
+  tracker.Increment(name, copy_number);
+}
+
+void Model::AddPolymeraseWithReadthrough(const std::string &name, int footprint,
+                          double mean_speed, int copy_number) {
+  auto pol = Polymerase(name, footprint, mean_speed);
+  pol.polymerasereadthrough(true); 
   polymerases_.push_back(pol);
   auto &tracker = SpeciesTracker::Instance();
   tracker.Increment(name, copy_number);
 }
 
 void Model::AddRibosome(int footprint, double mean_speed, int copy_number) {
-  auto pol = Polymerase("__ribosome", footprint, mean_speed, false); // length = 0, is_circ = false. 
+  auto pol = Polymerase("__ribosome", footprint, mean_speed); // length = 0, is_circ = false. 
   polymerases_.push_back(pol);
   auto &tracker = SpeciesTracker::Instance();
   tracker.Increment("__ribosome", copy_number);

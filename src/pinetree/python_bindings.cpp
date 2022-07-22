@@ -62,7 +62,7 @@ PYBIND11_MODULE(core, m) {
             Polymerase class that corresponds to both biological polymerases and ribosomes. For internal use only.
 
             )doc")
-      .def(py::init<std::string, int, int, bool>())
+      .def(py::init<std::string, int, int>())
       // .def("move", py::overload_cast<>(&Polymerase::Move))
       .def("move", static_cast<void (Polymerase::*)()>(&Polymerase::Move))
       .def("move_back", static_cast<void (Polymerase::*)()>(&Polymerase::MoveBack))
@@ -84,14 +84,19 @@ PYBIND11_MODULE(core, m) {
           "reading_frame",
           (int (Polymerase::*)(void) const) & Polymerase::reading_frame,
           (void (Polymerase::*)(int)) & Polymerase::reading_frame)
+      .def_property(
+          "polymerase_read_through",
+          (bool (Polymerase::*)(void)) & Polymerase::polymerasereadthrough,
+          (void (Polymerase::*)(bool)) & Polymerase::polymerasereadthrough);    
+          
       //.def_property(
       //    "length",
       //    (int (Polymerase::*)(void) const) & Polymerase::length,
       //    (void (Polymerase::*)(int)) & Polymerase::length)
-      .def_property(
-          "is_circ",
-          (bool (Polymerase::*)(void) const) & Polymerase::is_circ,
-          (void (Polymerase::*)(bool)) & Polymerase::is_circ);
+      //.def_property(
+      //    "is_circ",
+      //    (bool (Polymerase::*)(void) const) & Polymerase::is_circ,
+      //    (void (Polymerase::*)(bool)) & Polymerase::is_circ);
     
 
   py::class_<Mask, std::shared_ptr<Mask>>(m, "Mask",
@@ -244,9 +249,30 @@ PYBIND11_MODULE(core, m) {
            // TANVI'S EDITS: @TODO Changes to add_polymerase
            // @TODO: Remove length argument
       .def("add_polymerase", &Model::AddPolymerase, "name"_a, "footprint"_a,
-           "speed"_a, "copy_number"_a, "is_circ"_a, R"doc(
+           "speed"_a, "copy_number"_a, R"doc(
 
            Add a polymerase to the model. There may be multiple types of
+           polymerases in a model.
+
+           .. note::
+              
+              Defining a polymerase with a footprint larger than that of the 
+              promoter it binds is not currently supported.
+           
+           Args:
+              name (str): Name of the polymerase which can be referred to in 
+                  ``add_reaction()`` and ``add_promoter()``.
+              copy_number (int): Initial number of copies of the polymerase
+              speed (int): Speed, in base pairs per second, at which the 
+                  polymerase transcribes
+              footprint (int): Footprint, in base pairs, of the polymerase on 
+                  the genome
+
+           )doc")
+      .def("add_polymerase_with_readthrough", &Model::AddPolymeraseWithReadthrough, "name"_a, "footprint"_a,
+           "speed"_a, "copy_number"_a, R"doc(
+
+           Add a polymerase WITH READTHROUGH to the model. There may be multiple types of
            polymerases in a model.
 
            .. note::

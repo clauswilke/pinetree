@@ -50,7 +50,10 @@ class Model : public std::enable_shared_from_this<Model> {
   //                   int copy_number);
 
   void AddPolymerase(const std::string &name, int footprint, double mean_speed,
-                     int copy_number, bool is_circ);
+                     int copy_number);
+
+  void AddPolymeraseWithReadthrough(const std::string &name, int footprint, double mean_speed,
+                     int copy_number);
 
  
   /**

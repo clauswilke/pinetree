@@ -107,11 +107,11 @@ MobileElement::~MobileElement(){};
  Version 2: Remove int length from constructor of Polymerase
  */
 
-Polymerase::Polymerase(const std::string &name, int footprint, int speed, bool is_circ)
+Polymerase::Polymerase(const std::string &name, int footprint, int speed)
     : MobileElement(name, footprint, speed) {
   reading_frame_ = -1;
   // this-> length_ = length;
-  this-> is_circ_ = is_circ;
+  // this-> is_circ_ = is_circ;
 }
 /*
 Polymerase::Polymerase(const std::string &name, int footprint, int speed)
@@ -142,11 +142,12 @@ void Polymerase::MoveBack() {
 
 void Polymerase::Move(int length) {
   // length_ = length;
-  if(is_circ_ == false) {
+  bool prt = polymerasereadthrough();
+  if(prt == false) {
     start_++;
     stop_++;
 
-  } else if (is_circ_ == true) {
+  } else if (prt == true) {
     int recircle = length + 1;
     //int recircle = length + 1;
     int new_start = start_ + 1;
@@ -174,7 +175,8 @@ void Polymerase::Move(int length) {
 
 void Polymerase::MoveBack(int length) {
   // length_ = length;
-  if(is_circ_ == false){
+  bool prt = polymerasereadthrough();
+  if(prt == false){
     if (start_ > 0) {
     start_--;
     stop_--;
@@ -183,7 +185,7 @@ void Polymerase::MoveBack(int length) {
         "Attempting to assign negative start position to Polymerase object '" +
         name_ + "'.");
         }
-  } else if(is_circ_ == true){
+  } else if(prt == true){
     int recircle = 0;
     int new_start = start_ - 1;
     int new_stop = stop_ - 1;

@@ -72,8 +72,8 @@ TEST_CASE("MobileElementManager Insert")
     //auto polymerase1 = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 40));
     //auto polymerase2 = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 40));
 
-    auto polymerase1 = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 40,  false));
-    auto polymerase2 = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 40,  false));
+    auto polymerase1 = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 40));
+    auto polymerase2 = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 40));
 
     polymerase1->start(1); polymerase2->start(51);
     
@@ -97,9 +97,9 @@ TEST_CASE("MobileElementManager Delete")
     // TANVI'S EDITED SECTION
     // @TODO: Change Polymerase constructor function calls for these rnapols
     // Old code removes 0 and false from Polymerase constructor call. 
-    auto polymerase1 = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 40, false));
-    auto polymerase2 = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 40, false));
-    auto polymerase3 = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 40, false));
+    auto polymerase1 = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 40));
+    auto polymerase2 = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 40));
+    auto polymerase3 = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 40));
     polymerase1->start(1); polymerase2->start(51); polymerase3->start(75);
     
     manager.Insert(polymerase1, std::shared_ptr<Polymer>());
@@ -135,7 +135,7 @@ TEST_CASE("Attach a polymerase to a registered genome")
 
     //Create a polymerase called 'rnapol' and bind it to the genome
     // TANVI'S EDITED SECTION - old Polymerase constructor code does not have 0 and false as arguments
-    auto polymerase = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 40, false));
+    auto polymerase = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 40));
     plasmid->Bind(polymerase, "phi1");
     
     //The genome should now have a single mobile element attached to it that

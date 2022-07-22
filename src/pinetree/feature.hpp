@@ -333,15 +333,21 @@ class Polymerase : public MobileElement {
    // int length_;
    // void length(int length) { length_ = length; }
   
-  bool is_circ_;
-  void is_circ(int is_circ) { is_circ_ = is_circ; }
+  // bool is_circ_;
+  // void is_circ(int is_circ) { is_circ_ = is_circ; }
 
+  // bool read_through_;
+  // void read_through(bool read_through) { read_through_ = read_through ;}
+
+  bool polymerasereadthrough() { return polymerasereadthrough_; }
+  void polymerasereadthrough(bool polymerasereadthrough) { polymerasereadthrough_ = polymerasereadthrough; }
+  
   // TANVI'S EDITED SECTION
   // @TODO: write new constructor for Polymerase with args length & is_circ
   // Old code: Polymerase(const std::string &name, int footprint, int speed);
   // Version 2: Remove length from constructor
 
-  Polymerase(const std::string &name, int footprint, int speed, bool is_circ); 
+  Polymerase(const std::string &name, int footprint, int speed); 
 
   /**
    * Polymerase does not create or accept any new resources (i.e. pointers)
@@ -370,7 +376,9 @@ class Polymerase : public MobileElement {
    */
   void MoveBack();
   void MoveBack(int length);
- 
+
+ private:
+  bool polymerasereadthrough_ = false;
 };
 
 /**
@@ -453,7 +461,7 @@ class Rnase : public MobileElement {
     stop_--;
     footprint_--;
   }
-  
+
 };
 
 #endif  // SRC_FEATURE_HPP_
