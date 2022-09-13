@@ -365,6 +365,14 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    */
   bool CheckPolCollisions(int pol_index);
   /**
+   * Check for collisions between polymerases occupying the ends of a genome.
+   *
+   * @param pol pointer to polymerase object
+   *
+   * @return true if polymerases will collide
+   */
+  bool CheckReadthroughPolCollisions(MobileElement::Ptr pol);
+  /**
    * Update the cached count of uncovered promoters/elements.
    *
    * @param species_name name of species to cover

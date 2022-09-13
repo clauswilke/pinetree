@@ -139,7 +139,7 @@ void Polymerase::MoveBack() {
         name_ + "'.");
   }
 } // end of Tanvi's edits
-
+/*
 void Polymerase::Move(int length) {
   // length_ = length;
   bool prt = polymerasereadthrough();
@@ -211,7 +211,7 @@ void Polymerase::MoveBack(int length) {
             "Specify whether genome is circular (true, false)");
   }
 } 
-
+*/
 
 Mask::Mask(int start, int stop,
            const std::map<std::string, double> &interactions)

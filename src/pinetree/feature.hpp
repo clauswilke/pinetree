@@ -259,13 +259,13 @@ class MobileElement : public std::enable_shared_from_this<MobileElement> {
    */
   
   virtual void Move() = 0;
-  virtual void Move(int length) {}; 
+  // virtual void Move(int length) {}; 
 
   /**
    * Move one position back.
    */
   virtual void MoveBack() = 0;
-  virtual void MoveBack(int length) {}; 
+  // virtual void MoveBack(int length) {}; 
 
   /**
    * Getters and setters.
@@ -281,6 +281,8 @@ class MobileElement : public std::enable_shared_from_this<MobileElement> {
   void reading_frame(int reading_frame) { reading_frame_ = reading_frame; }
   std::string gene_bound() const { return gene_bound_; }
   void gene_bound(std::string gene) { gene_bound_ = gene; }
+  bool polymerasereadthrough() { return polymerasereadthrough_; }
+  void polymerasereadthrough(bool polymerasereadthrough) { polymerasereadthrough_ = polymerasereadthrough; }
 
  protected:
   /**
@@ -313,6 +315,10 @@ class MobileElement : public std::enable_shared_from_this<MobileElement> {
    * (used for ribosomes)
    */
   std::string gene_bound_ = "";
+  /**
+   * Does this mobile element readthrough polymer ends?
+   */ 
+  bool polymerasereadthrough_ = false;
 };
 
 /**
@@ -338,9 +344,6 @@ class Polymerase : public MobileElement {
 
   // bool read_through_;
   // void read_through(bool read_through) { read_through_ = read_through ;}
-
-  bool polymerasereadthrough() { return polymerasereadthrough_; }
-  void polymerasereadthrough(bool polymerasereadthrough) { polymerasereadthrough_ = polymerasereadthrough; }
   
   // TANVI'S EDITED SECTION
   // @TODO: write new constructor for Polymerase with args length & is_circ
@@ -377,8 +380,6 @@ class Polymerase : public MobileElement {
   void MoveBack();
   void MoveBack(int length);
 
- private:
-  bool polymerasereadthrough_ = false;
 };
 
 /**

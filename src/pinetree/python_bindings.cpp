@@ -67,8 +67,8 @@ PYBIND11_MODULE(core, m) {
       .def("move", static_cast<void (Polymerase::*)()>(&Polymerase::Move))
       .def("move_back", static_cast<void (Polymerase::*)()>(&Polymerase::MoveBack))
       // .def("move", py::overload_cast<int>(&Polymerase::Move))
-      .def("move", static_cast<void (Polymerase::*)(int)>(&Polymerase::Move))
-      .def("move", static_cast<void (Polymerase::*)(int)>(&Polymerase::MoveBack))
+      // .def("move", static_cast<void (Polymerase::*)(int)>(&Polymerase::Move))
+      // .def("move", static_cast<void (Polymerase::*)(int)>(&Polymerase::MoveBack))
       //.def("move_back_pol", &Polymerase::MoveBackPol)
       .def_property("start",
                     (int (Polymerase::*)(void) const) & Polymerase::start,
