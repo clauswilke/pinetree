@@ -1,5 +1,6 @@
 /* Copyright (c) 2017 Benjamin Jack All Rights Reserved. */
 
+
 #ifndef SRC_FEATURE_HPP_  // header guard
 #define SRC_FEATURE_HPP_
 
@@ -256,11 +257,16 @@ class MobileElement : public std::enable_shared_from_this<MobileElement> {
   /**
    * Move one position forward.
    */
+  
   virtual void Move() = 0;
+  // virtual void Move(int length) {}; 
+
   /**
-   * Move one positioin back.
+   * Move one position back.
    */
   virtual void MoveBack() = 0;
+  // virtual void MoveBack(int length) {}; 
+
   /**
    * Getters and setters.
    */
@@ -275,6 +281,8 @@ class MobileElement : public std::enable_shared_from_this<MobileElement> {
   void reading_frame(int reading_frame) { reading_frame_ = reading_frame; }
   std::string gene_bound() const { return gene_bound_; }
   void gene_bound(std::string gene) { gene_bound_ = gene; }
+  bool polymerasereadthrough() { return polymerasereadthrough_; }
+  void polymerasereadthrough(bool polymerasereadthrough) { polymerasereadthrough_ = polymerasereadthrough; }
 
  protected:
   /**
@@ -307,6 +315,10 @@ class MobileElement : public std::enable_shared_from_this<MobileElement> {
    * (used for ribosomes)
    */
   std::string gene_bound_ = "";
+  /**
+   * Does this mobile element readthrough polymer ends?
+   */ 
+  bool polymerasereadthrough_ = false;
 };
 
 /**
@@ -322,7 +334,8 @@ class Polymerase : public MobileElement {
    * @param footprint polymerase footprint
    * @param speed speed of polymerase
    */
-  Polymerase(const std::string &name, int footprint, int speed);
+  Polymerase(const std::string &name, int footprint, int speed); 
+
   /**
    * Polymerase does not create or accept any new resources (i.e. pointers)
    */
@@ -337,7 +350,7 @@ class Polymerase : public MobileElement {
    */
   void Move();
   /**
-   * Move one positioin back.
+   * Move one position back.
    */
   void MoveBack();
 };
@@ -365,11 +378,14 @@ class Mask : public MobileElement {
     start_++;
     footprint_--;
   }
+  
+
   /**
    * Shift start position of mask backward one position, covering more of the
    * polymer
    */
   void MoveBack();
+
   /**
    * Does this polymerase interact with this mask?
    *
@@ -402,6 +418,7 @@ class Rnase : public MobileElement {
   /**
    * Rnase does not create or accept any new resources (i.e. pointers)
    */
+
   ~Rnase(){};
   /**
    * Move the Rnase one step forward (i.e. degrade more polymer)
@@ -410,6 +427,7 @@ class Rnase : public MobileElement {
     stop_++;
     footprint_++;
   }
+
   /**
    * Move Rnase back.
    */
@@ -417,6 +435,7 @@ class Rnase : public MobileElement {
     stop_--;
     footprint_--;
   }
+
 };
 
 #endif  // SRC_FEATURE_HPP_

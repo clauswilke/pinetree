@@ -67,6 +67,7 @@ TEST_CASE("MobileElementManager Insert")
     //Make two polymerases and give them unique start positions
     auto polymerase1 = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 40));
     auto polymerase2 = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 40));
+
     polymerase1->start(1); polymerase2->start(51);
     
     manager.Insert(polymerase1, std::shared_ptr<Polymer>());
@@ -130,4 +131,62 @@ TEST_CASE("Attach a polymerase to a registered genome")
     //has the same start position as the promoter
     CHECK(plasmid->num_attached() == 1);
     REQUIRE(plasmid->attached_pol_start(0) == promoter_start);
+}
+
+TEST_CASE("Calling Polymer::Bind with a readthrough polymerase") 
+{
+    auto plasmid = std::shared_ptr<Genome>(new Genome("plasmid", 100));
+    plasmid->Initialize();
+    auto pol = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 10));
+    pol->polymerasereadthrough(true);
+    plasmid->Bind(pol, "readthrough");
+
+    // Pol should bind the start of the genome
+    REQUIRE(plasmid->attached_pol_start(0) == 1);
+}
+
+TEST_CASE("Handling an end-of-genome readthrough event") 
+{
+    auto plasmid = std::shared_ptr<Genome>(new Genome("plasmid", 100));
+    auto pol = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 10));
+    std::map<std::string, double> interactions = {{"rnapol", 2e8}};
+    plasmid->AddPromoter("phi1", 90, 99, interactions);
+    plasmid->Initialize();
+    SpeciesTracker::Instance().Increment(pol->name(), 1);
+    
+    // Bind pol to the second-to-last position on the genome,
+    // and then move it one position forward. Should result
+    // in the polymerase being moved to the start of the genome.
+    pol->polymerasereadthrough(true);
+    plasmid->Bind(pol, "phi1");
+    plasmid->Move(0);
+
+    REQUIRE(plasmid->attached_pol_start(0) == 1);
+    REQUIRE(SpeciesTracker::Instance().species("rnapol") == 0);
+}
+
+TEST_CASE("Handling an end-of-genome readthrough collision")
+{   
+    int pol2_start = 90;
+    auto plasmid = std::shared_ptr<Genome>(new Genome("plasmid", 100));
+    auto pol1 = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 10));
+    auto pol2 = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 10));
+    std::map<std::string, double> interactions = {{"rnapol", 2e8}};
+    plasmid->AddPromoter("phi1", 1, 10, interactions);
+    plasmid->AddPromoter("phi2", pol2_start, 99, interactions);
+    plasmid->Initialize();
+    SpeciesTracker::Instance().Increment("rnapol", 2);
+    
+    // Bind pol1 to the start of the genome, and pol2 to the 
+    // second-to-last genome position. Then move pol2 forward one step.
+    // Since pol1 is occupying the space at the start of the genome,
+    // this should be handled as a collision. 
+    pol1->polymerasereadthrough(true);
+    pol2->polymerasereadthrough(true);
+    plasmid->Bind(pol1, "phi1");
+    plasmid->Bind(pol2, "phi2");
+    plasmid->Move(1);
+
+    // Check that pol2 hasn't moved anywhere
+    REQUIRE(plasmid->attached_pol_start(1) == pol2_start);
 }

@@ -45,6 +45,17 @@ class Model : public std::enable_shared_from_this<Model> {
    */
   void AddPolymerase(const std::string &name, int footprint, double mean_speed,
                      int copy_number);
+   /**
+   * Add a polymerase to the simulation that will read through the end of 
+   * a polymer. Used to simulate transcription of a circular genome.
+   *
+   * @param name polymerase name
+   * @param footprint footprint (in basepairs) of polymerase on DNA
+   * @param mean_speed mean speed of polymerase
+   * @param copy_number copy number of free polymerase
+   */
+  void AddPolymeraseWithReadthrough(const std::string &name, int footprint, double mean_speed,
+                     int copy_number);
   /**
    * Add a ribosome to simulation.
    *

@@ -145,6 +145,7 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    * @param mask mask object which determines which portions of the polymer
    *     are currently inaccessible
    */
+
   Polymer(const std::string &name, int start, int stop);
   /**
    * Remove from promoter-polymer lap. Error checking to make sure this
@@ -358,6 +359,14 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    */
   bool CheckPolCollisions(int pol_index);
   /**
+   * Check for collisions between polymerases occupying the ends of a genome.
+   *
+   * @param pol pointer to polymerase object
+   *
+   * @return true if polymerases will collide
+   */
+  bool CheckReadthroughPolCollisions(MobileElement::Ptr pol);
+  /**
    * Update the cached count of uncovered promoters/elements.
    *
    * @param species_name name of species to cover
@@ -449,7 +458,7 @@ class Genome : public Polymer {
    * Genome's only constructor.
    *
    * @param name name of this genome
-   * @param length length of genome (do we still need this ?)
+   * @param length length of genome 
    * @param elements DNA elements
    * @param transcript_template vector of all possible elements that could
    *  be producted by this genome (i. e. the largest possible polycistronic)
@@ -457,12 +466,13 @@ class Genome : public Polymer {
    * @param mask polymer mask (i.e. protion of genome that has not yet entered
    *  the cell)
    */
-  Genome(const std::string &name, int length,
+
+  Genome(const std::string &name, int length, 
          double transcript_degradation_rate_ext = 0.0, double rnase_speed = 0.0,
          double rnase_footprint = 0.0, double transcript_degradation_rate = 0.0);
   void Initialize();
   void AddMask(int start, const std::vector<std::string> &interactions);
-  void AddPromoter(const std::string &name, int start, int stop,
+  void AddPromoter(const std::string &name, int start, int stop, 
                    const std::map<std::string, double> &interactions);
   void AddTerminator(const std::string &name, int start, int stop,
                      const std::map<std::string, double> &efficiency);

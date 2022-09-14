@@ -75,6 +75,7 @@ void MobileElementManager::UpdatePropensity(int index) {
   prop_list_[index] = new_speed;
 }
 
+
 MobileElement::Ptr MobileElementManager::GetPol(int index) {
   if (index >= polymerases_.size()) {
     throw std::range_error("Polymerase index out of range.");
@@ -242,15 +243,21 @@ BindingSite::Ptr Polymer::FindBindingSite(MobileElement::Ptr pol,
 
 void Polymer::Bind(MobileElement::Ptr pol, const std::string &promoter_name) {
   // Find a free promoter to bind to
-  auto elem = FindBindingSite(pol, promoter_name);
-  // Update polymerase coordinates
-  // (TODO: refactor; pol doesn't need to expose footprint/stop position)
-  pol->start(elem->start());
-  pol->stop(elem->start() + pol->footprint() - 1);
-  pol->reading_frame(elem->reading_frame());
-  // Only set gene_bound_ for transcripts and ribosomesinit
-  if (pol->name() == "__ribosome") {
-    pol->gene_bound(elem->gene());
+  if (promoter_name == "readthrough") {
+    pol->start(1);
+    pol->stop(pol->footprint());
+    pol->reading_frame(1);
+  } else {
+    auto elem = FindBindingSite(pol, promoter_name);
+    // Update polymerase coordinates
+    // (TODO: refactor; pol doesn't need to expose footprint/stop position)
+    pol->start(elem->start());
+    pol->stop(elem->start() + pol->footprint() - 1);
+    pol->reading_frame(elem->reading_frame());
+    // Only set gene_bound_ for transcripts and ribosomesinit
+    if (pol->name() == "__ribosome") {
+      pol->gene_bound(elem->gene());
+    }
   }
   // More error checking.
   if (pol->stop() >= mask_.start()) {
@@ -336,7 +343,7 @@ void Polymer::LogUncover(const std::string &species_name) {
 }
 
 void Polymer::Move(int pol_index) {
-  auto pol = polymerases_.GetPol(pol_index);
+  auto pol = polymerases_.GetPol(pol_index); 
 
   // Record old positions
   int old_start = pol->start();
@@ -348,13 +355,25 @@ void Polymer::Move(int pol_index) {
   // Check for upstream polymerase collision
   bool pol_collision = CheckPolCollisions(pol_index);
   if (pol_collision) {
+    //pol->MoveBack();
     pol->MoveBack();
     return;
+  }
+
+  // Check for collisions with polymerases at the start of the genome,
+  // if simulating readthrough on a circular plasmid
+  if (pol->polymerasereadthrough()) {
+    bool readthrough_collision = CheckReadthroughPolCollisions(pol);
+    if (readthrough_collision) {
+      pol->MoveBack();
+      return;
+    }
   }
 
   // Check for collisions with mask
   bool mask_collision = CheckMaskCollisions(pol);
   if (mask_collision) {
+    //pol->MoveBack();
     pol->MoveBack();
     return;
   }
@@ -499,6 +518,17 @@ bool Polymer::CheckTermination(int pol_index) {
       polymerases_.Delete(pol_index);
       degrade_ = true;
       return true;
+    } else if (pol->polymerasereadthrough()) {
+      // Create a new transcript and unbind/rebind pol so that
+      // all necessary checks still occur
+      termination_signal_.Emit(wrapper(), pol->name(), "NA");
+      polymerases_.Delete(pol_index);
+      // The termination signal increments the pol count by 1,
+      // so decrement it here since the polymerase was actually
+      // just moved to the beginning of the genome
+      SpeciesTracker::Instance().Increment(pol->name(), -1);
+      Bind(pol, "readthrough"); 
+      return true;
     } else {
       termination_signal_.Emit(wrapper(), pol->name(), "NA");
       polymerases_.Delete(pol_index);
@@ -591,6 +621,16 @@ bool Polymer::CheckPolCollisions(int pol_index) {
     }
     return true;
   }
+  return false;
+}
+
+bool Polymer::CheckReadthroughPolCollisions(MobileElement::Ptr pol) {
+  auto next_pol = polymerases_.GetPol(0);
+  if (pol->stop() >= stop_) {
+    if (next_pol->start() <= pol->footprint()) {
+      return true;
+    }
+  } 
   return false;
 }
 
