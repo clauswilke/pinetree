@@ -270,8 +270,8 @@ PYBIND11_MODULE(core, m) {
       .def("add_polymerase_with_readthrough", &Model::AddPolymeraseWithReadthrough, "name"_a, "footprint"_a,
            "speed"_a, "copy_number"_a, R"doc(
 
-           Add a polymerase WITH READTHROUGH to the model. There may be multiple types of
-           polymerases in a model.
+           Add a polymerase with genome end readthrough to the model. This is 
+           used to simulate transcription of a circular genome. 
 
            .. note::
               
