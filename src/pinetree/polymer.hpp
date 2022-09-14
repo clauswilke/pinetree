@@ -146,12 +146,6 @@ class Polymer : public std::enable_shared_from_this<Polymer> {
    *     are currently inaccessible
    */
 
-  // TANVI'S EDITED SECTION
-  // @TODO add public variables (length, is_circ) to constructor for polymer
-  // int length;
-  // bool is_circ;
-  // end of Tanvi's edits
-
   Polymer(const std::string &name, int start, int stop);
   /**
    * Remove from promoter-polymer lap. Error checking to make sure this
@@ -473,13 +467,9 @@ class Genome : public Polymer {
    *  the cell)
    */
 
-  // TANVI'S EDITED SECTION
-  // @TODO add bool is_circ to the end of the list of variables and set as false.
-  // Update: removed bool is_circ = false parameter from Genome
   Genome(const std::string &name, int length, 
          double transcript_degradation_rate_ext = 0.0, double rnase_speed = 0.0,
          double rnase_footprint = 0.0, double transcript_degradation_rate = 0.0);
-         // end of Tanvi's edits
   void Initialize();
   void AddMask(int start, const std::vector<std::string> &interactions);
   void AddPromoter(const std::string &name, int start, int stop, 

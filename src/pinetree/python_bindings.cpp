@@ -246,8 +246,6 @@ PYBIND11_MODULE(core, m) {
               copy_number (int): Initial number of copies of the chemical species 
 
            )doc")
-           // TANVI'S EDITS: @TODO Changes to add_polymerase
-           // @TODO: Remove length argument
       .def("add_polymerase", &Model::AddPolymerase, "name"_a, "footprint"_a,
            "speed"_a, "copy_number"_a, R"doc(
 
@@ -348,10 +346,6 @@ PYBIND11_MODULE(core, m) {
 
   // Polymers, genomes, and transcripts
   py::class_<Polymer, Polymer::Ptr>(m, "Polymer");
-
-  // TANVI'S EDITED SECTION
-  // @TODO Add is_circ parameter to Genome call below. Set default as false (ie, linear). 
-  // Update - remove is_circ parameter from Genome
   py::class_<Genome, Polymer, Genome::Ptr>(m, "Genome")
       .def(py::init<const std::string &, int, double, double, int, double>(),
            "name"_a, "length"_a, "transcript_degradation_rate_ext"_a = 0.0, 

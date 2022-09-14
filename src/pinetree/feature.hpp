@@ -334,22 +334,6 @@ class Polymerase : public MobileElement {
    * @param footprint polymerase footprint
    * @param speed speed of polymerase
    */
-
-   // Version 2: Remove length as argument
-   // int length_;
-   // void length(int length) { length_ = length; }
-  
-  // bool is_circ_;
-  // void is_circ(int is_circ) { is_circ_ = is_circ; }
-
-  // bool read_through_;
-  // void read_through(bool read_through) { read_through_ = read_through ;}
-  
-  // TANVI'S EDITED SECTION
-  // @TODO: write new constructor for Polymerase with args length & is_circ
-  // Old code: Polymerase(const std::string &name, int footprint, int speed);
-  // Version 2: Remove length from constructor
-
   Polymerase(const std::string &name, int footprint, int speed); 
 
   /**
@@ -364,22 +348,11 @@ class Polymerase : public MobileElement {
   /**
    * Move one position forward.
    */
-
-  /** TANVI'S EDITED SECTION
-  Old: void MoveNew(int length, bool is_circ);
-  Old: void MoveBackNew(int length, bool is_circ);
-  Version 1: No arguments in Move() and MoveBack()
-  Version 2: Add int length argument to Move and MoveBack()
-  */
-
   void Move();
-  void Move(int length);
   /**
    * Move one position back.
    */
   void MoveBack();
-  void MoveBack(int length);
-
 };
 
 /**
