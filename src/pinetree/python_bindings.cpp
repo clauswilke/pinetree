@@ -63,13 +63,8 @@ PYBIND11_MODULE(core, m) {
 
             )doc")
       .def(py::init<std::string, int, int>())
-      // .def("move", py::overload_cast<>(&Polymerase::Move))
       .def("move", static_cast<void (Polymerase::*)()>(&Polymerase::Move))
       .def("move_back", static_cast<void (Polymerase::*)()>(&Polymerase::MoveBack))
-      // .def("move", py::overload_cast<int>(&Polymerase::Move))
-      // .def("move", static_cast<void (Polymerase::*)(int)>(&Polymerase::Move))
-      // .def("move", static_cast<void (Polymerase::*)(int)>(&Polymerase::MoveBack))
-      //.def("move_back_pol", &Polymerase::MoveBackPol)
       .def_property("start",
                     (int (Polymerase::*)(void) const) & Polymerase::start,
                     (void (Polymerase::*)(int)) & Polymerase::start)
@@ -88,17 +83,6 @@ PYBIND11_MODULE(core, m) {
           "polymerase_read_through",
           (bool (Polymerase::*)(void)) & Polymerase::polymerasereadthrough,
           (void (Polymerase::*)(bool)) & Polymerase::polymerasereadthrough);    
-          
-      //.def_property(
-      //    "length",
-      //    (int (Polymerase::*)(void) const) & Polymerase::length,
-      //    (void (Polymerase::*)(int)) & Polymerase::length)
-      //.def_property(
-      //    "is_circ",
-      //    (bool (Polymerase::*)(void) const) & Polymerase::is_circ,
-      //    (void (Polymerase::*)(bool)) & Polymerase::is_circ);
-    
-
   py::class_<Mask, std::shared_ptr<Mask>>(m, "Mask",
                                           R"doc(
             Mask class that corresponds to polymers that are still undergoing 
@@ -513,30 +497,3 @@ PYBIND11_MODULE(core, m) {
 
             )doc");
 }
-
-
-/*
-OLD POLYMERASE CALL
-py::class_<Polymerase, std::shared_ptr<Polymerase>>(m, "Polymerase",
-                                                      R"doc(
-            Polymerase class that corresponds to both biological polymerases and ribosomes. For internal use only.
-
-            )doc")
-      .def(py::init<std::string, int, int>())
-      .def("move", &Polymerase::Move)
-      .def("move_back", &Polymerase::MoveBack)
-      .def_property("start",
-                    (int (Polymerase::*)(void) const) & Polymerase::start,
-                    (void (Polymerase::*)(int)) & Polymerase::start)
-      .def_property("stop",
-                    (int (Polymerase::*)(void) const) & Polymerase::stop,
-                    (void (Polymerase::*)(int)) & Polymerase::stop)
-      .def_property_readonly(
-          "speed", (int (Polymerase::*)(void) const) & Polymerase::speed)
-      .def_property_readonly("footprint", (int (Polymerase::*)(void) const) &
-                                              Polymerase::footprint)
-      .def_property(
-          "reading_frame",
-          (int (Polymerase::*)(void) const) & Polymerase::reading_frame,
-          (void (Polymerase::*)(int)) & Polymerase::reading_frame);
-*/

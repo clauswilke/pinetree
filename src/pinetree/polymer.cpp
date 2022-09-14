@@ -242,8 +242,6 @@ BindingSite::Ptr Polymer::FindBindingSite(MobileElement::Ptr pol,
 }
 
 void Polymer::Bind(MobileElement::Ptr pol, const std::string &promoter_name) {
-  // Add check here for placing a polymerase back at the start of a genome
-
   // Find a free promoter to bind to
   if (promoter_name == "readthrough") {
     pol->start(1);

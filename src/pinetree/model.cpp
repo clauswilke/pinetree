@@ -63,27 +63,6 @@ void Model::AddSpecies(const std::string &name, int copy_number) {
   tracker.Increment(name, copy_number);
 }
 
-
-// TANVI'S EDITED SECTION
-// @TODO: Change AddPolymerase() & Polymerase() function calls to include vars length and is_circ
-// old code commented out
-/*
-void Model::AddPolymerase(const std::string &name, int footprint,
-                          double mean_speed, int copy_number) {
-  auto pol = Polymerase(name, footprint, mean_speed);
-  polymerases_.push_back(pol);
-  auto &tracker = SpeciesTracker::Instance();
-  tracker.Increment(name, copy_number);
-}
-
-void Model::AddRibosome(int footprint, double mean_speed, int copy_number) {
-  auto pol = Polymerase("__ribosome", footprint, mean_speed);
-  polymerases_.push_back(pol);
-  auto &tracker = SpeciesTracker::Instance();
-  tracker.Increment("__ribosome", copy_number);
-}
-*/
-
 void Model::AddPolymerase(const std::string &name, int footprint,
                           double mean_speed, int copy_number) {
   auto pol = Polymerase(name, footprint, mean_speed);
@@ -102,13 +81,11 @@ void Model::AddPolymeraseWithReadthrough(const std::string &name, int footprint,
 }
 
 void Model::AddRibosome(int footprint, double mean_speed, int copy_number) {
-  auto pol = Polymerase("__ribosome", footprint, mean_speed); // length = 0, is_circ = false. 
+  auto pol = Polymerase("__ribosome", footprint, mean_speed);
   polymerases_.push_back(pol);
   auto &tracker = SpeciesTracker::Instance();
   tracker.Increment("__ribosome", copy_number);
 }
-// end of Tanvi's edits
-
 
 void Model::RegisterPolymer(Polymer::Ptr polymer) {
   // Encapsulate polymer in PolymerWrapper reaction and add to reaction list
