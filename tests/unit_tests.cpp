@@ -65,13 +65,6 @@ TEST_CASE("MobileElementManager Insert")
     MobileElementManager manager = MobileElementManager(weights);
 
     //Make two polymerases and give them unique start positions
-
-    // TANVI'S EDITED SECTION
-    // @TODO: Change Polymerase constructor function calls for these rnapols
-    // Old code commented out 
-    //auto polymerase1 = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 40));
-    //auto polymerase2 = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 40));
-
     auto polymerase1 = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 40));
     auto polymerase2 = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 40));
 
@@ -94,9 +87,6 @@ TEST_CASE("MobileElementManager Delete")
     std::vector<double> weights = {30, 1.0};
     MobileElementManager manager = MobileElementManager(weights);
     
-    // TANVI'S EDITED SECTION
-    // @TODO: Change Polymerase constructor function calls for these rnapols
-    // Old code removes 0 and false from Polymerase constructor call. 
     auto polymerase1 = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 40));
     auto polymerase2 = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 40));
     auto polymerase3 = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 40));
@@ -134,7 +124,6 @@ TEST_CASE("Attach a polymerase to a registered genome")
     sim->RegisterGenome(plasmid);
 
     //Create a polymerase called 'rnapol' and bind it to the genome
-    // TANVI'S EDITED SECTION - old Polymerase constructor code does not have 0 and false as arguments
     auto polymerase = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 40));
     plasmid->Bind(polymerase, "phi1");
     
