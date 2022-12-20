@@ -1,5 +1,10 @@
 # Changelog
 
+## Pinetree 0.4.0
+
+- Pinetree can now simulate circular genome expression.
+- Updates the catch.hpp dependency to a version that compiles on Apple M1 devices. 
+
 ## Pinetree 0.3.0
 
 - Support for site-specific RNase binding constants.
