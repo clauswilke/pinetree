@@ -1,6 +1,6 @@
 name: build_for_macos_windows_linux
 
-on: [pull-request]
+on: [pull_request]
 
 defaults:
   run:
