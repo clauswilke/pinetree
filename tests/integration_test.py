@@ -3,7 +3,7 @@ import unittest
 import subprocess
 import tempfile
 import importlib
-
+import pandas as pd
 
 class MainTest(unittest.TestCase):
 
@@ -17,11 +17,10 @@ class MainTest(unittest.TestCase):
         test_mod = importlib.import_module('.models.' + prefix, 'tests')
         out_prefix = self.tempdir.name + "/" + prefix
         test_mod.execute(out_prefix)
-        with open('tests/output/' + prefix + '_counts.tsv') as f:
-            text = f.read()
-        with open(out_prefix + '_counts.tsv') as results_file:
-            results = results_file.read()
-        self.assertEqual(results, text)
+        test = pd.read_csv(f"tests/output/{prefix}_counts.tsv", sep="\t")
+        result = pd.read_csv(f"{out_prefix}_counts.tsv", sep="\t")
+        result = result.drop(columns = "collisions") # column not present in original test output
+        self.assertTrue(test.equals(result))
 
     def test_single_gene(self):
         self.run_test('single_gene')

@@ -72,6 +72,18 @@ void SpeciesTracker::IncrementTranscript(const std::string &transcript_name,
   }
 }
 
+void SpeciesTracker::InitializeCollision(const std::string &pol_name) {
+  collisions[pol_name] = 0;
+}
+
+void SpeciesTracker::IncrementCollision(const std::string &pol_name) {
+  collisions[pol_name] += 1;
+}
+
+void SpeciesTracker::ResetCollision() {
+  collisions.clear();
+}
+
 void SpeciesTracker::Add(const std::string &species_name,
                          Reaction::Ptr reaction) {
   Increment(species_name, 0);
@@ -162,9 +174,15 @@ const std::string SpeciesTracker::GatherCounts(double time_stamp) {
     output[elem.first].push_back(elem.second);
     output[elem.first].push_back(0);
     output[elem.first].push_back(0);
+    if (collisions.find(elem.first) != collisions.end()) {
+      // if element is a polymerase, get its collision count
+      output[elem.first].push_back(collisions[elem.first]);
+    } else {
+      output[elem.first].push_back(0);
+    }
   }
   for (auto transcript : transcripts_) {
-    if (output[transcript.first].size() == 3) {
+    if (output[transcript.first].size() == 4) {
       output[transcript.first][1] = transcript.second;
     } else {
       output[transcript.first].push_back(0);
@@ -177,13 +195,15 @@ const std::string SpeciesTracker::GatherCounts(double time_stamp) {
           double(ribo_per_transcript_[transcript.first]) /
           double(output[transcript.first][1]);
     }
+    output[transcript.first].push_back(0);
   }
   std::string out_string;
   for (auto row : output) {
     out_string = out_string + (std::to_string(time_stamp) + "\t" + row.first +
                                "\t" + std::to_string(row.second[0]) + "\t" +
                                std::to_string(row.second[1]) + "\t" +
-                               std::to_string(row.second[2]) + "\n");
+                               std::to_string(row.second[2]) + "\t" +
+                               std::to_string(row.second[3]) + "\n");
   }
   return out_string;
 }

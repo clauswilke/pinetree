@@ -406,6 +406,7 @@ void Polymer::Move(int pol_index) {
   bool pol_collision = CheckPolCollisions(pol_index);
   if (pol_collision) {
     pol->MoveBack();
+    SpeciesTracker::Instance().IncrementCollision(pol->name());
     return;
   }
 
