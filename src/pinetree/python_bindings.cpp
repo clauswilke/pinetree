@@ -273,7 +273,7 @@ PYBIND11_MODULE(core, m) {
            
            Args:
               copy_number (int): Initial number of copies of free ribosomes
-              speed (int): Mean speed, in base pairs per second, at which the 
+              speed (float): Mean speed, in base pairs per second, at which the 
                   ribosome translates. This speed will be scaled on a per site
                   basis if translation weights are defined. (See 
                   Genome.AddWeights).

@@ -62,13 +62,13 @@ class Model : public std::enable_shared_from_this<Model> {
    * @param mean_speed mean speed of polymerase
    * @param copy_number copy number of free polymerase
    */
-  void AddPolymerase(const std::string &name, int footprint, double mean_speed,
+  void AddPolymerase(const std::string &name, int footprint, double speed,
                      int copy_number);
   /**
    * Add a ribosome to simulation.
    *
    * @param footprint footprint (in basepairs) of ribosome on RNA
-   * @param mean_speed mean speed of ribosome
+   * @param speed mean speed of ribosome
    * @param copy_number copy number of free ribosomes
    */
   void AddRibosome(int footprint, double mean_speed, int copy_number);

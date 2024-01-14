@@ -101,7 +101,7 @@ MobileElement::MobileElement(const std::string &name, int footprint, int speed)
 
 MobileElement::~MobileElement(){};
 
-Polymerase::Polymerase(const std::string &name, int footprint, int speed)
+Polymerase::Polymerase(const std::string &name, int footprint, float speed)
     : MobileElement(name, footprint, speed) {
   reading_frame_ = -1;
 }

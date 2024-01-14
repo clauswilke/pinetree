@@ -322,7 +322,7 @@ class Polymerase : public MobileElement {
    * @param footprint polymerase footprint
    * @param speed speed of polymerase
    */
-  Polymerase(const std::string &name, int footprint, int speed);
+  Polymerase(const std::string &name, int footprint, float speed);
   /**
    * Polymerase does not create or accept any new resources (i.e. pointers)
    */

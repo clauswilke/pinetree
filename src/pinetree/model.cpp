@@ -109,8 +109,8 @@ void Model::AddPolymerase(const std::string &name, int footprint,
   tracker.InitializeCollision(name);
 }
 
-void Model::AddRibosome(int footprint, double mean_speed, int copy_number) {
-  auto pol = Polymerase("__ribosome", footprint, mean_speed);
+void Model::AddRibosome(int footprint, double speed, int copy_number) {
+  auto pol = Polymerase("__ribosome", footprint, speed);
   polymerases_.push_back(pol);
   auto &tracker = SpeciesTracker::Instance();
   tracker.Increment("__ribosome", copy_number);
