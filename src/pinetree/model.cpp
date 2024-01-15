@@ -101,8 +101,8 @@ void Model::AddSpecies(const std::string &name, int copy_number) {
 }
 
 void Model::AddPolymerase(const std::string &name, int footprint,
-                          double mean_speed, int copy_number) {
-  auto pol = Polymerase(name, footprint, mean_speed);
+                          double speed, int copy_number) {
+  auto pol = Polymerase(name, footprint, speed);
   polymerases_.push_back(pol);
   auto &tracker = SpeciesTracker::Instance();
   tracker.Increment(name, copy_number);

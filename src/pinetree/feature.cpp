@@ -85,7 +85,7 @@ ReleaseSite::Ptr ReleaseSite::Clone() const {
   return std::make_shared<ReleaseSite>(*this);
 }
 
-MobileElement::MobileElement(const std::string &name, int footprint, int speed)
+MobileElement::MobileElement(const std::string &name, int footprint, double speed)
     : name_(name), footprint_(footprint), speed_(speed), reading_frame_(-1) {
   start_ = 0;
   stop_ = start_ + footprint_;
@@ -101,7 +101,7 @@ MobileElement::MobileElement(const std::string &name, int footprint, int speed)
 
 MobileElement::~MobileElement(){};
 
-Polymerase::Polymerase(const std::string &name, int footprint, float speed)
+Polymerase::Polymerase(const std::string &name, int footprint, double speed)
     : MobileElement(name, footprint, speed) {
   reading_frame_ = -1;
 }
@@ -159,5 +159,5 @@ void Mask::MoveBack() {
   }
 }
 
-Rnase::Rnase(int footprint, int speed)
+Rnase::Rnase(int footprint, double speed)
     : MobileElement("__rnase", footprint, speed) {}
