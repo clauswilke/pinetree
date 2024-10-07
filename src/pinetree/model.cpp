@@ -53,7 +53,7 @@ void Model::AddtRNA(std::map<std::string, std::map<std::string, std::map<std::st
     for (auto const& anticodon : codon.second) {
       tracker.Increment(anticodon.first + "_charged", anticodon.second.find("charged")->second);
       tracker.Increment(anticodon.first + "_uncharged", anticodon.second.find("uncharged")->second);
-      AddReaction(rate_constant, {anticodon.first + "_uncharged"}, {anticodon.first + "_charged"});
+      AddtRNAReaction(rate_constant, {anticodon.first + "_uncharged"}, {anticodon.first + "_charged"});
       codon_map[codon.first].push_back(anticodon.first);
     }
   }
@@ -70,7 +70,7 @@ void Model::AddtRNA(std::map<std::string, std::vector<std::string>> &codon_map,
     // Add initial uncharged tRNA species
     tracker.Increment(trna.first + "_uncharged", trna.second.second);
     double rate_constant = rate_constants.find(trna.first)->second;
-    AddReaction(rate_constant, {trna.first + "_uncharged"}, {trna.first + "_charged"});
+    AddtRNAReaction(rate_constant, {trna.first + "_uncharged"}, {trna.first + "_charged"});
   }
   tracker.codon_map(codon_map);
 }
@@ -80,6 +80,22 @@ void Model::AddReaction(double rate_constant,
                         const std::vector<std::string> &products) {
   auto rxn = std::make_shared<SpeciesReaction>(rate_constant, cell_volume_,
                                                reactants, products);
+  auto &tracker = SpeciesTracker::Instance();
+  for (const auto &reactant : reactants) {
+    tracker.Add(reactant, rxn);
+  }
+  for (const auto &product : products) {
+    tracker.Add(product, rxn);
+  }
+  gillespie_.LinkReaction(rxn);
+}
+
+void Model::AddtRNAReaction(double rate_constant,
+                        const std::vector<std::string> &reactants,
+                        const std::vector<std::string> &products) {
+  auto rxn = std::make_shared<SpeciesReaction>(rate_constant, cell_volume_,
+                                               reactants, products);
+  rxn->mark_tRNA(); // this reaction impacts tRNA pools
   auto &tracker = SpeciesTracker::Instance();
   for (const auto &reactant : reactants) {
     tracker.Add(reactant, rxn);

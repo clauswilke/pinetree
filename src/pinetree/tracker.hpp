@@ -138,6 +138,9 @@ class SpeciesTracker {
   const std::map<std::string, std::vector<std::string>> &codon_map() {
     return codon_map_;
   }
+  void force_update_all() { force_update_all_ = true; }
+  void unflag_force_update() { force_update_all_ = false; }
+  bool check_force_update() { return force_update_all_; }
   
   /**
    * Signal to fire when propensity needs to be updated.
@@ -177,6 +180,10 @@ class SpeciesTracker {
   * Polymerase collision counts.
   */
   std::map<std::string, int> collisions;
+  /**
+  * Force gillespie to update all propensities. Currently this should only occur when tRNA pools change.
+  */
+  bool force_update_all_ = false;
 };
 
 #endif  // header guard

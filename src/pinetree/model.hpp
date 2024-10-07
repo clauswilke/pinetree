@@ -82,6 +82,9 @@ class Model : public std::enable_shared_from_this<Model> {
   void AddReaction(double rate_constant,
                    const std::vector<std::string> &reactants,
                    const std::vector<std::string> &products);
+  void AddtRNAReaction(double rate_constant,
+                   const std::vector<std::string> &reactants,
+                   const std::vector<std::string> &products);
   /**
    * Add a genome to the list of reactions.
    *

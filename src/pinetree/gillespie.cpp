@@ -51,6 +51,14 @@ void Gillespie::UpdatePropensity(Reaction::Ptr reaction) {
   alpha_sum_ += alpha_diff;
 }
 
+double Gillespie::IndexUpdatePropensity(Reaction::Ptr reaction, int index) {
+  double alpha_diff = reaction->CalculatePropensity();
+  alpha_list_[index] += alpha_diff;
+ 
+  // alpha_sum_ += alpha_diff;
+  return alpha_diff;
+}
+
 void Gillespie::Iterate() {
   // Make sure propensities have been initialized
   // std::cout << "begin iteration" << std::endl;
@@ -74,10 +82,15 @@ void Gillespie::Iterate() {
   auto next_reaction = Random::WeightedChoiceIndex(reactions_, alpha_list_);
   reactions_[next_reaction]->Execute();
   // std::cout << std::to_string(alpha_list_[next_reaction]) << std::endl;
-  if (!SpeciesTracker::Instance().codon_map().empty()) {
+  // if (!SpeciesTracker::Instance().codon_map().empty()) {
+  if (reactions_[next_reaction]->is_tRNA() || SpeciesTracker::Instance().check_force_update()) {
+    // Parallelize the loop using OpenMP
+    // #pragma omp parallel for reduction(+:alpha_sum_)
     for (int i = 0; i < reactions_.size(); i++) {
-      UpdatePropensity(reactions_[i]);
+      double alpha_diff = IndexUpdatePropensity(reactions_[i], i);
+      alpha_sum_ += alpha_diff;
     }
+    SpeciesTracker::Instance().unflag_force_update();
   } else {
     UpdatePropensity(reactions_[next_reaction]);
   }

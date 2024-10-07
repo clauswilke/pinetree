@@ -2,6 +2,7 @@
 #define SRC_GILLESPIE_HPP
 
 #include <vector>
+// #include <omp.h>
 
 #include "reaction.hpp"
 
@@ -19,6 +20,7 @@ class Gillespie {
    * Update propensity of a reaction.
    */
   void UpdatePropensity(Reaction::Ptr reaction);
+  double IndexUpdatePropensity(Reaction::Ptr reaction, int index);
   /**
    * Execute one iteration of the gillespie algorithm.
    */

@@ -129,6 +129,7 @@ void MobileElementManager::DecrementtRNA(int stop) {
     tracker.Increment(anticodons[choice_index] + "_charged", -1);
     tracker.Increment(anticodons[choice_index] + "_uncharged", 1);
   }
+  tracker.force_update_all();
 }
 
 MobileElement::Ptr MobileElementManager::GetPol(int index) {
