@@ -87,7 +87,7 @@ void MobileElementManager::UpdatePropensity(int index) {
     // if (std::find(stop_codons.begin(), stop_codons.end(), codon) == stop_codons.end()) {
     auto anticodons = tracker.codon_map().find(codon);
     for (auto const& anticodon : anticodons->second) {
-      std::cout << anticodon << std::endl;
+      // std::cout << anticodon << std::endl;
       weight += tracker.species().find(anticodon + "_charged")->second;
     }
   }
