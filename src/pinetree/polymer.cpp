@@ -82,14 +82,13 @@ void MobileElementManager::UpdatePropensity(int index) {
     weight--;
     std::string codon = seq_.substr(pol->stop(), 3);
     //std::cout << codon << std::endl;
-    std::vector<std::string> stop_codons = {"TAG", "TAA", "TGA"};
+    // std::vector<std::string> stop_codons = {"TAG", "TAA", "TGA"};
     // check if occupied codon is a stop codon
-    if (std::find(stop_codons.begin(), stop_codons.end(), codon) == stop_codons.end()) {
-      auto anticodons = tracker.codon_map().find(codon);
-      for (auto const& anticodon : anticodons->second) {
-        //std::cout << anticodon << std::endl;
-        weight += tracker.species().find(anticodon + "_charged")->second;
-      }
+    // if (std::find(stop_codons.begin(), stop_codons.end(), codon) == stop_codons.end()) {
+    auto anticodons = tracker.codon_map().find(codon);
+    for (auto const& anticodon : anticodons->second) {
+      std::cout << anticodon << std::endl;
+      weight += tracker.species().find(anticodon + "_charged")->second;
     }
   }
   double new_speed = weight * pol->speed();
@@ -421,7 +420,6 @@ void Polymer::Move(int pol_index) {
   // Choose a tRNA to consume, if pol is a ribosome AND 
   // the simulation is using tRNAs
   if (pol->name() == "__ribosome" && !SpeciesTracker::Instance().codon_map().empty()) {
-    //std::cout << "decrementing tRNA" << std::endl;
     polymerases_.DecrementtRNA(old_stop);
   }
 
