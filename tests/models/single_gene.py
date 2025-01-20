@@ -24,7 +24,7 @@ def execute(output):
 
     sim.register_genome(plasmid)
 
-    sim.simulate(time_limit=40, time_step=1, output=output + "_counts.tsv")
+    sim.simulate(time_limit=40, time_step=1, output=f"{output}_counts.tsv")
 
 
 if __name__ == "__main__":

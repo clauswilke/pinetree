@@ -19,11 +19,15 @@ class MainTest(unittest.TestCase):
         test_mod.execute(out_prefix)
         test = pd.read_csv(f"tests/output/{prefix}_counts.tsv", sep="\t")
         result = pd.read_csv(f"{out_prefix}_counts.tsv", sep="\t")
-        result = result.drop(columns = "collisions") # column not present in original test output
+        if prefix == "single_gene":
+            result = result.drop(columns = "collisions") # column not present in original test output
         self.assertTrue(test.equals(result))
 
     def test_single_gene(self):
         self.run_test('single_gene')
+    
+    def test_dynamic_trnas(self):
+        self.run_test("dynamic_trnas")
 
     # def test_three_genes(self):
     #     self.run_test('three_genes')
