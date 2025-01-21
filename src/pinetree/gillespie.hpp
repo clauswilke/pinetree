@@ -2,8 +2,6 @@
 #define SRC_GILLESPIE_HPP
 
 #include <vector>
-// #include <omp.h>
-
 #include "reaction.hpp"
 
 class Gillespie {

@@ -9,15 +9,13 @@ def execute(output):
     TRNA_PROPORTIONS = (0.1, 0.9) # tRNA proportions, i.e. 90% total tRNA is type A, other 10% is type B
     TOTAL_TRNA = 2500 # total tRNA
     SPEED = 0.5 # rate constant describing how efficient ribosome movement is
-    TIME_LIMIT = 15
-    TIME_STEP = 5
-    SEED = 1
+    
     # 300 nt coding region + 50 nt buffer (30 on the left, 20 on the right)
     # transcripts coding region is 10% codon "AAA" and 90% codon "TAT"
     seq = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAATATTATTATTATAAATATTATTATTATTATTATTATAAATATTATTATTATTATTATTATTATTATAAATATAAATATTATTATTATTATTATTATTATTATTATTATTATTATTATTATTATTATTATTATTATTATTATTATTATTATTATTATTATAAATATTATTATTATTATAAATATTATTATTATTATTATTATTATTATTATTATTATTATTATTATTATAAATATTATTATTATTATTATTATTATTATAAATATTATTATAAAAAATATTATTATTATTATTATTATTATAAAAAAAAAAAAAAAAAAAA"
 
     sim = pt.Model(cell_volume=8e-16)
-    sim.seed(SEED)
+    sim.seed(1)
     sim.add_ribosome(copy_number=RB_COPY, speed=SPEED, footprint=15)
     
     i = 0
@@ -42,7 +40,7 @@ def execute(output):
     tRNA_rates = {"TTT": TRNA_CHRG_RATES[0], "ATA": TRNA_CHRG_RATES[1]}
     sim.add_trna(tRNA_map, tRNA_counts, tRNA_rates)
     
-    sim.simulate(time_limit=TIME_LIMIT, time_step=TIME_STEP, output=f'{output}_counts.tsv')
+    sim.simulate(time_limit=15, time_step=5, output=output + "_counts.tsv")
 
     
 if __name__ == "__main__":

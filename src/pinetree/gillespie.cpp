@@ -84,8 +84,6 @@ void Gillespie::Iterate() {
   // std::cout << std::to_string(alpha_list_[next_reaction]) << std::endl;
   // if (!SpeciesTracker::Instance().codon_map().empty()) {
   if (reactions_[next_reaction]->is_tRNA() || SpeciesTracker::Instance().check_force_update()) {
-    // Parallelize the loop using OpenMP
-    // #pragma omp parallel for reduction(+:alpha_sum_)
     for (int i = 0; i < reactions_.size(); i++) {
       double alpha_diff = IndexUpdatePropensity(reactions_[i], i);
       alpha_sum_ += alpha_diff;

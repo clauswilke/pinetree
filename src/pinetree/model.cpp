@@ -25,6 +25,7 @@ void Model::Simulate(int time_limit, double time_step,
   std::ofstream countfile(output, std::ios::trunc);
   // Output header
   countfile << "time\tspecies\tprotein\ttranscript\tribo_density\tcollisions\n";
+  //countfile << "time\tspecies\tprotein\ttranscript\tribo_density\n";
   double out_time = 0.0;
   while (gillespie_.time() < time_limit) {
     if ((out_time - gillespie_.time()) < 0.001) {

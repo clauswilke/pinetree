@@ -5,8 +5,8 @@ def execute(output):
 
     sim = pt.Model(cell_volume=8e-16)
     sim.seed(34)
-    sim.add_polymerase(name="rnapol", copy_number=1, speed=40, footprint=10)
-    sim.add_ribosome(copy_number=1, speed=30, footprint=10)
+    sim.add_polymerase(name="rnapol", copy_number=1, speed=40.0, footprint=10)
+    sim.add_ribosome(copy_number=1, speed=30.0, footprint=10)
 
     plasmid = pt.Genome(name="T7", length=605)
 
@@ -24,7 +24,7 @@ def execute(output):
 
     sim.register_genome(plasmid)
 
-    sim.simulate(time_limit=40, time_step=1, output=f"{output}_counts.tsv")
+    sim.simulate(time_limit=40, time_step=1, output=output + "_counts.tsv")
 
 
 if __name__ == "__main__":
