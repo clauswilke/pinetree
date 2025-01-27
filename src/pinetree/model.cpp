@@ -24,14 +24,12 @@ void Model::Simulate(int time_limit, double time_step,
   // Set up file output streams
   std::ofstream countfile(output, std::ios::trunc);
   // Output header
-  countfile << "time\tspecies\tprotein\ttranscript\tribo_density\tcollisions\n";
-  //countfile << "time\tspecies\tprotein\ttranscript\tribo_density\n";
+  countfile << "time\tspecies\tprotein\ttranscript\tribo_density\n";
   double out_time = 0.0;
   while (gillespie_.time() < time_limit) {
     if ((out_time - gillespie_.time()) < 0.001) {
       countfile << tracker.GatherCounts(gillespie_.time());
       countfile.flush();
-      tracker.ResetCollision();
       out_time += time_step;
     }
     gillespie_.Iterate();
@@ -123,7 +121,6 @@ void Model::AddPolymerase(const std::string &name, int footprint,
   polymerases_.push_back(pol);
   auto &tracker = SpeciesTracker::Instance();
   tracker.Increment(name, copy_number);
-  tracker.InitializeCollision(name);
 }
 
 void Model::AddRibosome(int footprint, double speed, int copy_number) {
@@ -131,7 +128,6 @@ void Model::AddRibosome(int footprint, double speed, int copy_number) {
   polymerases_.push_back(pol);
   auto &tracker = SpeciesTracker::Instance();
   tracker.Increment("__ribosome", copy_number);
-  tracker.InitializeCollision("__ribosome");
 }
 
 void Model::RegisterPolymer(Polymer::Ptr polymer) {

@@ -3,7 +3,7 @@ import unittest
 import subprocess
 import tempfile
 import importlib
-import pandas as pd
+#import pandas as pd
 
 class MainTest(unittest.TestCase):
 
@@ -18,17 +18,11 @@ class MainTest(unittest.TestCase):
         out_prefix = self.tempdir.name + "/" + prefix
         test_mod.execute(out_prefix)
         
-        #with open('tests/output/' + prefix + '_counts.tsv') as f:
-        #    text = f.read()
-        #with open(out_prefix + '_counts.tsv') as results_file:
-        #    results = results_file.read()
-        #self.assertEqual(results, text)
-
-        test = pd.read_csv(f"tests/output/{prefix}_counts.tsv", sep="\t")
-        result = pd.read_csv(f"{out_prefix}_counts.tsv", sep="\t")
-        #if prefix == "single_gene":
-        result = result.drop(columns = "collisions") # column not present in original test output
-        self.assertTrue(test.equals(result))
+        with open('tests/output/' + prefix + '_counts.tsv') as f:
+            text = f.read()
+        with open(out_prefix + '_counts.tsv') as results_file:
+            results = results_file.read()
+        self.assertEqual(results, text)
     
     def test_dynamic_trnas(self):
         self.run_test("dynamic_trnas")
