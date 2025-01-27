@@ -29,7 +29,10 @@ class MainTest(unittest.TestCase):
 
     def test_single_gene(self):
         self.run_test('single_gene')
- 
+    
+    def test_circular_genome(self):
+        self.run_test("circular_genome")
+
     # def test_three_genes(self):
     #     self.run_test('three_genes')
 

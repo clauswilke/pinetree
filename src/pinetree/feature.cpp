@@ -138,7 +138,7 @@ Mask::Mask(int start, int stop,
     : MobileElement("__mask", stop - start + 1, 0),
       interactions_(interactions) {
   start_ = start;
-  stop_ = stop;
+  stop_ = stop; 
 }
 
 /**
@@ -159,5 +159,7 @@ void Mask::MoveBack() {
   }
 }
 
+
 Rnase::Rnase(int footprint, double speed)
     : MobileElement("__rnase", footprint, speed) {}
+    

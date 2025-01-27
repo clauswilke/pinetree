@@ -38,6 +38,7 @@ void Model::Simulate(int time_limit, double time_step,
   std::cout << "Simulation successful. Ignore any warnings that follow." << std::endl;
 }
 
+
 //void Model::AddtRNA(const CodonMap &codons, double rate_constant) {
 void Model::AddtRNA(std::map<std::string, std::map<std::string, std::map<std::string, int>>> &codons, double rate_constant) {
   /** Steps
@@ -118,6 +119,15 @@ void Model::AddSpecies(const std::string &name, int copy_number) {
 void Model::AddPolymerase(const std::string &name, int footprint,
                           double speed, int copy_number) {
   auto pol = Polymerase(name, footprint, speed);
+  polymerases_.push_back(pol);
+  auto &tracker = SpeciesTracker::Instance();
+  tracker.Increment(name, copy_number);
+}
+
+void Model::AddPolymeraseWithReadthrough(const std::string &name, int footprint,
+                          double speed, int copy_number) {
+  auto pol = Polymerase(name, footprint, speed);
+  pol.polymerasereadthrough(true); 
   polymerases_.push_back(pol);
   auto &tracker = SpeciesTracker::Instance();
   tracker.Increment(name, copy_number);

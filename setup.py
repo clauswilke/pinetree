@@ -14,7 +14,7 @@ from setuptools.command.test import test as TestCommand
 from shutil import copyfile, copymode
 
 PROJECT_NAME = "pinetree"
-VERSION = "0.3.0"
+VERSION = "0.4.0"
 
 class CMakeExtension(Extension):
     def __init__(self, name, sourcedir=''):
@@ -77,7 +77,8 @@ class CMakeBuild(build_ext):
         subprocess.check_call(['cmake', '--build', '.'] + build_args,
                               cwd=self.build_temp)
         test_bin = os.path.join(self.build_temp, PROJECT_NAME + '_test')
-        self.copy_test_file(test_bin)
+        if platform.system() != "Windows":
+            self.copy_test_file(test_bin)
         print()  # Add an empty line for cleaner output
 
     def copy_test_file(self, src_file):
