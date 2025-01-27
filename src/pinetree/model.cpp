@@ -38,28 +38,6 @@ void Model::Simulate(int time_limit, double time_step,
   std::cout << "Simulation successful. Ignore any warnings that follow." << std::endl;
 }
 
-
-//void Model::AddtRNA(const CodonMap &codons, double rate_constant) {
-void Model::AddtRNA(std::map<std::string, std::map<std::string, std::map<std::string, int>>> &codons, double rate_constant) {
-  /** Steps
-   * 1. Add charged and uncharged tRNA species to the species tracker
-   * 2. Define reactions for tRNA charging (eventually this could be an aggregate reaction)
-   * 3. Actual codon map also should be added to the species tracker
-   */
-  auto &tracker = SpeciesTracker::Instance();
-  std::map<std::string, std::vector<std::string>> codon_map;
-  for (auto const& codon : codons) {
-    codon_map[codon.first] = std::vector<std::string>();
-    for (auto const& anticodon : codon.second) {
-      tracker.Increment(anticodon.first + "_charged", anticodon.second.find("charged")->second);
-      tracker.Increment(anticodon.first + "_uncharged", anticodon.second.find("uncharged")->second);
-      AddtRNAReaction(rate_constant, {anticodon.first + "_uncharged"}, {anticodon.first + "_charged"});
-      codon_map[codon.first].push_back(anticodon.first);
-    }
-  }
-  tracker.codon_map(codon_map);
-}
-
 void Model::AddtRNA(std::map<std::string, std::vector<std::string>> &codon_map, 
                     std::map<std::string, std::pair<int, int>> &counts, 
                     std::map<std::string, double> &rate_constants) {

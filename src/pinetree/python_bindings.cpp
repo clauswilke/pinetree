@@ -272,12 +272,6 @@ PYBIND11_MODULE(core, m) {
                   the genome
 
            )doc")
-      .def("add_trna", (void (Model::*)(std::map<std::string, std::map<std::string, std::map<std::string, int>>>&, double)) &Model::AddtRNA, "codons"_a, "rate_constant"_a, 
-           R"doc(
-
-           Simulate translation with dynamic tRNAs.
-
-           )doc")
       .def("add_trna", (void (Model::*)(std::map<std::string, std::vector<std::string>>&, std::map<std::string, std::pair<int, int>>&, std::map<std::string, double>&)) &Model::AddtRNA, "codon_map"_a, "counts"_a, "rate_constants"_a, 
            R"doc(
 
