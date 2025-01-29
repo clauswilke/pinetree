@@ -23,5 +23,6 @@ jobs:
         pip install cmake
     - name: Build and run test suite
       run: |
-        python setup.py test
+        pip install .
+        python -m unittest -v
 
