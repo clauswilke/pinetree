@@ -275,12 +275,23 @@ PYBIND11_MODULE(core, m) {
       .def("add_trna", (void (Model::*)(std::map<std::string, std::vector<std::string>>&, std::map<std::string, std::pair<int, int>>&, std::map<std::string, double>&)) &Model::AddtRNA, "codon_map"_a, "counts"_a, "rate_constants"_a, 
            R"doc(
 
-           Simulate translation with dynamic tRNAs. This make translation dependent on tRNA availability, 
-           by modifing the underlying propensity calculation for ribosome movement (specifically, the baseline speed 
-           for each ribosome gets multiplied by the number of charged cognate tRNAs). Rate constants for the 
-           tRNA re-charging reaction can be set for each tRNA species independently. Adding dynamic tRNAs 
-           is most useful for simulating codon usage bias, or for modeling situations where tRNA pools are 
-           extremely uneven. 
+           Simulate translation with dynamic tRNAs. 
+
+           .. note::
+              
+              This feature is currently experimental and may produce unexpected results.
+
+           Makes translation dependent on tRNA abundances, by modifing the underlying propensity calculation for 
+           ribosome movement (specifically, the baseline speed for each ribosome gets multiplied by the number 
+           of available charged tRNAs that correspond to the occupied codon). Rate constants for the tRNA re-charging 
+           reaction can be set for each tRNA species independently. 
+           
+           Adding dynamic tRNAs is likely most useful for simulating codon usage bias, or for modeling situations 
+           where tRNA pools are extremely uneven.
+
+           .. warning::
+              
+              Simulations with tRNA dynamics turned on can be very slow. 
 
            Args:
               codon_map (dict): Specifies the codon:tRNA mapping (note that one codon 
