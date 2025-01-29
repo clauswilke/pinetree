@@ -1,6 +1,7 @@
 #include <cmath>
 #include <fstream>
 #include <iostream>
+#include <set>
 
 #include "choices.hpp"
 #include "model.hpp"
@@ -205,19 +206,23 @@ void Model::Initialize() {
   }
   
   // Initialize transcripts that have been defined independently of genome
+  std::set <std::string> rbs_names;
   for (Transcript::Ptr transcript : transcripts_) {
     for (auto rbs_name : transcript->bindings()) {
-      for (auto pol : polymerases_) {
-        if (rbs_name.second.count(pol.name()) != 0) {
-          double rate_constant = rbs_name.second[pol.name()];
-          Polymerase pol_template = Polymerase(pol);
-          auto reaction = std::make_shared<BindPolymerase>(
-              rate_constant, cell_volume_, rbs_name.first, pol_template);
-          auto &tracker = SpeciesTracker::Instance();
-          tracker.Add(rbs_name.first, reaction);
-          tracker.Add(pol.name(), reaction);
-          gillespie_.LinkReaction(reaction);
+      if (rbs_names.find(rbs_name.first) == rbs_names.end()) { // only make reactions for unique RBS sites
+        for (auto pol : polymerases_) {
+          if (rbs_name.second.count(pol.name()) != 0) {
+            double rate_constant = rbs_name.second[pol.name()];
+            Polymerase pol_template = Polymerase(pol);
+            auto reaction = std::make_shared<BindPolymerase>(
+                rate_constant, cell_volume_, rbs_name.first, pol_template);
+            auto &tracker = SpeciesTracker::Instance();
+            tracker.Add(rbs_name.first, reaction);
+            tracker.Add(pol.name(), reaction);
+            gillespie_.LinkReaction(reaction);
+          }
         }
+        rbs_names.insert(rbs_name.first);
       }
     }
   }

@@ -4,7 +4,7 @@ def execute(output):
     ## parameters
     RB_COPY = 10 # number of ribosomes in simulation
     TS_COPY = 100 # number of transcripts (mRNAs) in simulation
-    RBS_STRENGTH = 100000.0 # strength of ribosome binding to an mRNA
+    RBS_STRENGTH = 10000000.0 # strength of ribosome binding to an mRNA
     TRNA_CHRG_RATES = [50.0, 50.0] # strength of tRNA re-charging reaction [tRNA_a, tRNA_b]
     TRNA_PROPORTIONS = (0.1, 0.9) # tRNA proportions, i.e. 90% total tRNA is type A, other 10% is type B
     TOTAL_TRNA = 2500 # total tRNA
