@@ -283,7 +283,7 @@ PYBIND11_MODULE(core, m) {
 
            Makes translation dependent on tRNA abundances, by modifing the underlying propensity calculation for 
            ribosome movement (specifically, the baseline speed for each ribosome gets multiplied by the number 
-           of available charged tRNAs that correspond to the occupied codon). Rate constants for the tRNA re-charging 
+           of available charged tRNAs that correspond to its occupied codon). Rate constants for the tRNA re-charging 
            reaction can be set for each tRNA species independently. 
            
            Adding dynamic tRNAs is likely most useful for simulating codon usage bias, or for modeling situations 
