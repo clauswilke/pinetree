@@ -275,7 +275,28 @@ PYBIND11_MODULE(core, m) {
       .def("add_trna", (void (Model::*)(std::map<std::string, std::vector<std::string>>&, std::map<std::string, std::pair<int, int>>&, std::map<std::string, double>&)) &Model::AddtRNA, "codon_map"_a, "counts"_a, "rate_constants"_a, 
            R"doc(
 
-           Simulate translation with dynamic tRNAs.
+           Simulate translation with dynamic tRNAs. This make translation dependent on tRNA availability, 
+           by modifing the underlying propensity calculation for ribosome movement (specifically, the baseline speed 
+           for each ribosome gets multiplied by the number of charged cognate tRNAs). Rate constants for the 
+           tRNA re-charging reaction can be set for each tRNA species independently. Adding dynamic tRNAs 
+           is most useful for simulating codon usage bias, or for modeling situations where tRNA pools are 
+           extremely uneven. 
+
+           Args:
+              codon_map (dict): Specifies the codon:tRNA mapping (note that one codon 
+                  can map to multple tRNAs) 
+              counts (dict): Initial charged and uncharged counts for all tRNA species,
+                  specified as `tRNA_name: [<charged count>, <uncharged count>]`
+              rate_constants (dict): Charging rate constants for each tRNA species.
+            
+           Examples:
+
+                >>> sim = pt.Model(cell_volume=8e-16)
+                >>>
+                >>> tRNA_map = {"AAA": ["TTT", "TTG"], "TAT": ["ATA"]}
+                >>> tRNA_counts = {"TTT": [250, 0], "TTG": [50, 0], "ATA": [250, 0]}
+                >>> tRNA_rates = {"TTT": 100, "ATA": 100, "TTG": 10}
+                >>> sim.add_trna(tRNA_map, tRNA_counts, tRNA_rates)
 
            )doc")
       .def("add_ribosome", &Model::AddRibosome, "footprint"_a, "speed"_a,
@@ -518,11 +539,13 @@ PYBIND11_MODULE(core, m) {
       .def("add_seq", &Transcript::AddSequence, "seq"_a,
            R"doc(
             
-            Define the nucleotide sequence corresponding to this transcripts parent gene(s).
+            Define a nucleotide sequence for this transcript. Note that this should be 
+            the DNA sequence corresponding to the parent gene(s) (not the transcribed
+            RNA sequence).
 
             Args:
-                seq (string): The nucleotide sequence corresponding to this transcripts parent gene(s).
-                    This should be the same length as Transcript.
+                seq (string): The nucleotide sequence for this transcript. Should be the same length 
+                    as Transcript.
 
             )doc")
       .def("add_weights", &Transcript::AddWeights, "weights"_a,
