@@ -282,7 +282,7 @@ PYBIND11_MODULE(core, m) {
               This feature is currently experimental and may produce unexpected results.
 
            Makes translation dependent on tRNA abundances, by modifing the underlying propensity calculation for 
-           ribosome movement (specifically, the baseline speed for each ribosome gets multiplied by the number 
+           ribosome movement (specifically, the movement propensity for each ribosome gets multiplied by the number 
            of available charged tRNAs that correspond to its occupied codon). Rate constants for the tRNA re-charging 
            reaction can be set for each tRNA species independently. 
            
@@ -297,7 +297,7 @@ PYBIND11_MODULE(core, m) {
               codon_map (dict): Specifies the codon:tRNA mapping (note that one codon 
                   can map to multple tRNAs) 
               counts (dict): Initial charged and uncharged counts for all tRNA species,
-                  specified as `tRNA_name: [<charged count>, <uncharged count>]`
+                  specified as ``tRNA_name: [<charged count>, <uncharged count>]``
               rate_constants (dict): Charging rate constants for each tRNA species.
             
            Examples:
