@@ -42,7 +42,11 @@ void MobileElementManager::Insert(MobileElement::Ptr pol,
     for (auto const& anticodon : anticodons->second) {
       //std::cout << anticodon << std::endl;
       weight += tracker.species().find(anticodon + "_charged")->second;
-    }
+    } 
+  } else if (pol->name() == "__ribosome" && !weights_.empty()) {
+      weight--;
+      // weight propensity by index
+      weight += weights_[pol->stop() - 1];
   }
   // Update total move propensity of this polymer
   prop_sum_ += weight * pol->speed();
@@ -90,6 +94,9 @@ void MobileElementManager::UpdatePropensity(int index) {
       // std::cout << anticodon << std::endl;
       weight += tracker.species().find(anticodon + "_charged")->second;
     }
+  } else if (pol->name() == "__ribosome" && !weights_.empty()) {
+      weight--;
+      weight += weights_[pol->stop() - 1];
   }
   double new_speed = weight * pol->speed();
   double diff = new_speed - prop_list_[index];
@@ -174,6 +181,7 @@ Polymer::Polymer(const std::string &name, int start, int stop)
     : name_(name),
       start_(start),
       stop_(stop) {
+  polymerases_ = MobileElementManager();
   std::map<std::string, double> interaction_map;
   mask_ = Mask(stop_ + 1, stop_, interaction_map);
 }
@@ -697,15 +705,23 @@ Transcript::Transcript(
     const std::string &name, int start, int stop,
     const std::vector<Interval<BindingSite::Ptr>> &rbs_intervals,
     const std::vector<Interval<ReleaseSite::Ptr>> &stop_site_intervals,
-    const Mask &mask, const std::string &seq)
+    const Mask &mask, 
+    const std::string &seq, 
+    const std::vector<double> & weights)
     : Polymer(name, start, stop) {
   mask_ = mask;
   seq_ = seq;
+  weights_ = weights;
   binding_intervals_ = rbs_intervals;
   release_intervals_ = stop_site_intervals;
   attached_ = true;
+  // copy over sequence from the parent genome, if it exists
   if (!seq_.empty()) {
     polymerases_.set_sequence(seq_);
+  }
+  // copy over weights from the parent genome, if it exists
+  if (!weights_.empty()) {
+    polymerases_.set_weights(weights_);
   }
 }
 
@@ -745,6 +761,16 @@ void Transcript::AddSequence(const std::string &seq) {
   }
   polymerases_.set_sequence(seq);
   seq_ = seq;
+}
+
+void Transcript::AddWeights(const std::vector<double> &weights) {
+  if (weights.size() != (stop_ - start_ + 1)) { //start_ should always be 1
+    throw std::length_error("Provided weights not the correct size. " +
+                            std::to_string(weights.size()) + " " +
+                            std::to_string(stop_ - start_ + 1));
+  }
+  polymerases_.set_weights(weights);
+  weights_ = weights;
 }
 
 void Transcript::Bind(MobileElement::Ptr pol,
@@ -870,6 +896,16 @@ void Genome::AddRnaseSite(const std::string &name, int start,
   }
 }
 
+void Genome::AddWeights(const std::vector<double> &weights) {
+  if (weights.size() != (stop_ - start_ + 1)) { //start_ should always be 1
+    throw std::length_error("Provided weights not the correct size. " +
+                            std::to_string(weights.size()) + " " +
+                            std::to_string(stop_ - start_ + 1));
+  }
+  polymerases_.set_weights(weights);
+  weights_ = weights;
+}
+
 void Genome::AddSequence(const std::string &seq) {
   if (seq.size() != (stop_ - start_ + 1)) { //start_ should always be 1
     throw std::length_error("Provided sequence is not the correct size. " +
@@ -925,6 +961,6 @@ Transcript::Ptr Genome::BuildTranscript(int start, int stop) {
   // signals appropriately.
   transcript = std::make_shared<Transcript>("__rna", start, stop_,
                                             rbs_intervals, stop_site_intervals,
-                                            mask, seq_);
+                                            mask, seq_, weights_);
   return transcript;
 }

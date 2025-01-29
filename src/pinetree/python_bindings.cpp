@@ -378,11 +378,34 @@ PYBIND11_MODULE(core, m) {
       .def("add_sequence", &Genome::AddSequence, "seq"_a,
            R"doc(
             
-            Define the nucleotide sequence for the genome being simulated.
+            Define the nucleotide sequence for the genome being simulated. 
+
+            .. note::
+              
+              This is required for simulations with tRNAs.
 
             Args:
                 seq (string): The nucleotide sequence. This should be the same
                     length as Genome.
+
+            )doc")
+      .def("add_weights", &Genome::AddWeights, "weights"_a,
+           R"doc(
+            
+            Add translation weights for this genome. Can be used to specify codon-specific 
+            translation speeds.
+
+            .. note::
+              
+              Using weights in combination with tRNA tracking (with ``Model.add_trna``)
+              is not recommended. In the event that both are specified, the model will 
+              preferrentially try to use tRNA abundances to calculate ribosome speeds, 
+              essentially ignoring whatever ``weights`` is set to. 
+
+            Args:
+                weights (list): List of weights of same length as Genome. These
+                    weights are multiplied by the ribosome speed to calculate a 
+                    final translation rate at every position in the genome.
 
             )doc")
       .def("add_promoter", &Genome::AddPromoter, "name"_a, "start"_a, "stop"_a,
@@ -500,6 +523,17 @@ PYBIND11_MODULE(core, m) {
             Args:
                 seq (string): The nucleotide sequence corresponding to this transcripts parent gene(s).
                     This should be the same length as Transcript.
+
+            )doc")
+      .def("add_weights", &Transcript::AddWeights, "weights"_a,
+           R"doc(
+            
+            Define position-specific translation speed weights. These may correspond, for example, codon-specific 
+            translation rates. See also ``Genome.add_weights``.
+
+            Args:
+                weights (list): List of weights of same length as Transcript. These weights are multiplied by 
+                    the ribosome speed to calculate a final translation rate at every position in the genome.
 
             )doc");
 }

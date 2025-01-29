@@ -88,6 +88,7 @@ class MobileElementManager {
   int pair_count() const { return polymerases_.size(); }
   int pol_start(int index) const { return polymerases_[index].first->start(); }
   void set_sequence(const std::string &seq) { seq_ = seq; }
+  void set_weights(const std::vector<double> &weights) { weights_ = weights; }
 
  private:
   /**
@@ -114,6 +115,7 @@ class MobileElementManager {
    * Nucleotide sequence of the parent genome.
    */
   std::string seq_;
+  std::vector<double> weights_;
 };
 
 /**
@@ -399,7 +401,8 @@ class Transcript : public Polymer {
   Transcript(const std::string &name, int start, int stop,
              const std::vector<Interval<BindingSite::Ptr>> &rbs_intervals,
              const std::vector<Interval<ReleaseSite::Ptr>> &stop_site_intervals,
-             const Mask &mask, const std::string &seq);
+             const Mask &mask, const std::string &seq,
+             const std::vector<double> &weights);
   /**
    * Constructor of transcript used for specifying transcripts without Genome
    *
@@ -440,6 +443,8 @@ class Transcript : public Polymer {
    * so this should only be used when adding transcripts to the simulation directly.
    */
   void AddSequence(const std::string &seq);
+  void AddWeights(const std::vector<double> &weights);
+
 
  private:
   std::map<std::string, std::map<std::string, double>> bindings_;
@@ -447,6 +452,7 @@ class Transcript : public Polymer {
    * Nucleotide sequence of the parent genome.
    */  
   std::string seq_;
+  std::vector<double> weights_;
 };
 
 /**
@@ -482,7 +488,16 @@ class Genome : public Polymer {
                int rbs_stop, double rbs_strength);
   void AddRnaseSite(int start, int stop);
   void AddRnaseSite(const std::string &name, int start, int stop, double rnase_degradation_rate);
+  /**
+   * Add a nucleotide sequence for this genome. Used to calculate ribosome move propensities
+   * when tRNAs are in the simulation. 
+   */
   void AddSequence(const std::string &seq);
+  /**
+   * Add translation weights for this genome. Can be used to specify codon-specific translation speeds.
+   * Should not be used if also simulating tRNA dynamics.
+   */
+  void AddWeights(const std::vector<double> &weights);
   const std::map<std::string, std::map<std::string, double>> &bindings();
   const std::map<std::string, double> &rnase_bindings() { return rnase_bindings_; }
   const double &transcript_degradation_rate() {
@@ -513,6 +528,7 @@ class Genome : public Polymer {
   IntervalTree<BindingSite::Ptr> transcript_rbs_;
   IntervalTree<ReleaseSite::Ptr> transcript_stop_sites_;
   std::string seq_;
+  std::vector<double> weights_;
   std::map<std::string, std::map<std::string, double>> bindings_;
   std::map<std::string, double> rnase_bindings_;
   double transcript_degradation_rate_ = 0.0;
