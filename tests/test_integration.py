@@ -33,6 +33,9 @@ class MainTest(unittest.TestCase):
     def test_circular_genome(self):
         self.run_test("circular_genome")
 
+    def test_three_genes_recoded(self):
+        self.run_test("three_genes_recoded")
+
     # def test_three_genes(self):
     #     self.run_test('three_genes')
 
