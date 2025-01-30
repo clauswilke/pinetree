@@ -11,9 +11,11 @@ void SpeciesTracker::Clear() {
   species_.clear();
   promoter_map_.clear();
   species_map_.clear();
+  codon_map_.clear();
   transcripts_.clear();
   ribo_per_transcript_.clear();
   propensity_signal_.DisconnectAll();
+  unflag_force_update();
 }
 
 void SpeciesTracker::Register(SpeciesReaction::Ptr reaction) {
@@ -38,7 +40,7 @@ void SpeciesTracker::Increment(const std::string &species_name,
   } else {
     species_[species_name] += copy_number;
   }
-  if (species_map_.count(species_name) > 0) {
+  if (species_map_.count(species_name) > 0) { // is this correct?
     for (const auto &reaction : species_map_[species_name]) {
       propensity_signal_.Emit(reaction);
     }
@@ -184,6 +186,7 @@ const std::string SpeciesTracker::GatherCounts(double time_stamp) {
                                "\t" + std::to_string(row.second[0]) + "\t" +
                                std::to_string(row.second[1]) + "\t" +
                                std::to_string(row.second[2]) + "\n");
+
   }
   return out_string;
 }

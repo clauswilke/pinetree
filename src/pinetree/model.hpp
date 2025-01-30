@@ -23,11 +23,22 @@ class Model : public std::enable_shared_from_this<Model> {
    *
    * @param prefix for output files
    */
-  void Simulate(int time_limit, int time_step, const std::string &output);
+  void Simulate(int time_limit, double time_step, const std::string &output);
   /**
    * Set a seed for random number generator.
    */
   void seed(int seed);
+  /**
+   * Method for adding dynamic tRNAs to the simulation. Supports species-specific charging
+   * rates and wobble base pairings. 
+   * 
+   * @param codon_map the codon-anticodon pairs
+   * @param counts Intial species counts for charged and uncharged tRNAs
+   * @param rate_constants charging rate for each tRNA species
+   */ 
+  void AddtRNA(std::map<std::string, std::vector<std::string>> &codon_map, 
+               std::map<std::string, std::pair<int, int>> &counts, 
+               std::map<std::string, double> &rate_constants);
   /**
    * Add species to simulation.
    *
@@ -43,7 +54,7 @@ class Model : public std::enable_shared_from_this<Model> {
    * @param mean_speed mean speed of polymerase
    * @param copy_number copy number of free polymerase
    */
-  void AddPolymerase(const std::string &name, int footprint, double mean_speed,
+  void AddPolymerase(const std::string &name, int footprint, double speed,
                      int copy_number);
    /**
    * Add a polymerase to the simulation that will read through the end of 
@@ -51,16 +62,16 @@ class Model : public std::enable_shared_from_this<Model> {
    *
    * @param name polymerase name
    * @param footprint footprint (in basepairs) of polymerase on DNA
-   * @param mean_speed mean speed of polymerase
+   * @param speed mean speed of polymerase
    * @param copy_number copy number of free polymerase
    */
-  void AddPolymeraseWithReadthrough(const std::string &name, int footprint, double mean_speed,
+  void AddPolymeraseWithReadthrough(const std::string &name, int footprint, double speed,
                      int copy_number);
   /**
    * Add a ribosome to simulation.
    *
    * @param footprint footprint (in basepairs) of ribosome on RNA
-   * @param mean_speed mean speed of ribosome
+   * @param speed mean speed of ribosome
    * @param copy_number copy number of free ribosomes
    */
   void AddRibosome(int footprint, double mean_speed, int copy_number);
@@ -72,6 +83,9 @@ class Model : public std::enable_shared_from_this<Model> {
    * @param products vector of product names
    */
   void AddReaction(double rate_constant,
+                   const std::vector<std::string> &reactants,
+                   const std::vector<std::string> &products);
+  void AddtRNAReaction(double rate_constant,
                    const std::vector<std::string> &reactants,
                    const std::vector<std::string> &products);
   /**

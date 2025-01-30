@@ -85,7 +85,7 @@ ReleaseSite::Ptr ReleaseSite::Clone() const {
   return std::make_shared<ReleaseSite>(*this);
 }
 
-MobileElement::MobileElement(const std::string &name, int footprint, int speed)
+MobileElement::MobileElement(const std::string &name, int footprint, double speed)
     : name_(name), footprint_(footprint), speed_(speed), reading_frame_(-1) {
   start_ = 0;
   stop_ = start_ + footprint_;
@@ -101,20 +101,31 @@ MobileElement::MobileElement(const std::string &name, int footprint, int speed)
 
 MobileElement::~MobileElement(){};
 
-Polymerase::Polymerase(const std::string &name, int footprint, int speed)
+Polymerase::Polymerase(const std::string &name, int footprint, double speed)
     : MobileElement(name, footprint, speed) {
   reading_frame_ = -1;
 }
 
 void Polymerase::Move() {
-  start_++;
-  stop_++;
+
+  if (name_ == "__ribosome" && !SpeciesTracker::Instance().codon_map().empty()) {
+    start_ += 3;
+    stop_ += 3;
+  } else {
+    start_++;
+    stop_++;
+  }
 }
 
 void Polymerase::MoveBack() {
   if (start_ > 0) {
-    start_--;
-    stop_--;
+    if (name_ == "__ribosome" && !SpeciesTracker::Instance().codon_map().empty()) {
+    start_ -= 3;
+    stop_ -= 3;
+    } else {
+      start_--;
+      stop_--;
+    }
   } else {
     throw std::runtime_error(
         "Attempting to assign negative start position to Polymerase object '" +
@@ -149,5 +160,6 @@ void Mask::MoveBack() {
 }
 
 
-Rnase::Rnase(int footprint, int speed)
+Rnase::Rnase(int footprint, double speed)
     : MobileElement("__rnase", footprint, speed) {}
+    

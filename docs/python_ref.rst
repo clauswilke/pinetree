@@ -16,7 +16,7 @@ Model
 Genome
 ------
 .. autoclass:: Genome
-    :members: add_gene, add_mask, add_promoter, add_terminator, add_weights
+    :members: add_gene, add_mask, add_promoter, add_terminator, add_weights, add_sequence
     
     .. method:: add_rnase_site(name, start, stop, rate)
 
@@ -38,3 +38,8 @@ Genome
             In this case, ``add_rnase_site()`` will only accept values for start and stop,
             and all rnase binding sites will be initialized with the same rate constant. 
             Warning: This method is deprecated and may be removed in the future.
+
+Transcript
+----------
+.. autoclass:: Transcript
+    :members:

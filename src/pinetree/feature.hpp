@@ -244,7 +244,7 @@ class MobileElement : public std::enable_shared_from_this<MobileElement> {
    * @param footprint footpring of this mobile element in base pairs
    * @param speed average speed of this polymerase in bp/s
    */
-  MobileElement(const std::string &name, int footprint, int speed);
+  MobileElement(const std::string &name, int footprint, double speed);
   /**
    * Force child classes to explicitly define a destructor.
    */
@@ -334,8 +334,7 @@ class Polymerase : public MobileElement {
    * @param footprint polymerase footprint
    * @param speed speed of polymerase
    */
-  Polymerase(const std::string &name, int footprint, int speed); 
-
+  Polymerase(const std::string &name, int footprint, double speed);
   /**
    * Polymerase does not create or accept any new resources (i.e. pointers)
    */
@@ -414,7 +413,7 @@ class Rnase : public MobileElement {
    * @param footprint footprint of Rnase
    * @param speed average speed that Rnase degrades polymer
    */
-  Rnase(int footprint, int speed);
+  Rnase(int footprint, double speed);
   /**
    * Rnase does not create or accept any new resources (i.e. pointers)
    */

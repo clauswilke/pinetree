@@ -1,5 +1,11 @@
 # Changelog
 
+## Pinetree 0.4.1
+
+- Adds tRNA dynamics as an experimental/beta feature.
+- Fixes bug where RBS propensities are calculated incorrectly when manually adding transcripts to simulations.
+- Makes all polymerase speed constants doubles/floats instead of ints.
+
 ## Pinetree 0.4.0
 
 - Pinetree can now simulate circular genome expression.

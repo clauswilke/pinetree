@@ -146,3 +146,15 @@ void PolymerWrapper::Execute() {
     // std::cout << "Removing polymer wrapper...\n" << std::endl;
   }
 }
+
+double PolymerWrapper::CalculatePropensity() {
+    if (remove_ == true) {
+      old_prop_ = 0;
+    }
+    if (!SpeciesTracker::Instance().codon_map().empty()) {
+      polymer_->UpdateAllPropensities();
+    }
+    double new_prop = polymer_->prop_sum() - old_prop_;
+    old_prop_ = polymer_->prop_sum();
+    return new_prop;
+  }

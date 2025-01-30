@@ -154,7 +154,7 @@ PYBIND11_MODULE(core, m) {
       internal use only.
   
       [])doc")
-      .def(py::init<std::vector<double>>())
+      .def(py::init())
       .def("insert", &MobileElementManager::Insert)
       .def("delete", &MobileElementManager::Delete)
       .def("choose", &MobileElementManager::Choose)
@@ -272,6 +272,44 @@ PYBIND11_MODULE(core, m) {
                   the genome
 
            )doc")
+      .def("add_trna", (void (Model::*)(std::map<std::string, std::vector<std::string>>&, std::map<std::string, std::pair<int, int>>&, std::map<std::string, double>&)) &Model::AddtRNA, "codon_map"_a, "counts"_a, "rate_constants"_a, 
+           R"doc(
+
+           Simulate translation with dynamic tRNAs. 
+
+           .. note::
+              
+              This feature is currently experimental and may produce unexpected results.
+
+           Makes translation dependent on tRNA abundances, by modifing the underlying propensity calculation for 
+           ribosome movement (specifically, the movement propensity for each ribosome gets multiplied by the number 
+           of available charged tRNAs that correspond to its occupied codon). Rate constants for the tRNA re-charging 
+           reaction can be set for each tRNA species independently. 
+           
+           Adding dynamic tRNAs is likely most useful for simulating codon usage bias, or for modeling situations 
+           where tRNA pools are extremely uneven.
+
+           .. warning::
+              
+              Simulations with tRNA dynamics turned on can be very slow. 
+
+           Args:
+              codon_map (dict): Specifies the codon:tRNA mapping (note that one codon 
+                  can map to multple tRNAs) 
+              counts (dict): Initial charged and uncharged counts for all tRNA species,
+                  specified as ``tRNA_name: [<charged count>, <uncharged count>]``
+              rate_constants (dict): Charging rate constants for each tRNA species.
+            
+           Examples:
+
+                >>> sim = pt.Model(cell_volume=8e-16)
+                >>>
+                >>> tRNA_map = {"AAA": ["TTT", "TTG"], "TAT": ["ATA"]}
+                >>> tRNA_counts = {"TTT": [250, 0], "TTG": [50, 0], "ATA": [250, 0]}
+                >>> tRNA_rates = {"TTT": 100, "ATA": 100, "TTG": 10}
+                >>> sim.add_trna(tRNA_map, tRNA_counts, tRNA_rates)
+
+           )doc")
       .def("add_ribosome", &Model::AddRibosome, "footprint"_a, "speed"_a,
            "copy_number"_a, R"doc(
 
@@ -285,7 +323,7 @@ PYBIND11_MODULE(core, m) {
            
            Args:
               copy_number (int): Initial number of copies of free ribosomes
-              speed (int): Mean speed, in base pairs per second, at which the 
+              speed (double): Mean speed, in base pairs per second, at which the 
                   ribosome translates. This speed will be scaled on a per site
                   basis if translation weights are defined. (See 
                   Genome.AddWeights).
@@ -322,7 +360,7 @@ PYBIND11_MODULE(core, m) {
                     takes for the simulation to complete depends on the number 
                     of reactions and species (genomes, transcripts, proteins, 
                     etc) in the system.
-                time_step (int): Time interval, in seconds, that species counts 
+                time_step (double): Time interval, in seconds, that species counts 
                     are reported.
                 output (str): Name of output file (default: counts.tsv).
 
@@ -369,10 +407,32 @@ PYBIND11_MODULE(core, m) {
                     genome.
             
             )doc")
+      .def("add_sequence", &Genome::AddSequence, "seq"_a,
+           R"doc(
+            
+            Define the nucleotide sequence for the genome being simulated. 
+
+            .. note::
+              
+              This is required for simulations with tRNAs.
+
+            Args:
+                seq (string): The nucleotide sequence. This should be the same
+                    length as Genome.
+
+            )doc")
       .def("add_weights", &Genome::AddWeights, "weights"_a,
            R"doc(
             
-            Define position-specific translation speed weights. These may correspond, for example, codon-specific translation rates.
+            Add translation weights for this genome. Can be used to specify codon-specific 
+            translation speeds.
+
+            .. note::
+              
+              Using weights in combination with tRNA tracking (with ``Model.add_trna``)
+              is not recommended. In the event that both are specified, the model will 
+              preferrentially try to use tRNA abundances to calculate ribosome speeds, 
+              essentially ignoring whatever ``weights`` is set to. 
 
             Args:
                 weights (list): List of weights of same length as Genome. These
@@ -487,13 +547,27 @@ PYBIND11_MODULE(core, m) {
                     and ribosome binding site.
 
             )doc")
+      .def("add_seq", &Transcript::AddSequence, "seq"_a,
+           R"doc(
+            
+            Define a nucleotide sequence for this transcript. Note that this should be 
+            the DNA sequence corresponding to the parent gene(s) (not the transcribed
+            RNA sequence).
+
+            Args:
+                seq (string): The nucleotide sequence for this transcript. Should be the same length 
+                    as Transcript.
+
+            )doc")
       .def("add_weights", &Transcript::AddWeights, "weights"_a,
            R"doc(
             
-            Define position-specific translation speed weights. These may correspond, for example, codon-specific translation rates.
+            Define position-specific translation speed weights. These may correspond, for example, codon-specific 
+            translation rates. See also ``Genome.add_weights``.
 
             Args:
-                weights (list): List of weights of same length as Transcript. These weights are multiplied by the ribosome speed to calculate a final translation rate at every position in the genome.
+                weights (list): List of weights of same length as Transcript. These weights are multiplied by 
+                    the ribosome speed to calculate a final translation rate at every position in the genome.
 
             )doc");
 }

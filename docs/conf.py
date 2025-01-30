@@ -38,7 +38,7 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx.ext.napoleon',
     'breathe',
-    'sphinx.ext.mathjax'
+#    'sphinx.ext.mathjax'
 ]
 
 autosummary_generate = True

@@ -32,11 +32,13 @@ class Reaction : public std::enable_shared_from_this<Reaction> {
    * @return true if reaction should be removed
    */
   bool remove() { return remove_; }
+  bool is_tRNA() { return tRNA_reaction_; }
   /**
    * Some getters and setters.
    */
   virtual int index() const { return index_; }
   virtual void index(int index) { index_ = index; }
+  virtual void mark_tRNA() { tRNA_reaction_ = true; }
 
  protected:
   /**
@@ -49,6 +51,10 @@ class Reaction : public std::enable_shared_from_this<Reaction> {
    * Flag to mark reaction for removal.
    */
   bool remove_ = false;
+  /**
+   * Reaction impacts ribosome movement propensities.
+   */
+  bool tRNA_reaction_ = false;
 };
 
 /**
@@ -232,14 +238,7 @@ class PolymerWrapper : public Reaction {
    *
    * @return total propensity of reactions within polymer
    */
-  double CalculatePropensity() {
-    if (remove_ == true) {
-      old_prop_ = 0;
-    }
-    double new_prop = polymer_->prop_sum() - old_prop_;
-    old_prop_ = polymer_->prop_sum();
-    return new_prop;
-  }
+  double CalculatePropensity();
   /**
    * Execute reaction within polymer (e.g. typically moving a polymerase)
    */

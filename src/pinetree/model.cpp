@@ -1,6 +1,7 @@
 #include <cmath>
 #include <fstream>
 #include <iostream>
+#include <set>
 
 #include "choices.hpp"
 #include "model.hpp"
@@ -17,7 +18,7 @@ Model::Model(double cell_volume) : cell_volume_(cell_volume) {
 
 void Model::seed(int seed) { Random::seed(seed); }
 
-void Model::Simulate(int time_limit, int time_step,
+void Model::Simulate(int time_limit, double time_step,
                      const std::string &output = "counts.tsv") {
   auto &tracker = SpeciesTracker::Instance();
   Initialize();
@@ -25,7 +26,7 @@ void Model::Simulate(int time_limit, int time_step,
   std::ofstream countfile(output, std::ios::trunc);
   // Output header
   countfile << "time\tspecies\tprotein\ttranscript\tribo_density\n";
-  int out_time = 0;
+  double out_time = 0.0;
   while (gillespie_.time() < time_limit) {
     if ((out_time - gillespie_.time()) < 0.001) {
       countfile << tracker.GatherCounts(gillespie_.time());
@@ -38,11 +39,42 @@ void Model::Simulate(int time_limit, int time_step,
   std::cout << "Simulation successful. Ignore any warnings that follow." << std::endl;
 }
 
+void Model::AddtRNA(std::map<std::string, std::vector<std::string>> &codon_map, 
+                    std::map<std::string, std::pair<int, int>> &counts, 
+                    std::map<std::string, double> &rate_constants) {
+  auto &tracker = SpeciesTracker::Instance();
+  for (auto const& trna : counts) {
+    // Add initial charged tRNA species
+    tracker.Increment(trna.first + "_charged", trna.second.first);
+    // Add initial uncharged tRNA species
+    tracker.Increment(trna.first + "_uncharged", trna.second.second);
+    double rate_constant = rate_constants.find(trna.first)->second;
+    AddtRNAReaction(rate_constant, {trna.first + "_uncharged"}, {trna.first + "_charged"});
+  }
+  tracker.codon_map(codon_map);
+}
+
 void Model::AddReaction(double rate_constant,
                         const std::vector<std::string> &reactants,
                         const std::vector<std::string> &products) {
   auto rxn = std::make_shared<SpeciesReaction>(rate_constant, cell_volume_,
                                                reactants, products);
+  auto &tracker = SpeciesTracker::Instance();
+  for (const auto &reactant : reactants) {
+    tracker.Add(reactant, rxn);
+  }
+  for (const auto &product : products) {
+    tracker.Add(product, rxn);
+  }
+  gillespie_.LinkReaction(rxn);
+}
+
+void Model::AddtRNAReaction(double rate_constant,
+                        const std::vector<std::string> &reactants,
+                        const std::vector<std::string> &products) {
+  auto rxn = std::make_shared<SpeciesReaction>(rate_constant, cell_volume_,
+                                               reactants, products);
+  rxn->mark_tRNA(); // this reaction impacts tRNA pools
   auto &tracker = SpeciesTracker::Instance();
   for (const auto &reactant : reactants) {
     tracker.Add(reactant, rxn);
@@ -64,24 +96,24 @@ void Model::AddSpecies(const std::string &name, int copy_number) {
 }
 
 void Model::AddPolymerase(const std::string &name, int footprint,
-                          double mean_speed, int copy_number) {
-  auto pol = Polymerase(name, footprint, mean_speed);
+                          double speed, int copy_number) {
+  auto pol = Polymerase(name, footprint, speed);
   polymerases_.push_back(pol);
   auto &tracker = SpeciesTracker::Instance();
   tracker.Increment(name, copy_number);
 }
 
 void Model::AddPolymeraseWithReadthrough(const std::string &name, int footprint,
-                          double mean_speed, int copy_number) {
-  auto pol = Polymerase(name, footprint, mean_speed);
+                          double speed, int copy_number) {
+  auto pol = Polymerase(name, footprint, speed);
   pol.polymerasereadthrough(true); 
   polymerases_.push_back(pol);
   auto &tracker = SpeciesTracker::Instance();
   tracker.Increment(name, copy_number);
 }
 
-void Model::AddRibosome(int footprint, double mean_speed, int copy_number) {
-  auto pol = Polymerase("__ribosome", footprint, mean_speed);
+void Model::AddRibosome(int footprint, double speed, int copy_number) {
+  auto pol = Polymerase("__ribosome", footprint, speed);
   polymerases_.push_back(pol);
   auto &tracker = SpeciesTracker::Instance();
   tracker.Increment("__ribosome", copy_number);
@@ -174,19 +206,23 @@ void Model::Initialize() {
   }
   
   // Initialize transcripts that have been defined independently of genome
+  std::set <std::string> rbs_names;
   for (Transcript::Ptr transcript : transcripts_) {
     for (auto rbs_name : transcript->bindings()) {
-      for (auto pol : polymerases_) {
-        if (rbs_name.second.count(pol.name()) != 0) {
-          double rate_constant = rbs_name.second[pol.name()];
-          Polymerase pol_template = Polymerase(pol);
-          auto reaction = std::make_shared<BindPolymerase>(
-              rate_constant, cell_volume_, rbs_name.first, pol_template);
-          auto &tracker = SpeciesTracker::Instance();
-          tracker.Add(rbs_name.first, reaction);
-          tracker.Add(pol.name(), reaction);
-          gillespie_.LinkReaction(reaction);
+      if (rbs_names.find(rbs_name.first) == rbs_names.end()) { // only make reactions for unique RBS sites
+        for (auto pol : polymerases_) {
+          if (rbs_name.second.count(pol.name()) != 0) {
+            double rate_constant = rbs_name.second[pol.name()];
+            Polymerase pol_template = Polymerase(pol);
+            auto reaction = std::make_shared<BindPolymerase>(
+                rate_constant, cell_volume_, rbs_name.first, pol_template);
+            auto &tracker = SpeciesTracker::Instance();
+            tracker.Add(rbs_name.first, reaction);
+            tracker.Add(pol.name(), reaction);
+            gillespie_.LinkReaction(reaction);
+          }
         }
+        rbs_names.insert(rbs_name.first);
       }
     }
   }

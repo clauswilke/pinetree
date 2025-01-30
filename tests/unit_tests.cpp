@@ -59,10 +59,7 @@ TEST_CASE("Add fixed elements to a genome")
 
 TEST_CASE("MobileElementManager Insert") 
 {
-    //The MobileElementManager constructor expects a vector of weights
-    //but the values have no bearing on this particular test
-    std::vector<double> weights = {30, 1.0};
-    MobileElementManager manager = MobileElementManager(weights);
+    MobileElementManager manager = MobileElementManager();
 
     //Make two polymerases and give them unique start positions
     auto polymerase1 = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 40));
@@ -82,10 +79,7 @@ TEST_CASE("MobileElementManager Insert")
 
 TEST_CASE("MobileElementManager Delete")
 {
-    //The MobileElementManager constructor expects a vector of weights
-    //but the values have no bearing on this particular test
-    std::vector<double> weights = {30, 1.0};
-    MobileElementManager manager = MobileElementManager(weights);
+    MobileElementManager manager = MobileElementManager();
     
     auto polymerase1 = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 40));
     auto polymerase2 = std::make_shared<Polymerase>(Polymerase("rnapol", 10, 40));

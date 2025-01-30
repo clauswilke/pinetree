@@ -14,7 +14,7 @@ from setuptools.command.test import test as TestCommand
 from shutil import copyfile, copymode
 
 PROJECT_NAME = "pinetree"
-VERSION = "0.4.0"
+VERSION = "0.4.1"
 
 class CMakeExtension(Extension):
     def __init__(self, name, sourcedir=''):
@@ -59,6 +59,11 @@ class CMakeBuild(build_ext):
         else:
             cmake_args += ['-DCMAKE_BUILD_TYPE=' + cfg]
             build_args += ['--', '-j2']
+
+        # uncomment for openMP support
+
+        #if platform.system() == "Darwin": # force compile with gcc instead of clang
+        #    cmake_args += ["-DCMAKE_C_COMPILER=gcc-14", "-DCMAKE_CXX_COMPILER=g++-14"]
 
         env = os.environ.copy()
         env['CXXFLAGS'] = '{} -DVERSION_INFO=\\"{}\\"'.format(
