@@ -14,7 +14,7 @@ from setuptools.command.test import test as TestCommand
 from shutil import copyfile, copymode
 
 PROJECT_NAME = "pinetree"
-VERSION = "0.4.0"
+VERSION = "0.4.1"
 
 class CMakeExtension(Extension):
     def __init__(self, name, sourcedir=''):
