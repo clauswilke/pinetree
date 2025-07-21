@@ -1,5 +1,9 @@
 # Changelog
 
+## Pinetree 0.5.0
+
+- Full release for tRNA dynamics feature.
+
 ## Pinetree 0.4.1
 
 - Adds tRNA dynamics as an experimental/beta feature.
